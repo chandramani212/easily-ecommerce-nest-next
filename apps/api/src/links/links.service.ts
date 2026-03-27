@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Link, CreateLinkDto, UpdateLinkDto } from '@repo/api';
+import { Link, CreateLinkDto, UpdateLinkDto } from '@repo/backend';
 
 @Injectable()
 export class LinksService {
+  private _nextId = 3;
   private readonly _links: Link[] = [
     {
       id: 0,
@@ -26,23 +27,35 @@ export class LinksService {
     },
   ];
 
-  create(createLinkDto: CreateLinkDto) {
-    return `TODO: This action should add a new link '${createLinkDto.title}'`;
+  create(createLinkDto: CreateLinkDto): Link {
+    const link: Link = { id: this._nextId++, ...createLinkDto };
+    this._links.push(link);
+    return link;
   }
 
-  findAll() {
+  findAll(): Link[] {
     return this._links;
   }
 
-  findOne(id: number) {
-    return `TODO: This action should return a Link with id #${id}`;
+  findOne(id: number): Link {
+    const link = this._links.find((l) => l.id === id);
+    if (!link) {
+      throw new NotFoundException(`Link with id #${id} not found`);
+    }
+    return link;
   }
 
-  update(id: number, updateLinkDto: UpdateLinkDto) {
-    return `TODO: This action should update a #${id} link ${updateLinkDto.title}`;
+  update(id: number, updateLinkDto: UpdateLinkDto): Link {
+    const link = this.findOne(id);
+    Object.assign(link, updateLinkDto);
+    return link;
   }
 
-  remove(id: number) {
-    return `TODO: This action should remove a #${id} link`;
+  remove(id: number): Link {
+    const index = this._links.findIndex((l) => l.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Link with id #${id} not found`);
+    }
+    return this._links.splice(index, 1)[0];
   }
 }

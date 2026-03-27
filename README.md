@@ -21,9 +21,9 @@ A sample starter project using **NestJS** (API) and **Next.js** (web app) in a *
 ```
 ├── apps/
 │   ├── api/          # NestJS backend (Express)
-│   └── web/          # Next.js frontend (port 3001)
+│   └── web/          # Next.js frontend (port 3000)
 ├── packages/
-│   ├── api/          # Shared API types/utilities (@repo/api)
+│   ├── backend/      # Shared API types/utilities (@repo/backend)
 │   ├── eslint-config # Shared ESLint config
 │   ├── jest-config   # Shared Jest config
 │   ├── tailwind-config
@@ -48,8 +48,8 @@ pnpm install
 pnpm dev
 ```
 
-- **API**: NestJS with watch mode (default port from Nest config, often 3000)  
-- **Web**: Next.js at **http://localhost:3001**
+- **Web**: Next.js at **http://localhost:3000**  
+- **API**: NestJS with watch mode at **http://localhost:3001**
 
 ### Run individual apps
 
@@ -104,13 +104,13 @@ pnpm format
 ## Workspace Packages
 
 - **`@repo/ui`** – Shared React components and Tailwind styles; used by `web`.
-- **`@repo/api`** – Shared API code (e.g. DTOs, types); used by `api`.
+- **`@repo/backend`** – Shared API code (e.g. DTOs, types); used by `api`.
 - **`@repo/eslint-config`**, **`@repo/jest-config`**, **@repo/tailwind-config**, **@repo/typescript-config** – Shared tooling configs.
 
 ## Customization
 
+- **Web port**: Set in `apps/web/package.json` (`"dev": "next dev --port 3000"`).
 - **API port**: Configure in `apps/api/src/main.ts` (or your Nest bootstrap).
-- **Web port**: Set in `apps/web/package.json` (`"dev": "next dev --port 3001"`).
 - Add new apps under `apps/` and new shared packages under `packages/`, then list them in `pnpm-workspace.yaml` (already covered by `apps/*` and `packages/*`).
 
 ## License
