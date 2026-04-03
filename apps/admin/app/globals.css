@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@import "@repo/tailwind-config";
+
+:root {
+  --admin-fg: #0f172a;
+  --admin-bg: #f8fafc;
+  --admin-card: #ffffff;
+  --admin-sidebar: #1e293b;
+  --admin-sidebar-fg: #e2e8f0;
+  --admin-border: #e2e8f0;
+  --admin-muted: #f1f5f9;
+  --admin-accent: #4f46e5;
+  --admin-accent-fg: #ffffff;
+}
+
+.dark {
+  --admin-fg: #e2e8f0;
+  --admin-bg: #0f172a;
+  --admin-card: #1e293b;
+  --admin-sidebar: #0f172a;
+  --admin-sidebar-fg: #e2e8f0;
+  --admin-border: #334155;
+  --admin-muted: #1e293b;
+  --admin-accent: #818cf8;
+  --admin-accent-fg: #ffffff;
+}
+
+body {
+  color: var(--admin-fg);
+  background-color: var(--admin-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
