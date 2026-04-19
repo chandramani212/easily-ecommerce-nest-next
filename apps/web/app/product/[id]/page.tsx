@@ -4,6 +4,51 @@ import { Footer } from "../../../components/footer";
 import { Breadcrumb } from "../../../components/breadcrumb";
 import { ProductDetail } from "./product-detail";
 
+export function generateStaticParams() {
+  return [
+    { id: "1" },
+    { id: "2" },
+    { id: "3" },
+    { id: "4" },
+    { id: "5" },
+    { id: "6" },
+    { id: "7" },
+    { id: "8" },
+    { id: "9" },
+    { id: "10" },
+    { id: "11" },
+    { id: "12" },
+    { id: "13" },
+    { id: "14" },
+    { id: "15" },
+    { id: "16" },
+    { id: "custom-logo-hoodie" },
+    { id: "branded-notebook-set" },
+    { id: "company-polo-shirt" },
+    { id: "printed-tote-bag" },
+    { id: "custom-water-bottle" },
+    { id: "branded-usb-drive-64gb" },
+    { id: "logo-embossed-pen-set" },
+    { id: "custom-desk-calendar" },
+    { id: "classic-crew-neck-tee" },
+    { id: "premium-v-neck-t-shirt" },
+    { id: "oversized-graphic-tee" },
+    { id: "organic-cotton-t-shirt" },
+    { id: "performance-dry-fit-tee" },
+    { id: "long-sleeve-brand-tee" },
+    { id: "vintage-wash-tee" },
+    { id: "pocket-logo-t-shirt" },
+    { id: "branded-a5-notebook" },
+    { id: "custom-sticky-notes-pack" },
+    { id: "logo-ballpoint-pen--10-pk-" },
+    { id: "branded-planner-2026" },
+    { id: "custom-bookmark-set" },
+    { id: "printed-folder-portfolio" },
+    { id: "logo-washi-tape-set" },
+    { id: "branded-pencil-case" },
+  ];
+}
+
 const MOCK_PRODUCT = {
   name: "Wireless Noise-Cancelling Headphones",
   price: 79.99,
@@ -18,9 +63,10 @@ const MOCK_PRODUCT = {
     { id: "5", color: "#3730a3", label: "Packaging" },
   ],
   description:
-    "Experience premium sound quality with our Wireless Noise-Cancelling Headphones. Featuring advanced active noise cancellation technology, these headphones deliver crystal-clear audio in any environment. The ergonomic over-ear design provides maximum comfort for extended listening sessions, while the 30-hour battery life ensures your music never stops. With Bluetooth 5.3 connectivity, seamless device switching, and a built-in microphone for calls, these headphones are the perfect companion for work, travel, and everyday listening.",
+    "Save the day and bestow your clients with immense power by giving out this adult super hero cape! It measures 44\" x 28\", is made of polyester knitted fabric, and features a Velcro closure around the neck. This party / costume favorite features a large 14\" x 14\" imprint area on the back where you can add your company name or logo. You could also have this personalized to make it a little more special. Power up your marketing efforts with this as your next promotion!",
+  colorVariations: "Orange, Red, Purple, Green, White, Black, Yellow, Navy Blue, Royal Blue, Light Blue, Silver",
   additionalInfo:
-    "Driver Size: 40mm | Frequency Response: 20Hz - 20kHz | Battery Life: 30 hours (ANC on), 45 hours (ANC off) | Charging: USB-C, 10 min = 3 hours playback | Weight: 250g | Bluetooth: 5.3 with multipoint | Noise Cancellation: Hybrid Active | Foldable: Yes | Included: Carrying case, USB-C cable, 3.5mm audio cable, airplane adapter.",
+    "Material: 100% Polyester Knitted Fabric | Size: 44\" x 28\" | Imprint Area: 14\" x 14\" (back) | Closure: Velcro neck closure | Weight: 0.15 lbs | Minimum Order: 50 units | Production Time: 5-7 business days | Packaging: Individual poly bag",
   quantityPricing: [
     { quantity: "1+", price: 79.99 },
     { quantity: "5+", price: 74.99 },

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -26,12 +28,12 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
             </svg>
           )}
           {item.href ? (
-            <a
+            <Link
               href={item.href}
               className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
             >
               {item.label}
-            </a>
+            </Link>
           ) : (
             <span className="text-[var(--foreground)]">{item.label}</span>
           )}

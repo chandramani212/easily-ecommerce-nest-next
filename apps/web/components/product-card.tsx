@@ -1,4 +1,4 @@
-import { Button } from "@repo/ui/button";
+import Link from "next/link";
 
 interface ProductCardProps {
   name: string;
@@ -6,6 +6,7 @@ interface ProductCardProps {
   originalPrice?: number;
   badge?: string;
   color: string;
+  href?: string;
 }
 
 export function ProductCard({
@@ -14,15 +15,21 @@ export function ProductCard({
   originalPrice,
   badge,
   color,
+  href,
 }: ProductCardProps) {
+  const slug = href || `/product/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
   return (
-    <div className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background)] transition-all hover:-translate-y-1 hover:shadow-lg">
+    <Link
+      href={slug}
+      className="group block overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+    >
       <div
         className="relative flex h-52 items-center justify-center"
         style={{ backgroundColor: color }}
       >
         {badge && (
-          <span className="absolute left-3 top-3 rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
             {badge}
           </span>
         )}
@@ -39,21 +46,19 @@ export function ProductCard({
         </svg>
       </div>
       <div className="p-4">
-        <h3 className="font-medium leading-snug">{name}</h3>
-        <div className="mt-2 flex items-center gap-2">
+        <h3 className="font-medium leading-snug text-[var(--foreground)]">{name}</h3>
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-sm text-[var(--foreground)]/50">from</span>
           <span className="text-lg font-bold text-[var(--accent)]">
             ${price.toFixed(2)}
           </span>
           {originalPrice && (
-            <span className="text-sm text-[var(--foreground)]/40 line-through">
+            <span className="text-sm text-[var(--foreground)]/35 line-through">
               ${originalPrice.toFixed(2)}
             </span>
           )}
         </div>
-        <Button size="sm" className="mt-3 w-full">
-          Add to Cart
-        </Button>
       </div>
-    </div>
+    </Link>
   );
 }

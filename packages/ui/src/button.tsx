@@ -10,7 +10,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "ui:bg-indigo-600 ui:text-white hover:ui:bg-indigo-700 active:ui:bg-indigo-800",
+   "ui:bg-emerald-600 ui:text-white hover:ui:bg-emerald-700 active:ui:bg-emerald-800",
   secondary:
     "ui:bg-neutral-200 ui:text-neutral-900 hover:ui:bg-neutral-300 active:ui:bg-neutral-400 dark:ui:bg-neutral-700 dark:ui:text-neutral-100 dark:hover:ui:bg-neutral-600",
   outline:
@@ -34,7 +34,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`ui:inline-flex ui:items-center ui:justify-center ui:rounded-lg ui:font-medium ui:transition-colors ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-indigo-500 ui:disabled:pointer-events-none ui:disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`ui:inline-flex ui:items-center ui:justify-center ui:rounded-lg ui:font-medium ui:transition-colors ui:focus-visible:outline-2 ui:focus-visible:outline-offset-2 ui:focus-visible:outline-emerald-500 ui:disabled:pointer-events-none ui:disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {children}

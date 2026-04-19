@@ -1,0 +1,8 @@
+
+
+Let start Building  apps/admin dashboard page is already build 
+Bulid login page as this is a admin panel i will have login compulsory
+i want to build product pages, product list shoule iclude import and export 
+    Add product should include tier pricing option 
+
+    

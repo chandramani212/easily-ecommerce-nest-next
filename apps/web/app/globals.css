@@ -2,23 +2,12 @@
 @import "@repo/tailwind-config";
 
 :root {
-  --foreground: #0f172a;
+  --foreground: #1b2e4b;
   --background: #ffffff;
-  --muted: #f1f5f9;
-  --accent: #4f46e5;
-  --accent-light: #e0e7ff;
-  --border: #e2e8f0;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground: #e2e8f0;
-    --background: #0f172a;
-    --muted: #1e293b;
-    --accent: #818cf8;
-    --accent-light: #312e81;
-    --border: #334155;
-  }
+  --muted: #f1f4f3;
+  --accent: #1a9e7a;
+  --accent-light: #e6f7f1;
+  --border: #dce3e0;
 }
 
 body {

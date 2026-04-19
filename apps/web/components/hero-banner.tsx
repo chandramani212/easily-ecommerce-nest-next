@@ -15,24 +15,24 @@ interface Slide {
 
 const SLIDES: Slide[] = [
   {
-    tag: "New Collection 2026",
-    heading: "Quality Products,",
+    tag: "Custom Branding 2026",
+    heading: "Your Brand,",
     highlight: "Made Easy",
     description:
-      "Discover our curated collection of premium products. Affordable prices, fast delivery, and exceptional customer service.",
+      "Custom branded T-shirts, stationery, drinkware, and more. Premium quality printing with fast turnaround and bulk discounts.",
     ctaLabel: "Shop Now",
     ctaSecondaryLabel: "View Categories",
-    gradient: "from-indigo-600 via-indigo-700 to-purple-800",
+    gradient: "from-teal-700 via-emerald-700 to-green-800",
   },
   {
-    tag: "Summer Sale",
+    tag: "Bulk Discount",
     heading: "Up to 50% Off",
-    highlight: "Top Brands",
+    highlight: "Bulk Orders",
     description:
-      "Don't miss our biggest sale of the season. Premium electronics, fashion, and home essentials at unbeatable prices.",
+      "The more you order, the more you save. Perfect for events, teams, and corporate gifting at unbeatable prices.",
     ctaLabel: "Shop Deals",
     ctaSecondaryLabel: "See All Offers",
-    gradient: "from-rose-600 via-pink-600 to-fuchsia-700",
+    gradient: "from-slate-800 via-slate-700 to-teal-800",
   },
   {
     tag: "Free Shipping",
@@ -41,7 +41,7 @@ const SLIDES: Slide[] = [
     description:
       "Free shipping on all orders over $50. Get your products delivered to your door in 2-5 business days.",
     ctaLabel: "Start Shopping",
-    gradient: "from-emerald-600 via-teal-600 to-cyan-700",
+    gradient: "from-emerald-600 via-teal-600 to-slate-700",
   },
 ];
 

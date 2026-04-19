@@ -2,13 +2,14 @@ import "@repo/ui/styles.css";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { CartProvider } from "../context/cart-context";
 
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ShopEase - Modern Ecommerce Store",
+  title: "Easily Branded - Custom Branded Products",
   description:
-    "Browse quality products at competitive prices. Fast shipping, great service.",
+    "Browse quality branded products at competitive prices. Custom T-shirts, stationery, and more.",
 };
 
 export default function RootLayout({
@@ -18,7 +19,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={geist.className}>{children}</body>
+      <body className={geist.className}>
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }

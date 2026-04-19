@@ -1,44 +1,46 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useCart } from "../context/cart-context";
 
 const NAV_LINKS = [
-  { label: "Home", href: "#" },
-  { label: "About", href: "#" },
-  { label: "Shop", href: "#shop" },
-  { label: "Contact", href: "#" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Shop", href: "/#shop" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const { totalItems } = useCart();
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
   }, [searchOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-white backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <a href="#" className="shrink-0 text-xl font-bold tracking-tight text-[var(--accent)]">
-          ShopEase
-        </a>
+        <Link href="/" className="shrink-0">
+          <img src="/logo.png" alt="Easily Branded" className="h-8 w-auto" />
+        </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
-              className="text-sm font-medium text-[var(--foreground)]/70 transition-colors hover:text-[var(--accent)]"
+              className="rounded-lg px-3.5 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--accent)]"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          {/* Expandable search */}
+        <div className="flex items-center gap-1">
           <div className="relative flex items-center">
             <div
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -70,7 +72,8 @@ export function Header() {
             </button>
           </div>
 
-          <button
+          <Link
+            href="/cart"
             aria-label="Cart"
             className="relative rounded-lg p-2 text-[var(--foreground)]/60 transition-colors hover:bg-[var(--muted)]"
           >
@@ -79,10 +82,12 @@ export function Header() {
               <path d="M3 6h18" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--accent)] text-[10px] font-bold text-white">
-              3
-            </span>
-          </button>
+            {totalItems > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--accent)] text-[10px] font-bold text-white">
+                {totalItems > 9 ? "9+" : totalItems}
+              </span>
+            )}
+          </Link>
 
           <button
             aria-label="Menu"
@@ -101,15 +106,16 @@ export function Header() {
       </div>
 
       {mobileOpen && (
-        <nav className="border-t border-[var(--border)] px-4 pb-4 pt-2 md:hidden">
+        <nav className="border-t border-[var(--border)] bg-white px-4 pb-4 pt-2 md:hidden">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--foreground)]/70 transition-colors hover:bg-[var(--muted)]"
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]"
+              onClick={() => setMobileOpen(false)}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
       )}

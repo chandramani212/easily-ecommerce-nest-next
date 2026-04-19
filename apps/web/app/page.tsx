@@ -4,22 +4,14 @@ import { TrustBadges } from "../components/trust-badges";
 import { CategoryBar } from "../components/category-bar";
 import { SectionHeading } from "../components/section-heading";
 import { CategoryCard } from "../components/category-card";
-import { ProductCard } from "../components/product-card";
+import { BestSellersTabs } from "../components/best-sellers-tabs";
 import { TestimonialCarousel } from "../components/testimonial-carousel";
 import { Footer } from "../components/footer";
 
 const CATEGORIES = [
   {
-    name: "Electronics",
-    count: 245,
-    icon: (
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-        <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    name: "Clothing",
+    name: "T-Shirts",
+    slug: "t-shirts",
     count: 312,
     icon: (
       <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -28,53 +20,100 @@ const CATEGORIES = [
     ),
   },
   {
-    name: "Home & Garden",
+    name: "Stationery",
+    slug: "stationery",
+    count: 245,
+    icon: (
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+  },
+  {
+    name: "Drinkware",
+    slug: "drinkware",
     count: 178,
     icon: (
       <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1m-2 0h2" />
+        <path d="M8 2v4m8-4v4M3 10h18M5 6h14a2 2 0 012 2v2a6 6 0 01-6 6h0a6 6 0 01-6-6V8a2 2 0 012-2z M8 16v4m8-4v4M7 20h10" />
       </svg>
     ),
   },
   {
-    name: "Sports",
+    name: "Bags",
+    slug: "bags",
     count: 156,
     icon: (
       <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 2a14.5 14.5 0 000 20M12 2a14.5 14.5 0 010 20M2 12h20" />
+        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
       </svg>
     ),
   },
   {
-    name: "Books",
-    count: 423,
-    icon: (
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-  },
-  {
-    name: "Beauty",
+    name: "Tech",
+    slug: "tech",
     count: 198,
     icon: (
       <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-        <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a6 6 0 00-6-6h-2" />
+        <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    name: "Corporate",
+    slug: "corporate",
+    count: 134,
+    icon: (
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
       </svg>
     ),
   },
 ];
 
-const PRODUCTS = [
-  { name: "Wireless Noise-Cancelling Headphones", price: 79.99, originalPrice: 129.99, badge: "Sale", color: "#818cf8" },
-  { name: "Organic Cotton T-Shirt", price: 34.99, color: "#34d399" },
-  { name: "Smart Home Speaker", price: 49.99, originalPrice: 69.99, badge: "-29%", color: "#f472b6" },
-  { name: "Premium Yoga Mat", price: 45.00, color: "#fb923c" },
-  { name: "Stainless Steel Water Bottle", price: 24.99, color: "#60a5fa" },
-  { name: "Leather Laptop Sleeve", price: 59.99, color: "#a78bfa" },
-  { name: "Bluetooth Portable Charger", price: 29.99, originalPrice: 39.99, badge: "Hot", color: "#f87171" },
-  { name: "Ceramic Coffee Mug Set", price: 22.00, color: "#2dd4bf" },
+const PRODUCT_TABS = [
+  {
+    key: "popular",
+    label: "Most Popular",
+    products: [
+      { name: "Custom Logo Hoodie", price: 44.99, originalPrice: 59.99, badge: "Best Seller", color: "#1a9e7a" },
+      { name: "Branded Notebook Set", price: 18.99, color: "#1b2e4b" },
+      { name: "Company Polo Shirt", price: 32.99, originalPrice: 42.99, badge: "-23%", color: "#34d399" },
+      { name: "Printed Tote Bag", price: 14.99, color: "#2dd4bf" },
+      { name: "Custom Water Bottle", price: 19.99, color: "#0d9488" },
+      { name: "Branded USB Drive 64GB", price: 12.99, badge: "Hot", color: "#115e59" },
+      { name: "Logo Embossed Pen Set", price: 24.99, color: "#1b2e4b" },
+      { name: "Custom Desk Calendar", price: 16.99, originalPrice: 22.99, badge: "Sale", color: "#047857" },
+    ],
+  },
+  {
+    key: "tshirts",
+    label: "T-Shirts",
+    products: [
+      { name: "Classic Crew Neck Tee", price: 22.99, color: "#1a9e7a" },
+      { name: "Premium V-Neck T-Shirt", price: 26.99, originalPrice: 34.99, badge: "-23%", color: "#115e59" },
+      { name: "Oversized Graphic Tee", price: 29.99, badge: "New", color: "#0d9488" },
+      { name: "Organic Cotton T-Shirt", price: 34.99, color: "#34d399" },
+      { name: "Performance Dry-Fit Tee", price: 28.99, color: "#047857" },
+      { name: "Long Sleeve Brand Tee", price: 31.99, originalPrice: 39.99, badge: "Sale", color: "#1b2e4b" },
+      { name: "Vintage Wash Tee", price: 27.99, color: "#2dd4bf" },
+      { name: "Pocket Logo T-Shirt", price: 24.99, badge: "Popular", color: "#1a9e7a" },
+    ],
+  },
+  {
+    key: "stationery",
+    label: "Stationery",
+    products: [
+      { name: "Branded A5 Notebook", price: 14.99, badge: "Best Seller", color: "#1b2e4b" },
+      { name: "Custom Sticky Notes Pack", price: 8.99, color: "#34d399" },
+      { name: "Logo Ballpoint Pen (10 pk)", price: 19.99, originalPrice: 24.99, badge: "-20%", color: "#0d9488" },
+      { name: "Branded Planner 2026", price: 22.99, color: "#047857" },
+      { name: "Custom Bookmark Set", price: 6.99, color: "#2dd4bf" },
+      { name: "Printed Folder Portfolio", price: 16.99, color: "#115e59" },
+      { name: "Logo Washi Tape Set", price: 9.99, badge: "New", color: "#1a9e7a" },
+      { name: "Branded Pencil Case", price: 12.99, originalPrice: 17.99, badge: "Sale", color: "#1b2e4b" },
+    ],
+  },
 ];
 
 const TESTIMONIALS = [
@@ -136,29 +175,27 @@ export default function Page() {
       <HeroBanner />
       <TrustBadges />
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8" id="categories">
-        <SectionHeading
-          title="Shop by Category"
-          subtitle="Find what you need across our wide range of categories"
-        />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((cat) => (
-            <CategoryCard key={cat.name} {...cat} />
-          ))}
+      <section className="bg-[var(--muted)]" id="categories">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <SectionHeading
+            title="Shop by Category"
+            subtitle="Find what you need across our wide range of categories"
+          />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {CATEGORIES.map((cat) => (
+              <CategoryCard key={cat.name} {...cat} />
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="bg-[var(--muted)]" id="shop">
+      <section className="bg-white" id="shop">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <SectionHeading
             title="Best Sellers"
             subtitle="Our most popular products loved by customers"
           />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {PRODUCTS.map((product) => (
-              <ProductCard key={product.name} {...product} />
-            ))}
-          </div>
+          <BestSellersTabs tabs={PRODUCT_TABS} />
         </div>
       </section>
 

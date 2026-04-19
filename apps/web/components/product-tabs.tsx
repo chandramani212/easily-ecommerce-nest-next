@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface TabContent {
   label: string;
-  content: string;
+  content: React.ReactNode;
 }
 
 interface ProductTabsProps {

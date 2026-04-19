@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { ProductCard } from "../../../components/product-card";
 import { FilterSidebar } from "../../../components/filter-sidebar";
 import { Pagination } from "../../../components/pagination";
@@ -252,21 +253,21 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
           ) : gridView ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {paged.map((p) => (
-                <a key={p.id} href={`/product/${p.id}`}>
-                  <ProductCard
-                    name={p.name}
-                    price={p.price}
-                    originalPrice={p.originalPrice}
-                    badge={p.badge}
-                    color={p.color}
-                  />
-                </a>
+                <ProductCard
+                  key={p.id}
+                  name={p.name}
+                  price={p.price}
+                  originalPrice={p.originalPrice}
+                  badge={p.badge}
+                  color={p.color}
+                  href={`/product/${p.id}`}
+                />
               ))}
             </div>
           ) : (
             <div className="space-y-4">
               {paged.map((p) => (
-                <a
+                <Link
                   key={p.id}
                   href={`/product/${p.id}`}
                   className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3 transition-all hover:shadow-md"
@@ -289,7 +290,8 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
                     <p className="mt-0.5 text-xs text-[var(--foreground)]/50">
                       {p.brand} &middot; {p.colorName}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <span className="text-sm text-[var(--foreground)]/50">from</span>
                       <span className="text-lg font-bold text-[var(--accent)]">
                         ${p.price.toFixed(2)}
                       </span>
@@ -300,7 +302,7 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
                       )}
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           )}

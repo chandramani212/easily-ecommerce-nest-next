@@ -4,6 +4,20 @@ import { Breadcrumb } from "../../../components/breadcrumb";
 import { Footer } from "../../../components/footer";
 import { CategoryListing } from "./category-listing";
 
+export function generateStaticParams() {
+  return [
+    { slug: "t-shirts" },
+    { slug: "stationery" },
+    { slug: "drinkware" },
+    { slug: "bags" },
+    { slug: "tech" },
+    { slug: "corporate" },
+    { slug: "headwear" },
+    { slug: "wellness" },
+    { slug: "electronics" },
+  ];
+}
+
 const MOCK_PRODUCTS = [
   { id: "1", name: "Wireless Noise-Cancelling Headphones", price: 79.99, originalPrice: 129.99, badge: "Sale", color: "#818cf8", brand: "AudioPro", colorName: "Purple", rating: 4 },
   { id: "2", name: "Bluetooth Portable Speaker", price: 49.99, color: "#60a5fa", brand: "SoundWave", colorName: "Blue", rating: 5 },
