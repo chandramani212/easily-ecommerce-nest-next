@@ -16,6 +16,8 @@ interface InquiryFormProps {
   productName?: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 export function InquiryForm({ defaultType, productName }: InquiryFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -27,12 +29,41 @@ export function InquiryForm({ defaultType, productName }: InquiryFormProps) {
     quantity: "",
     message: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(
-      `/thank-you?type=${encodeURIComponent(formData.inquiryType)}&name=${encodeURIComponent(formData.name)}`
-    );
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/inquiries`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inquiryType: formData.inquiryType,
+          productName,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          company: formData.company || undefined,
+          quantity: formData.quantity || undefined,
+          message: formData.message || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          (body && (body.message || body.error)) || "Failed to submit inquiry",
+        );
+      }
+      router.push(
+        `/thank-you?type=${encodeURIComponent(formData.inquiryType)}&name=${encodeURIComponent(formData.name)}`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit inquiry");
+      setSubmitting(false);
+    }
   };
 
   const update = (field: string, value: string) =>
@@ -151,8 +182,14 @@ export function InquiryForm({ defaultType, productName }: InquiryFormProps) {
           />
         </div>
 
-        <Button size="lg" className="w-full">
-          Submit Inquiry
+        {error && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        <Button size="lg" className="w-full" disabled={submitting}>
+          {submitting ? "Submitting…" : "Submit Inquiry"}
         </Button>
 
         <p className="text-center text-xs text-[var(--foreground)]/40">

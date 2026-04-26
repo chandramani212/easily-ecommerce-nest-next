@@ -12,9 +12,11 @@ import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 
 import type { CreateLinkDto, UpdateLinkDto } from '@repo/backend';
 
+import { Public } from '../auth/decorators/public.decorator';
 import { LinksService } from './links.service';
 
 @ApiTags('links')
+@Public()
 @Controller('links')
 export class LinksController {
   constructor(private readonly linksService: LinksService) {}

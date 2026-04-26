@@ -1,8 +1,18 @@
+in Product page functionaliy ,
+  - add short description
+  - For category add this in sidebar because cateogyr is goint to be big, and multile selection should be allow
+  - Linked product option is not there
+  - Attributes option is not there 
+  - In pricing added Base price add sellin price Too
+  - Attributes option is not there 
+  - product image upload option
+  - Option to upload image and store in media library
+  
+Update the admin panel name to Easily Admin, if possible add logo which used in web
+
+Media library with Necessary functionaliy
 
 
-Let start Building  apps/admin dashboard page is already build 
-Bulid login page as this is a admin panel i will have login compulsory
-i want to build product pages, product list shoule iclude import and export 
-    Add product should include tier pricing option 
+Future plan
 
-    
+- In Tier Price option add type Fixed price and Percentage discount

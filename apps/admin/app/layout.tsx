@@ -2,7 +2,6 @@ import "@repo/ui/styles.css";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { AdminShell } from "./admin-shell";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -18,9 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={geist.className}>
-        <AdminShell>{children}</AdminShell>
-      </body>
+      <body className={geist.className}>{children}</body>
     </html>
   );
 }
