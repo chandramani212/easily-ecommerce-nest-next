@@ -6,8 +6,12 @@ import { Geist } from "next/font/google";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ShopEase Admin",
-  description: "Ecommerce Admin Dashboard",
+  title: "Easily Admin",
+  description: "Easily Admin \u2014 Ecommerce control panel",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

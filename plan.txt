@@ -1,18 +1,33 @@
-in Product page functionaliy ,
-  - add short description
-  - For category add this in sidebar because cateogyr is goint to be big, and multile selection should be allow
-  - Linked product option is not there
-  - Attributes option is not there 
-  - In pricing added Base price add sellin price Too
-  - Attributes option is not there 
-  - product image upload option
-  - Option to upload image and store in media library
-  
-Update the admin panel name to Easily Admin, if possible add logo which used in web
+In apps/admin and apps api
 
-Media library with Necessary functionaliy
+product
+  - In Tier Price option add type Fixed price and Percentage discount
 
 
-Future plan
+Supplier / import Product from third party
+  - manage import to multile / supplier 
+  - add new import / supplier
+  - Rest and soap api type integration
+  - able to map in ui with drag and drop
+  - supplier list show product ocunt and list of product
+  - it should support various authenticaiton option
+  configuration each product import option
+    - configuare schedule to run regularay sync , showing last sync
+    - price markup option
+    - image mapping
+    - tier price mapping
+    - should albe to import json, xml and csv data
 
-- In Tier Price option add type Fixed price and Percentage discount
+  - you can refer for details featues for this doc
+    - https://www.wpallimport.com/documentation/
+    - https://plugins.miniorange.com/woocommerce-api-product-sync-with-woocommerce-rest-apis
+
+  - when implementing this feature if you requied to update product modules fell free to update
+
+
+Explicitly out of scope (Phase 2)
+SOAP / WSDL transport.
+True WP-All-Import drag-and-drop template UI (drag {source.field} chips onto inputs).
+OAuth2 authorization-code flow (with callback URL flow + per-supplier client config UI).
+Stock / inventory sync (the schema has no stock field today).
+Multi-instance safe queue (would require BullMQ + Redis, deferred per your scheduler choice).

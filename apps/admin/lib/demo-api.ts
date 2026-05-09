@@ -6,16 +6,21 @@ import {
   mockContactMessages,
   mockCustomers,
   mockInquiries,
+  mockMediaAssets,
   mockOrders,
   mockProducts,
   mockSettings,
+  mockSupplierImports,
+  mockSupplierProductLinks,
+  mockSupplierRuns,
+  mockSuppliers,
 } from "./mock-data";
 import { DEMO_USER } from "./demo";
 import type {
-  Category,
   ContactMessage,
   Customer,
   Inquiry,
+  MediaAsset,
   Order,
   Pagination,
   Product,
@@ -80,7 +85,9 @@ export function demoRoute<T>(path: string): T {
       );
     }
     if (categoryId) {
-      items = items.filter((p) => p.categoryId === categoryId);
+      items = items.filter((p) =>
+        p.categories.some((c) => c.id === categoryId),
+      );
     }
     return paginate(items, params) as unknown as T;
   }
@@ -90,6 +97,27 @@ export function demoRoute<T>(path: string): T {
     const product = mockProducts.find((p) => p.id === id);
     if (!product) throw new Error(`Product ${id} not found`);
     return product as unknown as T;
+  }
+
+  if (pathname === "/media") {
+    const q = params.get("q");
+    let items: MediaAsset[] = mockMediaAssets;
+    if (q) {
+      items = items.filter(
+        (m) =>
+          containsCI(m.originalName, q) ||
+          containsCI(m.filename, q) ||
+          containsCI(m.alt ?? "", q),
+      );
+    }
+    return paginate(items, params) as unknown as T;
+  }
+
+  if (pathname.startsWith("/media/")) {
+    const id = pathname.slice("/media/".length);
+    const asset = mockMediaAssets.find((m) => m.id === id);
+    if (!asset) throw new Error(`Media asset ${id} not found`);
+    return asset as unknown as T;
   }
 
   if (pathname === "/customers") {
@@ -177,6 +205,77 @@ export function demoRoute<T>(path: string): T {
     return paginate(items, params) as unknown as T;
   }
 
+  if (pathname === "/suppliers" || pathname === "/suppliers/") {
+    const search = params.get("search");
+    let items = mockSuppliers;
+    if (search) {
+      items = items.filter(
+        (s) => containsCI(s.name, search) || containsCI(s.baseUrl ?? "", search),
+      );
+    }
+    return items as unknown as T;
+  }
+
+  if (pathname === "/suppliers/cron-preview") {
+    return { valid: true, next: [] } as unknown as T;
+  }
+
+  // /suppliers/:id  /suppliers/:id/products  /suppliers/:id/imports[/...]
+  const supplierMatch = pathname.match(/^\/suppliers\/([^/]+)(?:\/(.*))?$/);
+  if (supplierMatch) {
+    const supplierId = supplierMatch[1]!;
+    const sub = supplierMatch[2] ?? "";
+    const supplier = mockSuppliers.find((s) => s.id === supplierId);
+    if (!supplier) throw new Error(`Supplier ${supplierId} not found`);
+
+    if (!sub) return supplier as unknown as T;
+
+    if (sub === "products") {
+      const links = mockSupplierProductLinks[supplierId] ?? [];
+      return { total: links.length, items: links } as unknown as T;
+    }
+
+    if (sub === "imports") {
+      const items = mockSupplierImports.filter(
+        (i) => i.supplierId === supplierId,
+      );
+      return items as unknown as T;
+    }
+
+    const importMatch = sub.match(/^imports\/([^/]+)(?:\/(.*))?$/);
+    if (importMatch) {
+      const importId = importMatch[1]!;
+      const importSub = importMatch[2] ?? "";
+      const imp = mockSupplierImports.find(
+        (i) => i.id === importId && i.supplierId === supplierId,
+      );
+      if (!imp) throw new Error(`Import ${importId} not found`);
+
+      if (!importSub) return imp as unknown as T;
+
+      if (importSub === "runs") {
+        const items = mockSupplierRuns
+          .filter((r) => r.importId === importId)
+          .sort(
+            (a, b) =>
+              new Date(b.startedAt).getTime() -
+              new Date(a.startedAt).getTime(),
+          );
+        return { total: items.length, items } as unknown as T;
+      }
+
+      const runMatch = importSub.match(/^runs\/(.+)$/);
+      if (runMatch) {
+        const runId = runMatch[1]!;
+        const run = mockSupplierRuns.find(
+          (r) => r.id === runId && r.importId === importId,
+        );
+        if (!run) throw new Error(`Run ${runId} not found`);
+        return run as unknown as T;
+      }
+    }
+  }
+
   throw new Error(`[demo] No mock handler for ${path}`);
 }
 
@@ -192,3 +291,8 @@ export const DEMO_CATEGORY_IDS = mockCategories.map((c) => c.id);
 export const DEMO_PRODUCT_IDS = mockProducts.map((p) => p.id);
 export const DEMO_CUSTOMER_IDS = mockCustomers.map((c) => c.id);
 export const DEMO_ORDER_IDS = mockOrders.map((o) => o.id);
+export const DEMO_SUPPLIER_IDS = mockSuppliers.map((s) => s.id);
+export const DEMO_SUPPLIER_IMPORT_IDS = mockSupplierImports.map((i) => ({
+  supplierId: i.supplierId,
+  importId: i.id,
+}));

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Sign in – ShopEase Admin",
+  title: "Sign in \u2013 Easily Admin",
 };
 
 export default function LoginPage() {
@@ -11,11 +11,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[var(--admin-bg)] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--admin-accent)]">
-            <span className="text-lg font-bold text-white">S</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Easily"
+            className="mx-auto mb-4 h-10 w-auto"
+          />
           <h1 className="text-2xl font-bold text-[var(--admin-fg)]">
-            ShopEase Admin
+            Easily Admin
           </h1>
           <p className="mt-1 text-sm text-[var(--admin-fg)]/60">
             Sign in to manage your store

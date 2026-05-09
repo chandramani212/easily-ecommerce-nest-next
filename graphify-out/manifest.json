@@ -1,0 +1,1022 @@
+{
+  "/var/www/html/ecommerce/packages/backend/eslint.config.mjs": {
+    "mtime": 1774674136.5281825,
+    "hash": "f2fc0a5b9c7d548f4e15c91a50686287"
+  },
+  "/var/www/html/ecommerce/packages/backend/src/entry.ts": {
+    "mtime": 1774674136.5281825,
+    "hash": "35818656a58f062d1a483ecef2f4163d"
+  },
+  "/var/www/html/ecommerce/packages/backend/src/links/dto/create-link.dto.ts": {
+    "mtime": 1774674136.5291827,
+    "hash": "787b6d044a9a3e748b2f42b44409cad7"
+  },
+  "/var/www/html/ecommerce/packages/backend/src/links/dto/update-link.dto.ts": {
+    "mtime": 1774674136.5291827,
+    "hash": "8ede8d816e34919375a3cf76fbdb3a15"
+  },
+  "/var/www/html/ecommerce/packages/backend/src/links/entities/link.entity.ts": {
+    "mtime": 1774674136.5291827,
+    "hash": "edef562cb4c45d1a43f74c44aa8211bd"
+  },
+  "/var/www/html/ecommerce/packages/ui/eslint.config.mjs": {
+    "mtime": 1774674136.533183,
+    "hash": "c787dc302a8cbd0911ae8aaa979aa991"
+  },
+  "/var/www/html/ecommerce/packages/ui/src/tabs.tsx": {
+    "mtime": 1774680948.4232998,
+    "hash": "6a75e76118c536f9a58196ccc170e329"
+  },
+  "/var/www/html/ecommerce/packages/ui/src/button.tsx": {
+    "mtime": 1776004485.254345,
+    "hash": "2d6706600b18aa267bdcd792fc6b3916"
+  },
+  "/var/www/html/ecommerce/packages/ui/src/avatar.tsx": {
+    "mtime": 1774680944.4476094,
+    "hash": "44fca1f3aa44086ecfa329c05ed89964"
+  },
+  "/var/www/html/ecommerce/packages/ui/src/card.tsx": {
+    "mtime": 1774676649.8188362,
+    "hash": "802bdffbd91042e91dbfd275e3dcf3bf"
+  },
+  "/var/www/html/ecommerce/packages/ui/src/input.tsx": {
+    "mtime": 1774680936.9711888,
+    "hash": "d331b2097b07882a6678e33345ce5abf"
+  },
+  "/var/www/html/ecommerce/packages/ui/src/badge.tsx": {
+    "mtime": 1774680940.639164,
+    "hash": "ba87acd5afb6d16126cbcf8ae3920edc"
+  },
+  "/var/www/html/ecommerce/packages/jest-config/src/entry.ts": {
+    "mtime": 1774674136.531183,
+    "hash": "2cab7250d117300b32d7c2ae99917f0a"
+  },
+  "/var/www/html/ecommerce/packages/jest-config/src/next.ts": {
+    "mtime": 1774674136.532183,
+    "hash": "b1855d2bfed522c9760edc5af533174b"
+  },
+  "/var/www/html/ecommerce/packages/jest-config/src/nest.ts": {
+    "mtime": 1774674136.531183,
+    "hash": "79d746c2d4049d423caba7b5d7d3a2d8"
+  },
+  "/var/www/html/ecommerce/packages/jest-config/src/base.ts": {
+    "mtime": 1774674136.531183,
+    "hash": "32670de88e8312d3a7bc1aa1499e19ca"
+  },
+  "/var/www/html/ecommerce/packages/tailwind-config/postcss.config.js": {
+    "mtime": 1774674136.532183,
+    "hash": "bd4b60979764a274e5c32cb68fce3767"
+  },
+  "/var/www/html/ecommerce/packages/eslint-config/next.js": {
+    "mtime": 1774674136.5301828,
+    "hash": "cfde5f660603b14f3433463a68a3ea0f"
+  },
+  "/var/www/html/ecommerce/packages/eslint-config/react-internal.js": {
+    "mtime": 1774674136.531183,
+    "hash": "04b25c7326a394c2f604880d42d8c37b"
+  },
+  "/var/www/html/ecommerce/packages/eslint-config/nest.js": {
+    "mtime": 1774674136.5301828,
+    "hash": "3ebc95995c805384b3b0ca0bac0dc8a8"
+  },
+  "/var/www/html/ecommerce/packages/eslint-config/base.js": {
+    "mtime": 1774674136.5301828,
+    "hash": "5f62d96dff562381ba4f76c608ced0d2"
+  },
+  "/var/www/html/ecommerce/apps/web/postcss.config.js": {
+    "mtime": 1774674136.5261824,
+    "hash": "af76ac82e562e0f727cd5e327a599ec6"
+  },
+  "/var/www/html/ecommerce/apps/web/eslint.config.js": {
+    "mtime": 1774674136.5261824,
+    "hash": "0b078a93cfd99529e47ea42b5dd9dea9"
+  },
+  "/var/www/html/ecommerce/apps/web/next-env.d.ts": {
+    "mtime": 1776586430.2169774,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "/var/www/html/ecommerce/apps/web/next.config.ts": {
+    "mtime": 1776013223.5527034,
+    "hash": "d21d2111d4381d5169b5bc053023c3ef"
+  },
+  "/var/www/html/ecommerce/apps/web/context/cart-context.tsx": {
+    "mtime": 1775210406.0103347,
+    "hash": "907165e26475730c88fadfb107928491"
+  },
+  "/var/www/html/ecommerce/apps/web/components/section-heading.tsx": {
+    "mtime": 1775995875.1126785,
+    "hash": "22a6fc941d9f029cb65fa462bb1f2667"
+  },
+  "/var/www/html/ecommerce/apps/web/components/product-tabs.tsx": {
+    "mtime": 1776007973.3525274,
+    "hash": "a5dc42062dd778172b3075f5bb43b1c9"
+  },
+  "/var/www/html/ecommerce/apps/web/components/product-card.tsx": {
+    "mtime": 1776011092.7092326,
+    "hash": "7e3c041075304e6a33f3fc25a51e05c5"
+  },
+  "/var/www/html/ecommerce/apps/web/components/header.tsx": {
+    "mtime": 1775996611.2927551,
+    "hash": "e7a971c1e92b8272b6ff20c22caa6920"
+  },
+  "/var/www/html/ecommerce/apps/web/components/best-sellers-tabs.tsx": {
+    "mtime": 1775996649.043914,
+    "hash": "393da3aecb4f44445eed5113c12d76f4"
+  },
+  "/var/www/html/ecommerce/apps/web/components/trust-badges.tsx": {
+    "mtime": 1775996654.852627,
+    "hash": "aabe9ed53d20d208c064ca64196b811f"
+  },
+  "/var/www/html/ecommerce/apps/web/components/price-range-slider.tsx": {
+    "mtime": 1774695200.9515095,
+    "hash": "793685cf294176f7d4e1ce3d2c132ab0"
+  },
+  "/var/www/html/ecommerce/apps/web/components/testimonial-card.tsx": {
+    "mtime": 1774681076.4732301,
+    "hash": "18c3b23941493a0d44970124996c5ed1"
+  },
+  "/var/www/html/ecommerce/apps/web/components/breadcrumb.tsx": {
+    "mtime": 1775281916.8007112,
+    "hash": "638882e40cc3f03ebfbe076692fbecb2"
+  },
+  "/var/www/html/ecommerce/apps/web/components/category-card.tsx": {
+    "mtime": 1776011059.2380574,
+    "hash": "b51ff287e839427c8139b192557f073e"
+  },
+  "/var/www/html/ecommerce/apps/web/components/product-gallery.tsx": {
+    "mtime": 1774694024.674835,
+    "hash": "fe621cc8d589c88f49a0aebaa19eba22"
+  },
+  "/var/www/html/ecommerce/apps/web/components/footer.tsx": {
+    "mtime": 1775996629.713862,
+    "hash": "fc98a7dc74ac7b0759b9f6e2d6f9ec19"
+  },
+  "/var/www/html/ecommerce/apps/web/components/quantity-selector.tsx": {
+    "mtime": 1774694029.8550463,
+    "hash": "60b02fd00f969a230bef3b57edb98f40"
+  },
+  "/var/www/html/ecommerce/apps/web/components/hero-banner.tsx": {
+    "mtime": 1775994862.0691988,
+    "hash": "7afd7ee863d35d7f4ee4c54fdef5b0b1"
+  },
+  "/var/www/html/ecommerce/apps/web/components/pagination.tsx": {
+    "mtime": 1774695224.6378086,
+    "hash": "56f2908bc99dc6cde16df2f6f84fc700"
+  },
+  "/var/www/html/ecommerce/apps/web/components/testimonial-carousel.tsx": {
+    "mtime": 1774688736.3485396,
+    "hash": "69e4506596e8361c383ec7537db9a21a"
+  },
+  "/var/www/html/ecommerce/apps/web/components/category-bar.tsx": {
+    "mtime": 1776011138.0064416,
+    "hash": "9636d23e8410ec01196633f966ff7273"
+  },
+  "/var/www/html/ecommerce/apps/web/components/filter-sidebar.tsx": {
+    "mtime": 1774695216.7607095,
+    "hash": "2d9f633022fd62d317953cc396d99cc7"
+  },
+  "/var/www/html/ecommerce/apps/web/components/inquiry-form.tsx": {
+    "mtime": 1776585048.7394826,
+    "hash": "1fae0a651b2dce7999bfe7550f8624ea"
+  },
+  "/var/www/html/ecommerce/apps/web/app/layout.tsx": {
+    "mtime": 1775994712.6277244,
+    "hash": "c457e33439db5f37c298339ec38ebd39"
+  },
+  "/var/www/html/ecommerce/apps/web/app/page.tsx": {
+    "mtime": 1776011081.9771783,
+    "hash": "94d0a367d3791b5e7cfc51f847a4d83d"
+  },
+  "/var/www/html/ecommerce/apps/web/app/thank-you/page.tsx": {
+    "mtime": 1776005698.7905686,
+    "hash": "3f3a3424051dd0e8c652faf949bef84c"
+  },
+  "/var/www/html/ecommerce/apps/web/app/thank-you/thank-you-content.tsx": {
+    "mtime": 1776005724.8792784,
+    "hash": "45c55d5fe2b9ce556c4efb3c5bebb592"
+  },
+  "/var/www/html/ecommerce/apps/web/app/contact/page.tsx": {
+    "mtime": 1775994791.3039846,
+    "hash": "9964da60a1d7a547906441848a0d33db"
+  },
+  "/var/www/html/ecommerce/apps/web/app/contact/contact-form.tsx": {
+    "mtime": 1776585078.563633,
+    "hash": "536db31d01f8d26ebaf448a769564700"
+  },
+  "/var/www/html/ecommerce/apps/web/app/cart/page.tsx": {
+    "mtime": 1775994792.1004984,
+    "hash": "e01b7386b38935f91a9283cd74256ffa"
+  },
+  "/var/www/html/ecommerce/apps/web/app/cart/cart-contents.tsx": {
+    "mtime": 1775281916.8207111,
+    "hash": "8941d6cf158bf23dcb2cf79794e99988"
+  },
+  "/var/www/html/ecommerce/apps/web/app/inquiry/page.tsx": {
+    "mtime": 1776008300.8938582,
+    "hash": "8e214dfb9683e425a9767926e8c4da81"
+  },
+  "/var/www/html/ecommerce/apps/web/app/inquiry/inquiry-form-page.tsx": {
+    "mtime": 1776008307.221681,
+    "hash": "ea14afc59e899d6644a5c0906333cdcf"
+  },
+  "/var/www/html/ecommerce/apps/web/app/about/page.tsx": {
+    "mtime": 1775994812.3000755,
+    "hash": "ba6447b75a7e801015cef6d0556ab130"
+  },
+  "/var/www/html/ecommerce/apps/web/app/checkout/checkout-flow.tsx": {
+    "mtime": 1775994818.022809,
+    "hash": "f886c73209bc76a03e68388dd25d3048"
+  },
+  "/var/www/html/ecommerce/apps/web/app/checkout/page.tsx": {
+    "mtime": 1775994793.2285213,
+    "hash": "92890c2fef3b55dad5b1fc058a7b8e39"
+  },
+  "/var/www/html/ecommerce/apps/web/app/product/[id]/page.tsx": {
+    "mtime": 1776013241.2971797,
+    "hash": "ddc17e112f08c58785c414bec2751298"
+  },
+  "/var/www/html/ecommerce/apps/web/app/product/[id]/product-detail.tsx": {
+    "mtime": 1776008554.596351,
+    "hash": "1231b934ca3eafa5c20dadf09cca2f2f"
+  },
+  "/var/www/html/ecommerce/apps/web/app/category/[slug]/page.tsx": {
+    "mtime": 1776013249.63444,
+    "hash": "ed9467995dd184a97e8acd1546dd1671"
+  },
+  "/var/www/html/ecommerce/apps/web/app/category/[slug]/category-listing.tsx": {
+    "mtime": 1776011181.763615,
+    "hash": "c40e25c391e141b6c422a6d30c1be1fc"
+  },
+  "/var/www/html/ecommerce/apps/api/jest.config.ts": {
+    "mtime": 1774674136.520182,
+    "hash": "81442e980b9494e902ed31bdd63d02fc"
+  },
+  "/var/www/html/ecommerce/apps/api/eslint.config.mjs": {
+    "mtime": 1774674136.5191817,
+    "hash": "5bd7aaa8554b103aa53e8634041adb47"
+  },
+  "/var/www/html/ecommerce/apps/api/src/main.ts": {
+    "mtime": 1777467543.4146583,
+    "hash": "535a74343a4d06779d00c4126386de6a"
+  },
+  "/var/www/html/ecommerce/apps/api/src/app.module.ts": {
+    "mtime": 1777870567.3895981,
+    "hash": "96c4df7f358d40320251ab3992c76143"
+  },
+  "/var/www/html/ecommerce/apps/api/src/app.service.ts": {
+    "mtime": 1774674136.521182,
+    "hash": "cd3fb7836f10de08a725ee1fd4ab36fe"
+  },
+  "/var/www/html/ecommerce/apps/api/src/app.controller.ts": {
+    "mtime": 1776581993.6528928,
+    "hash": "2e644ff7682aa0dad2ed74361e513dd4"
+  },
+  "/var/www/html/ecommerce/apps/api/src/app.controller.spec.ts": {
+    "mtime": 1774674136.520182,
+    "hash": "c27cf40d4c2bffe9c8f1ade48be9a2e0"
+  },
+  "/var/www/html/ecommerce/apps/api/src/common/filters/http-exception.filter.ts": {
+    "mtime": 1774674136.522182,
+    "hash": "ae0c8cc4953979090d18661923550c69"
+  },
+  "/var/www/html/ecommerce/apps/api/src/categories/categories.service.ts": {
+    "mtime": 1776581721.7136986,
+    "hash": "d36aea65541a5a6a585b12d2da69b68d"
+  },
+  "/var/www/html/ecommerce/apps/api/src/categories/categories.module.ts": {
+    "mtime": 1776581731.2610624,
+    "hash": "ac8c5cea7924fcd62e7d0d230ae62aaa"
+  },
+  "/var/www/html/ecommerce/apps/api/src/categories/categories.controller.ts": {
+    "mtime": 1776581727.6754344,
+    "hash": "31dabb15431f5d9ae8ac92cba9364aab"
+  },
+  "/var/www/html/ecommerce/apps/api/src/categories/dto/category.dto.ts": {
+    "mtime": 1776581715.9821708,
+    "hash": "ddcfebeb8a60a02a36f35053ea94a0a9"
+  },
+  "/var/www/html/ecommerce/apps/api/src/orders/orders.controller.ts": {
+    "mtime": 1776581841.8184743,
+    "hash": "d8baaaaf3a846a901857b5ec337fa88d"
+  },
+  "/var/www/html/ecommerce/apps/api/src/orders/orders.service.ts": {
+    "mtime": 1776581835.075924,
+    "hash": "c8b348f253d9d6e6f13188b02047dc74"
+  },
+  "/var/www/html/ecommerce/apps/api/src/orders/orders.module.ts": {
+    "mtime": 1776581846.3827972,
+    "hash": "059e6ccb9342510bd0de9f612446d742"
+  },
+  "/var/www/html/ecommerce/apps/api/src/orders/dto/order.dto.ts": {
+    "mtime": 1776581822.1672797,
+    "hash": "c58ccc397d83dd548d7b4c8353eb2298"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/auth.service.ts": {
+    "mtime": 1776581664.0289874,
+    "hash": "1f8e83d258d550d13bca7317c7b1b651"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/auth.controller.ts": {
+    "mtime": 1776581671.1839678,
+    "hash": "c390af20060cb6bd964b23450ec5b10d"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/auth.module.ts": {
+    "mtime": 1776582139.1044056,
+    "hash": "1482d56fd2d066961cd107c913572329"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/strategies/jwt.strategy.ts": {
+    "mtime": 1776581642.584046,
+    "hash": "55f7c0b0a51ed81eabb37ec612914cef"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/dto/login.dto.ts": {
+    "mtime": 1776581657.918004,
+    "hash": "494e9f13254a98b6767fbe1c3cce29ae"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/decorators/roles.decorator.ts": {
+    "mtime": 1776581632.1670742,
+    "hash": "627ead8545cd5ecd6cc9a3136f6a7591"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/decorators/public.decorator.ts": {
+    "mtime": 1776581627.3530872,
+    "hash": "04ce66f12d6dcfdf76cc0f072fa90b45"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/decorators/current-user.decorator.ts": {
+    "mtime": 1776581636.5700622,
+    "hash": "b7444eac5c90a39955be821d95d370af"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/guards/jwt-auth.guard.ts": {
+    "mtime": 1776581647.345033,
+    "hash": "7085abb10b12c82d1bb2f3cce1cd1563"
+  },
+  "/var/www/html/ecommerce/apps/api/src/auth/guards/roles.guard.ts": {
+    "mtime": 1776581653.4700162,
+    "hash": "6cf789d624c977f49bb707bd5a7f1aca"
+  },
+  "/var/www/html/ecommerce/apps/api/src/users/users.service.ts": {
+    "mtime": 1776581696.1718993,
+    "hash": "200e9e668a928e4c0d3ea342b453e888"
+  },
+  "/var/www/html/ecommerce/apps/api/src/users/users.controller.ts": {
+    "mtime": 1776581703.582341,
+    "hash": "6cdf484838250e5acf5a918cef206a6f"
+  },
+  "/var/www/html/ecommerce/apps/api/src/users/users.module.ts": {
+    "mtime": 1776581707.5843396,
+    "hash": "8408e93e619e4176cfc86976d753aaae"
+  },
+  "/var/www/html/ecommerce/apps/api/src/users/dto/update-user.dto.ts": {
+    "mtime": 1776581686.9489245,
+    "hash": "4bacb3ad3e51b5bcf9d618f31d23d312"
+  },
+  "/var/www/html/ecommerce/apps/api/src/users/dto/create-user.dto.ts": {
+    "mtime": 1776581681.5209396,
+    "hash": "f55d0e28ec6291e2d4e0f7d59ec42bc7"
+  },
+  "/var/www/html/ecommerce/apps/api/src/prisma/prisma.service.ts": {
+    "mtime": 1777914099.1511579,
+    "hash": "1bb8cabac24af8dd8170dec032619375"
+  },
+  "/var/www/html/ecommerce/apps/api/src/prisma/prisma.module.ts": {
+    "mtime": 1776581275.8009872,
+    "hash": "0e1dc9ad303ed7a8449de312f354f414"
+  },
+  "/var/www/html/ecommerce/apps/api/src/products/tier-pricing.util.ts": {
+    "mtime": 1777790959.937712,
+    "hash": "b051e83a9e416849e6e6951ea98d8019"
+  },
+  "/var/www/html/ecommerce/apps/api/src/products/products.service.ts": {
+    "mtime": 1777791022.9570577,
+    "hash": "c7c0b90b29bdbeb1be6569b7c0d43f16"
+  },
+  "/var/www/html/ecommerce/apps/api/src/products/products.controller.ts": {
+    "mtime": 1776581774.8959455,
+    "hash": "8fc8eefad9e07c66f61198c338942bab"
+  },
+  "/var/www/html/ecommerce/apps/api/src/products/products.module.ts": {
+    "mtime": 1776581779.1571841,
+    "hash": "bfc03cded498e821e939b1a2b8c27488"
+  },
+  "/var/www/html/ecommerce/apps/api/src/products/dto/product.dto.ts": {
+    "mtime": 1777791034.8100166,
+    "hash": "72a1bcd6fba09e1d7564bf9daf3a3cbd"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/supplier-imports.service.ts": {
+    "mtime": 1777870567.3965986,
+    "hash": "a88f8b71a0d576eb0c22775c1a6edf0a"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/suppliers.service.ts": {
+    "mtime": 1777870567.3905983,
+    "hash": "4f33f547f02560e4ab6732bb4df51ee5"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/suppliers.module.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "958d650e3197712e3d3bc11aa16d234b"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/suppliers.controller.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "d8b9b5d143fa21cb197a1577361edcdb"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/supplier-imports.controller.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "3ec90c09ee3d8c00909c3f0f253f1bd9"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/mapper.service.ts": {
+    "mtime": 1777870567.3965986,
+    "hash": "ccf9429e369cbc7b1e480cce4dde0b39"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/mapping.types.ts": {
+    "mtime": 1777870567.3955984,
+    "hash": "f78d380c60d93e4be526d3c290e7b14f"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/import-runner.service.ts": {
+    "mtime": 1777921670.9415257,
+    "hash": "12c3340da31f56dba67c591c58836f42"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/sync-scheduler.service.ts": {
+    "mtime": 1777870567.3905983,
+    "hash": "5948a9ba9245af1190e61b5baead3d90"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/encryption.util.ts": {
+    "mtime": 1777870567.3895981,
+    "hash": "4851c3b618e8e90b4637ab2139a6b618"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/path.util.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "b17dabda231d48748ea970471d815845"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/auth/index.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "3e573a6cdfbc65626f32dd3c6d7b01d1"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/auth/api-key.adapter.ts": {
+    "mtime": 1777870567.3895981,
+    "hash": "3384f984e63a892a491456b546a20039"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/auth/oauth2-cc.adapter.ts": {
+    "mtime": 1777870567.382598,
+    "hash": "6a9b867b8c92de3d5a460f86d7530e44"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/auth/basic.adapter.ts": {
+    "mtime": 1777870567.3965986,
+    "hash": "f39bc4435206ab8b76440856166ccceb"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/auth/auth.adapter.ts": {
+    "mtime": 1777870567.3955984,
+    "hash": "401016bf6527c2cd6c94704c28b6b7d6"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/auth/bearer.adapter.ts": {
+    "mtime": 1777870567.3915982,
+    "hash": "874c3f7b8321219392cc253806b7d2c1"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/parsers/xml.parser.ts": {
+    "mtime": 1777870567.3895981,
+    "hash": "37420bdc5ed5df0180f2cca81d6b7c7c"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/parsers/csv.parser.ts": {
+    "mtime": 1777870567.3955984,
+    "hash": "6af117f8bdd9e164f1d75455855b7e6a"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/parsers/parser.ts": {
+    "mtime": 1777870567.3955984,
+    "hash": "576ff21baa6f291462087514c1fa9ce5"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/parsers/json.parser.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "6ec94f1d15e0c831ab5a67a688c5b0ab"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/fetchers/rest.fetcher.ts": {
+    "mtime": 1777870567.3885982,
+    "hash": "8acc67c1115a28417beb53cd60418f91"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/fetchers/fetcher.ts": {
+    "mtime": 1777870567.3965986,
+    "hash": "2b74b0f0f853c6d646a3cabf0f2ee0e8"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/runner/fetchers/file.fetcher.ts": {
+    "mtime": 1777870567.385598,
+    "hash": "3746427d61267504c7b7e59a1f0cdf96"
+  },
+  "/var/www/html/ecommerce/apps/api/src/suppliers/dto/supplier.dto.ts": {
+    "mtime": 1777870567.3895981,
+    "hash": "18945a6061bdde36df2cbc3c562dc171"
+  },
+  "/var/www/html/ecommerce/apps/api/src/mail/mail.module.ts": {
+    "mtime": 1776581870.6950037,
+    "hash": "6f02b5966997c730201701cc36baf7a0"
+  },
+  "/var/www/html/ecommerce/apps/api/src/mail/mail.service.ts": {
+    "mtime": 1776581866.5114052,
+    "hash": "c52b22d240a6686db41404b2aacccd7b"
+  },
+  "/var/www/html/ecommerce/apps/api/src/settings/settings.controller.ts": {
+    "mtime": 1776581890.8109667,
+    "hash": "4234e63082593454d858a6320c5b46d0"
+  },
+  "/var/www/html/ecommerce/apps/api/src/settings/settings.module.ts": {
+    "mtime": 1776581895.2550194,
+    "hash": "9be985c889470fad333b8764f18f0650"
+  },
+  "/var/www/html/ecommerce/apps/api/src/settings/settings.service.ts": {
+    "mtime": 1776581884.3082137,
+    "hash": "70fa50e4010fbd7a00f729afa55b083f"
+  },
+  "/var/www/html/ecommerce/apps/api/src/settings/dto/settings.dto.ts": {
+    "mtime": 1776581877.2323954,
+    "hash": "cc9061c6b6aff16b5864af2d56025604"
+  },
+  "/var/www/html/ecommerce/apps/api/src/media/media.service.ts": {
+    "mtime": 1777263830.047239,
+    "hash": "27e4fcbdef669f1074e73e3c2c138389"
+  },
+  "/var/www/html/ecommerce/apps/api/src/media/media.module.ts": {
+    "mtime": 1777263830.1292388,
+    "hash": "493e082ff4f6634a78e33369e8180232"
+  },
+  "/var/www/html/ecommerce/apps/api/src/media/media.controller.ts": {
+    "mtime": 1777263830.126239,
+    "hash": "0638952bdfb0e17f67056a9565776f50"
+  },
+  "/var/www/html/ecommerce/apps/api/src/media/storage/storage-adapter.ts": {
+    "mtime": 1777263830.1292388,
+    "hash": "7ff207961dca0b8bafbfa338698009d2"
+  },
+  "/var/www/html/ecommerce/apps/api/src/media/storage/local-storage.adapter.ts": {
+    "mtime": 1777263830.126239,
+    "hash": "a80911af5e5ba4e99c79a7d8a2a42c77"
+  },
+  "/var/www/html/ecommerce/apps/api/src/media/dto/media.dto.ts": {
+    "mtime": 1777263830.128239,
+    "hash": "15494e96cb4bc7f00598dadede3706a6"
+  },
+  "/var/www/html/ecommerce/apps/api/src/contact-messages/contact-messages.controller.ts": {
+    "mtime": 1776581955.977806,
+    "hash": "1f4065a51078948017495c26db54f40f"
+  },
+  "/var/www/html/ecommerce/apps/api/src/contact-messages/contact-messages.service.ts": {
+    "mtime": 1776581948.2880955,
+    "hash": "70b919d5eec26736fff95c021be8678a"
+  },
+  "/var/www/html/ecommerce/apps/api/src/contact-messages/contact-messages.module.ts": {
+    "mtime": 1776581960.1801372,
+    "hash": "a8cf200b5e29e77d4e922c6785d72947"
+  },
+  "/var/www/html/ecommerce/apps/api/src/contact-messages/dto/contact-message.dto.ts": {
+    "mtime": 1776581934.9745903,
+    "hash": "f6df41109e4c9c4f209acb7259030198"
+  },
+  "/var/www/html/ecommerce/apps/api/src/links/links.service.spec.ts": {
+    "mtime": 1774674136.5231822,
+    "hash": "282d858c5e7fa304db47e55743e62dd7"
+  },
+  "/var/www/html/ecommerce/apps/api/src/links/links.controller.spec.ts": {
+    "mtime": 1774674136.522182,
+    "hash": "e6e1291922dcb7fcd060668f8cef3dfc"
+  },
+  "/var/www/html/ecommerce/apps/api/src/links/links.controller.ts": {
+    "mtime": 1776582004.0217998,
+    "hash": "ced4a9ca193c9c9226d4f2ceef7dd6b1"
+  },
+  "/var/www/html/ecommerce/apps/api/src/links/links.service.ts": {
+    "mtime": 1774674136.5231822,
+    "hash": "92605127aa45c295c92ccecd6a037c29"
+  },
+  "/var/www/html/ecommerce/apps/api/src/links/links.module.ts": {
+    "mtime": 1774674136.5231822,
+    "hash": "93687b4469f82d0c2e61e7ca08eaca2b"
+  },
+  "/var/www/html/ecommerce/apps/api/src/stats/stats.controller.ts": {
+    "mtime": 1776581970.833531,
+    "hash": "b45c0353c62dd168c47dfef7e1e28840"
+  },
+  "/var/www/html/ecommerce/apps/api/src/stats/stats.service.ts": {
+    "mtime": 1776581966.4921718,
+    "hash": "cfb529bc0dfe84a3c35e5a262e70084f"
+  },
+  "/var/www/html/ecommerce/apps/api/src/stats/stats.module.ts": {
+    "mtime": 1776581974.5979884,
+    "hash": "4ff438798e0ffd9f97d0818c10ac213c"
+  },
+  "/var/www/html/ecommerce/apps/api/src/customers/customers.module.ts": {
+    "mtime": 1776581813.4993942,
+    "hash": "65b4971b37eaca335a3bf7a7366c95a3"
+  },
+  "/var/www/html/ecommerce/apps/api/src/customers/customers.controller.ts": {
+    "mtime": 1776581809.608136,
+    "hash": "e9d0d168fc5c733dd33535909c172c4d"
+  },
+  "/var/www/html/ecommerce/apps/api/src/customers/customers.service.ts": {
+    "mtime": 1776581803.171134,
+    "hash": "201cfa6c2a02f78dffa116bfd5f841a3"
+  },
+  "/var/www/html/ecommerce/apps/api/src/customers/dto/customer.dto.ts": {
+    "mtime": 1776581792.8481555,
+    "hash": "33ed59e13ea3853e4fdde5a9991a92c1"
+  },
+  "/var/www/html/ecommerce/apps/api/src/inquiries/inquiries.module.ts": {
+    "mtime": 1776581928.967861,
+    "hash": "4689f30c447cff545164b3bc83e4c9eb"
+  },
+  "/var/www/html/ecommerce/apps/api/src/inquiries/inquiries.service.ts": {
+    "mtime": 1776581915.848078,
+    "hash": "d402fbae964867d5b34428ba37fdff10"
+  },
+  "/var/www/html/ecommerce/apps/api/src/inquiries/inquiries.controller.ts": {
+    "mtime": 1776581924.229945,
+    "hash": "24f5acffceab3dcbfb81826ab53563d4"
+  },
+  "/var/www/html/ecommerce/apps/api/src/inquiries/dto/inquiry.dto.ts": {
+    "mtime": 1776581901.8614619,
+    "hash": "cfc90c81bf79e9ae766ae0373f2b616d"
+  },
+  "/var/www/html/ecommerce/apps/api/prisma/seed.ts": {
+    "mtime": 1777263830.126239,
+    "hash": "c32df499aa3c793cc0c7f35ad213c9a3"
+  },
+  "/var/www/html/ecommerce/apps/api/prisma/migrations/20260419065327_init/migration.sql": {
+    "mtime": 1776581607.1601417,
+    "hash": "79d77d08252c697ed80d0c63124bbd07"
+  },
+  "/var/www/html/ecommerce/apps/api/prisma/migrations/20260503071531_supplier_imports/migration.sql": {
+    "mtime": 1777870567.3955984,
+    "hash": "5d03021f4014f57681dd8ccd6233d4fe"
+  },
+  "/var/www/html/ecommerce/apps/api/prisma/migrations/20260503064849_tier_price_types/migration.sql": {
+    "mtime": 1777790933.5498037,
+    "hash": "3abb8180c201bbba5e08771ca2393349"
+  },
+  "/var/www/html/ecommerce/apps/api/prisma/migrations/20260426130523_easily_admin_product_extensions/migration.sql": {
+    "mtime": 1777976108.3368058,
+    "hash": "2221cf8c785a78022d44bdc1c265f130"
+  },
+  "/var/www/html/ecommerce/apps/api/test/app.e2e-spec.ts": {
+    "mtime": 1774674136.5241823,
+    "hash": "24381994ae750cb268bbf8ea15e67d9a"
+  },
+  "/var/www/html/ecommerce/apps/admin/postcss.config.js": {
+    "mtime": 1774676619.5084302,
+    "hash": "af76ac82e562e0f727cd5e327a599ec6"
+  },
+  "/var/www/html/ecommerce/apps/admin/middleware.ts": {
+    "mtime": 1776584267.5492246,
+    "hash": "c902b6f2fb152883b2f1d0b640d177c3"
+  },
+  "/var/www/html/ecommerce/apps/admin/eslint.config.js": {
+    "mtime": 1774676620.4254081,
+    "hash": "0b078a93cfd99529e47ea42b5dd9dea9"
+  },
+  "/var/www/html/ecommerce/apps/admin/next-env.d.ts": {
+    "mtime": 1777883860.003125,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "/var/www/html/ecommerce/apps/admin/next.config.ts": {
+    "mtime": 1776601053.9320083,
+    "hash": "290687f0bfaa6c7acac15a1cbd7e8ae9"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/types.ts": {
+    "mtime": 1777870567.3895981,
+    "hash": "c53bcf467b7ab1a0ff1a781c0b546d61"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/auth.ts": {
+    "mtime": 1776584260.644125,
+    "hash": "1335dba9fa1d5ce39224fd3ab1402414"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/format.ts": {
+    "mtime": 1776584505.341965,
+    "hash": "3cb5e43f09ae24b9faf5fddbf1257614"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/client-api.ts": {
+    "mtime": 1776600918.6042972,
+    "hash": "02651c8232a69151bf2d8355fc55e9cd"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/mock-data.ts": {
+    "mtime": 1777870567.3965986,
+    "hash": "5761bb0f492b5d47e35fa1459854637c"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/demo-api.ts": {
+    "mtime": 1777870567.386598,
+    "hash": "d594a5e22d3b99eeeeffd57e7dc964ca"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/api.ts": {
+    "mtime": 1776600907.527266,
+    "hash": "a42753fe0b5cde5638307304ed0bd563"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/search-params.ts": {
+    "mtime": 1776601218.385522,
+    "hash": "4902de5e9899ce104ee2dbe443734262"
+  },
+  "/var/www/html/ecommerce/apps/admin/lib/demo.ts": {
+    "mtime": 1776600786.61716,
+    "hash": "6396b489b8366b2d75d23cdac4fe9087"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/theme-provider.tsx": {
+    "mtime": 1774681184.3380394,
+    "hash": "5ee7394d5718d7949d36f601bf5a196d"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/topbar.tsx": {
+    "mtime": 1776584445.225975,
+    "hash": "874cfb810103e9b3de437ffdefe1d2e2"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/sidebar.tsx": {
+    "mtime": 1777870567.3885982,
+    "hash": "52f2153ece5a6388540e16b57a3cfa96"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/media-picker.tsx": {
+    "mtime": 1777263830.126239,
+    "hash": "2a4255ec7cde48eb644166e632c26d1f"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/data-table.tsx": {
+    "mtime": 1776584539.2485323,
+    "hash": "35fdc28f330aa2364924ef2f46f7455e"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/status-badge.tsx": {
+    "mtime": 1776584546.7776592,
+    "hash": "2a3d5aa4790d5126ce6dfd675e94289c"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/pagination.tsx": {
+    "mtime": 1776601323.7721853,
+    "hash": "0c9104127eee5800894dbab18beb21af"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/page-header.tsx": {
+    "mtime": 1776584512.421083,
+    "hash": "04c2148e44bb82a50fb42652524ad7a0"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/product-performance.tsx": {
+    "mtime": 1774683425.8136582,
+    "hash": "5a802c8f3f85ced7a467f65a50008bbe"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/metric-card.tsx": {
+    "mtime": 1774681282.8507392,
+    "hash": "6b933b418835ae214fdb59405efed902"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/product-picker.tsx": {
+    "mtime": 1777263830.126239,
+    "hash": "d871bf50ee41c0d445d4d24d0af8eeef"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/search-input.tsx": {
+    "mtime": 1776601315.408299,
+    "hash": "2d23ec02c582a3207ea6bed1a5603e8f"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/date-range-filter.tsx": {
+    "mtime": 1776601333.7300484,
+    "hash": "e55500d90a2622a4bf0f0e3491721625"
+  },
+  "/var/www/html/ecommerce/apps/admin/components/stat-card.tsx": {
+    "mtime": 1774681278.565307,
+    "hash": "0ef3328ba0fb64850af461797cc2bf45"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/layout.tsx": {
+    "mtime": 1777263830.047239,
+    "hash": "d66dd5b19ceca369b30429e4e3cbb556"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/login/page.tsx": {
+    "mtime": 1777263830.163239,
+    "hash": "ed7c81e3d95d530c5e8e92fd95d3305b"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/login/login-form.tsx": {
+    "mtime": 1776601027.2001493,
+    "hash": "8002865a3362a36b086fe7f7357fd4b0"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/api/auth/login/route.ts": {
+    "mtime": 1776584274.7663295,
+    "hash": "4982291d808e63aacdb3f62b231742a2"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/api/auth/logout/route.ts": {
+    "mtime": 1776584279.5853999,
+    "hash": "2be3704a2b3328db28d4b8cddc01889f"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/api/auth/me/route.ts": {
+    "mtime": 1776584285.445486,
+    "hash": "09ff148b91f6102b603cb3916e348aa4"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/api/proxy/[...path]/route.ts": {
+    "mtime": 1776584295.87064,
+    "hash": "56924b1a1537f0081e47a3b8a13426e1"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/layout.tsx": {
+    "mtime": 1776601016.2641966,
+    "hash": "4f4388ae42eb25a9e74b642e51a7a7af"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/page.tsx": {
+    "mtime": 1776584400.4312534,
+    "hash": "da70c8ff8eea85af6a4b289c681ccd2a"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/admin-shell.tsx": {
+    "mtime": 1776601045.411057,
+    "hash": "cb81213919e3df57882300651047b4a0"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/categories/page.tsx": {
+    "mtime": 1776600958.4723325,
+    "hash": "57bb612ed4f76644cacd6691e92c0742"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/categories/categories-manager.tsx": {
+    "mtime": 1776584695.475209,
+    "hash": "1709ba14b1558f3726c7011e8e24648a"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/orders/page.tsx": {
+    "mtime": 1776601253.5801008,
+    "hash": "03969949c233bd1d43db53241d09b8fd"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/orders/status-filter.tsx": {
+    "mtime": 1776601351.869795,
+    "hash": "945b051f63a7ee5847e9c3fe99e9fc39"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/orders/[id]/order-status-editor.tsx": {
+    "mtime": 1776584783.7257526,
+    "hash": "76134cf610cf1dc666a604d5c7fa94a2"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/orders/[id]/page.tsx": {
+    "mtime": 1776601001.7832491,
+    "hash": "1117f7b843befe4833665c749ba94390"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/users/page.tsx": {
+    "mtime": 1776600962.20733,
+    "hash": "a6d256829e7c8f03074d06560bf5c6a2"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/users/users-manager.tsx": {
+    "mtime": 1776584873.108331,
+    "hash": "70d944674c03202124bf8db23524dafd"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/products-toolbar.tsx": {
+    "mtime": 1776584596.742507,
+    "hash": "6f1e499ff3c9dad4b65f42d2a22c3320"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/page.tsx": {
+    "mtime": 1777263830.126239,
+    "hash": "2440103a9d71e2a19f24b42e8c8febe2"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/category-filter.tsx": {
+    "mtime": 1776601342.7329233,
+    "hash": "e32d71adff2e21cacf91bcb410b04f81"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/product-form.tsx": {
+    "mtime": 1777791106.0125103,
+    "hash": "1b79164d8d78c2d07cc556db6c090c9b"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/delete-button.tsx": {
+    "mtime": 1776584602.9846137,
+    "hash": "e844e12a7c166b20d41804927d03edb2"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/[id]/edit/page.tsx": {
+    "mtime": 1777263830.126239,
+    "hash": "8d2c6d4e0f58213a0653785a6d7f0fc3"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/products/new/page.tsx": {
+    "mtime": 1777263830.1292388,
+    "hash": "77e93520caa0cabbd757a88b520b2cec"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/page.tsx": {
+    "mtime": 1777870567.3915982,
+    "hash": "d955d165cf64066b41a90cdc4d002b7e"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/supplier-form.tsx": {
+    "mtime": 1777870567.385598,
+    "hash": "31da9ed9f1c3c2995c2d10d795c51ea1"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/supplier-activity.tsx": {
+    "mtime": 1777870567.3925984,
+    "hash": "b0bdfe58544e6794ee0932288ed862ba"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/supplier-detail-tabs.tsx": {
+    "mtime": 1777870567.383598,
+    "hash": "48c3fe2d96005c00951f02335a9e58f6"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/page.tsx": {
+    "mtime": 1777870567.3925984,
+    "hash": "28c5b7240db9c36a138b3fdc922fb5ec"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/supplier-imports-tab.tsx": {
+    "mtime": 1777870567.3905983,
+    "hash": "673913e85ed603726534ef175c68585b"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/supplier-products.tsx": {
+    "mtime": 1777870567.3955984,
+    "hash": "6dcdd0b461d0541ef3d25b4802c4b75d"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/supplier-overview.tsx": {
+    "mtime": 1777870567.381598,
+    "hash": "84ec60f50812606e78aae7a03f30c54f"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/edit/page.tsx": {
+    "mtime": 1777870567.381598,
+    "hash": "fff6c1eed6d83997cdaac75b038a2f93"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/imports/import-wizard.tsx": {
+    "mtime": 1777870567.383598,
+    "hash": "85a26a4c435887c05b005ecf7d99a62d"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/imports/new/page.tsx": {
+    "mtime": 1777870567.3905983,
+    "hash": "f1c83aee3abf785f15e2fb4037c0bf32"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/imports/[importId]/page.tsx": {
+    "mtime": 1777870567.3895981,
+    "hash": "945cfac87e5efa3d4c3b9dfc7df39dd5"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/imports/[importId]/runs/page.tsx": {
+    "mtime": 1777870567.3955984,
+    "hash": "33718a2b324539817a890bb8e596dbb4"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/[id]/imports/[importId]/runs/runs-table.tsx": {
+    "mtime": 1777870567.3925984,
+    "hash": "609e6bf4f31a7fd7d3be3b830ea4b2ba"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/suppliers/new/page.tsx": {
+    "mtime": 1777870567.3895981,
+    "hash": "002b7678bc9deef5fd7dc3e8bc0d4d91"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/settings/page.tsx": {
+    "mtime": 1776600968.9093232,
+    "hash": "afcedef96cd04af12a1e2cfc3e7b1845"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/settings/settings-form.tsx": {
+    "mtime": 1776584904.668891,
+    "hash": "f5e805d26d60ed96eec6ec0f520540a6"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/contacts/page.tsx": {
+    "mtime": 1776601238.638283,
+    "hash": "842acc73979d293d4fcf3b3ef419220c"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/contacts/contact-row.tsx": {
+    "mtime": 1776584845.5088422,
+    "hash": "e69b13c7789e119c6a488e163a59dd2c"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/media/media-manager.tsx": {
+    "mtime": 1777263830.126239,
+    "hash": "43d8eede18011a2c8f0a5b6c0af366e4"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/media/page.tsx": {
+    "mtime": 1777263830.047239,
+    "hash": "1d15f7a2ed84b0662a4d2f8c51cdfe84"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/customers/page.tsx": {
+    "mtime": 1776601249.1561553,
+    "hash": "31ca5502397b74bc30a9a26752d26560"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/customers/[id]/page.tsx": {
+    "mtime": 1776600992.8342757,
+    "hash": "0f9bcb9faf9bf2017d91c07206c45b80"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/inquiries/page.tsx": {
+    "mtime": 1776601257.9840462,
+    "hash": "b96a666be00e43061fd49ec40d755f02"
+  },
+  "/var/www/html/ecommerce/apps/admin/app/(admin)/inquiries/inquiry-row.tsx": {
+    "mtime": 1776584817.586349,
+    "hash": "b8483c9b6f4e20e7122742e94ba683bd"
+  },
+  "/var/www/html/ecommerce/apps/admin/scripts/build-demo.mjs": {
+    "mtime": 1776601087.8197823,
+    "hash": "857b30ad5691fddff4859c592839993c"
+  },
+  "/var/www/html/ecommerce/plan.txt": {
+    "mtime": 1777879806.5619874,
+    "hash": "26fb62dc51f21f74c602f73d74b78d94"
+  },
+  "/var/www/html/ecommerce/CLAUDE.md": {
+    "mtime": 1778234005.4505577,
+    "hash": "da79aa9343cd2b362206f03762160abc"
+  },
+  "/var/www/html/ecommerce/README.md": {
+    "mtime": 1774674136.5191817,
+    "hash": "7638192a7801e32072a914da074642f2"
+  },
+  "/var/www/html/ecommerce/pnpm-workspace.yaml": {
+    "mtime": 1774674136.5361834,
+    "hash": "de6b9e7bb156f8dc12f68dc3d1a0b649"
+  },
+  "/var/www/html/ecommerce/packages/eslint-config/README.md": {
+    "mtime": 1774674136.5301828,
+    "hash": "3f4915336e7c54df90f5b12b527b8b87"
+  },
+  "/var/www/html/ecommerce/apps/web/README.md": {
+    "mtime": 1774674136.5251822,
+    "hash": "574802b03ffd161d1de4f36b4e1d8a32"
+  },
+  "/var/www/html/ecommerce/apps/api/README.md": {
+    "mtime": 1774674136.5191817,
+    "hash": "54cb1d6b647661077a85117b6439650a"
+  },
+  "/var/www/html/ecommerce/apps/web/public/logo.png": {
+    "mtime": 1775994684.8371713,
+    "hash": "b17a1af46cbf71398ca790e5027fe604"
+  },
+  "/var/www/html/ecommerce/apps/web/public/circles.svg": {
+    "mtime": 1774674136.5271826,
+    "hash": "2517f9eb2aa231a483a2b0c27da9d454"
+  },
+  "/var/www/html/ecommerce/apps/web/public/vercel.svg": {
+    "mtime": 1774674136.5271826,
+    "hash": "61c6b19abff40ea7acd577be818f3976"
+  },
+  "/var/www/html/ecommerce/apps/web/public/turborepo.svg": {
+    "mtime": 1774674136.5271826,
+    "hash": "3d86b98e3d7c252c00dad343f37e6191"
+  },
+  "/var/www/html/ecommerce/apps/web/public/next.svg": {
+    "mtime": 1774674136.5271826,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/var/www/html/ecommerce/apps/admin/public/logo.png": {
+    "mtime": 1777208585.162137,
+    "hash": "b17a1af46cbf71398ca790e5027fe604"
+  }
+}

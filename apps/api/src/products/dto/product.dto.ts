@@ -1,13 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { TierPriceType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsEnum,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
+  Max,
+  MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 
@@ -17,10 +23,36 @@ export class TierPriceDto {
   @Min(1)
   minQuantity!: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    enum: TierPriceType,
+    required: false,
+    default: TierPriceType.FIXED,
+  })
+  @IsOptional()
+  @IsEnum(TierPriceType)
+  type?: TierPriceType;
+
+  @ApiProperty({
+    description:
+      'FIXED: per-unit price in store currency. PERCENTAGE: 0-100 off Selling Price.',
+  })
   @IsNumber()
   @Min(0)
+  @ValidateIf((o: TierPriceDto) => o.type === TierPriceType.PERCENTAGE)
+  @Max(100)
   price!: number;
+}
+
+export class ProductAttributeDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(80)
+  name!: string;
+
+  @ApiProperty()
+  @IsString()
+  @MaxLength(500)
+  value!: string;
 }
 
 export class CreateProductDto {
@@ -39,12 +71,23 @@ export class CreateProductDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
+  shortDescription?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @ApiProperty()
   @IsNumber()
   @Min(0)
   basePrice!: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @Min(0)
+  sellingPrice!: number;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
@@ -57,10 +100,25 @@ export class CreateProductDto {
   @IsBoolean()
   active?: boolean;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ type: [String], required: false })
   @IsOptional()
-  @IsString()
-  categoryId?: string;
+  @IsArray()
+  @IsString({ each: true })
+  categoryIds?: string[];
+
+  @ApiProperty({ type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(50)
+  relatedProductIds?: string[];
+
+  @ApiProperty({ type: [ProductAttributeDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttributeDto)
+  attributes?: ProductAttributeDto[];
 
   @ApiProperty({ type: [TierPriceDto], required: false })
   @IsOptional()
@@ -89,6 +147,12 @@ export class UpdateProductDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
+  shortDescription?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @ApiProperty({ required: false })
@@ -96,6 +160,12 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0)
   basePrice?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  sellingPrice?: number;
 
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
@@ -108,10 +178,25 @@ export class UpdateProductDto {
   @IsBoolean()
   active?: boolean;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ type: [String], required: false })
   @IsOptional()
-  @IsString()
-  categoryId?: string;
+  @IsArray()
+  @IsString({ each: true })
+  categoryIds?: string[];
+
+  @ApiProperty({ type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(50)
+  relatedProductIds?: string[];
+
+  @ApiProperty({ type: [ProductAttributeDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttributeDto)
+  attributes?: ProductAttributeDto[];
 
   @ApiProperty({ type: [TierPriceDto], required: false })
   @IsOptional()

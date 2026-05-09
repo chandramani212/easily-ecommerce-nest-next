@@ -58,18 +58,27 @@ export default async function ProductsPage({
       ),
     },
     {
-      header: "Category",
+      header: "Categories",
       accessor: (row) =>
-        row.category ? (
-          row.category.name
+        row.categories && row.categories.length > 0 ? (
+          <span className="text-sm">
+            {row.categories.map((c) => c.name).join(", ")}
+          </span>
         ) : (
           <span className="text-[var(--admin-fg)]/40">—</span>
         ),
     },
     {
-      header: "Base Price",
+      header: "Price",
       accessor: (row) => (
-        <span className="font-medium">{formatMoney(row.basePrice)}</span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-medium">{formatMoney(row.sellingPrice)}</span>
+          {Number(row.basePrice) > Number(row.sellingPrice) && (
+            <span className="text-xs text-[var(--admin-fg)]/50 line-through">
+              {formatMoney(row.basePrice)}
+            </span>
+          )}
+        </div>
       ),
     },
     {

@@ -32,8 +32,8 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('ShopEase API')
-    .setDescription('ShopEase admin + storefront backend')
+    .setTitle('Easily API')
+    .setDescription('Easily admin + storefront backend')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

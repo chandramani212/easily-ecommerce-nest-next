@@ -16,10 +16,31 @@ export interface Category {
   createdAt: string;
 }
 
+export type TierPriceType = "FIXED" | "PERCENTAGE";
+
 export interface TierPrice {
   id?: string;
   minQuantity: number;
+  type: TierPriceType;
   price: string | number;
+  /** Server-derived per-unit price (PERCENTAGE tiers resolved off sellingPrice). */
+  effectivePrice?: number;
+}
+
+export interface ProductAttribute {
+  name: string;
+  value: string;
+}
+
+export interface RelatedProductSummary {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  basePrice: string | number;
+  sellingPrice: string | number;
+  images: string[];
+  active: boolean;
 }
 
 export interface Product {
@@ -27,15 +48,32 @@ export interface Product {
   name: string;
   slug: string;
   sku: string;
+  shortDescription: string;
   description: string;
   basePrice: string | number;
+  sellingPrice: string | number;
   images: string[];
   active: boolean;
-  categoryId: string | null;
-  category?: { id: string; name: string; slug: string } | null;
+  attributes: ProductAttribute[];
+  categories: { id: string; name: string; slug: string }[];
+  relatedTo?: RelatedProductSummary[];
   tierPrices: TierPrice[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MediaAsset {
+  id: string;
+  filename: string;
+  originalName: string;
+  url: string;
+  mimeType: string;
+  size: number;
+  width?: number | null;
+  height?: number | null;
+  alt?: string | null;
+  uploadedById?: string | null;
+  createdAt: string;
 }
 
 export interface Customer {
@@ -130,4 +168,89 @@ export interface Settings {
   smtpFrom: string;
   smtpSecure: boolean;
   notifyTo: string;
+}
+
+export type SupplierKind = "REST" | "FILE_FEED";
+export type SupplierAuthType =
+  | "NONE"
+  | "API_KEY"
+  | "BASIC"
+  | "BEARER"
+  | "OAUTH2_CLIENT_CREDENTIALS";
+export type SupplierImportFormat = "JSON" | "XML" | "CSV";
+export type SupplierImportRunStatus =
+  | "RUNNING"
+  | "SUCCESS"
+  | "PARTIAL"
+  | "FAILED";
+export type SupplierImportTrigger = "SCHEDULE" | "MANUAL";
+
+export interface Supplier {
+  id: string;
+  name: string;
+  kind: SupplierKind;
+  baseUrl?: string | null;
+  authType: SupplierAuthType;
+  defaultMarkupPct: number;
+  notes: string;
+  active: boolean;
+  productCount?: number;
+  importCount?: number;
+  authConfigured?: boolean;
+  imports?: SupplierImportSummary[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupplierImportSummary {
+  id: string;
+  name: string;
+  format: SupplierImportFormat;
+  cron: string;
+  active: boolean;
+  lastRunAt?: string | null;
+  lastStatus?: SupplierImportRunStatus | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupplierImport extends SupplierImportSummary {
+  supplierId: string;
+  endpoint?: string | null;
+  httpMethod: string;
+  headers: Record<string, string>;
+  body?: string | null;
+  recordsPath: string;
+  mapping: Record<string, unknown>;
+  markup: Record<string, unknown>;
+  autoDeactivateMissing: boolean;
+}
+
+export interface SupplierImportRun {
+  id: string;
+  importId: string;
+  status: SupplierImportRunStatus;
+  triggeredBy: SupplierImportTrigger;
+  startedAt: string;
+  finishedAt?: string | null;
+  created: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  errors: { record: number; externalId?: string; error: string }[];
+}
+
+export interface SupplierProductLinkEntry {
+  externalId: string;
+  lastSeenAt: string;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    slug: string;
+    sellingPrice: string | number;
+    basePrice: string | number;
+    active: boolean;
+    images: string[];
+  };
 }

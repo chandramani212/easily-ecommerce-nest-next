@@ -57,9 +57,11 @@ async function main() {
       name: 'Classic Cotton T-Shirt',
       slug: 'classic-cotton-t-shirt',
       sku: 'TS-CLASSIC-001',
+      shortDescription: 'Premium 100% cotton tee, custom printed.',
       description: 'Premium 100% cotton t-shirt, custom printed.',
-      basePrice: 9.99,
-      categoryId: catTees.id,
+      basePrice: 12.99,
+      sellingPrice: 9.99,
+      categoryIds: [catTees.id],
       tiers: [
         { minQuantity: 50, price: 8.5 },
         { minQuantity: 100, price: 7.25 },
@@ -70,9 +72,11 @@ async function main() {
       name: 'Premium Polo Shirt',
       slug: 'premium-polo-shirt',
       sku: 'TS-POLO-002',
+      shortDescription: 'Professional polo with embroidered logo.',
       description: 'Professional polo with embroidered logo.',
-      basePrice: 14.99,
-      categoryId: catTees.id,
+      basePrice: 18.99,
+      sellingPrice: 14.99,
+      categoryIds: [catTees.id],
       tiers: [
         { minQuantity: 25, price: 13.0 },
         { minQuantity: 100, price: 11.0 },
@@ -82,9 +86,11 @@ async function main() {
       name: 'Branded Notebook',
       slug: 'branded-notebook',
       sku: 'ST-NB-001',
+      shortDescription: 'Hardcover A5 notebook.',
       description: 'Hardcover A5 notebook with custom branding.',
-      basePrice: 4.5,
-      categoryId: catStationery.id,
+      basePrice: 6.5,
+      sellingPrice: 4.5,
+      categoryIds: [catStationery.id],
       tiers: [
         { minQuantity: 100, price: 3.75 },
         { minQuantity: 500, price: 2.95 },
@@ -94,9 +100,11 @@ async function main() {
       name: 'Custom Ballpoint Pen',
       slug: 'custom-ballpoint-pen',
       sku: 'ST-PEN-001',
+      shortDescription: 'Laser-engraved ballpoint.',
       description: 'Smooth-writing pen with laser-engraved logo.',
-      basePrice: 1.25,
-      categoryId: catStationery.id,
+      basePrice: 1.99,
+      sellingPrice: 1.25,
+      categoryIds: [catStationery.id],
       tiers: [
         { minQuantity: 250, price: 0.95 },
         { minQuantity: 1000, price: 0.65 },
@@ -106,9 +114,11 @@ async function main() {
       name: 'Canvas Tote Bag',
       slug: 'canvas-tote-bag',
       sku: 'BG-TOTE-001',
+      shortDescription: 'Eco-friendly canvas tote.',
       description: 'Eco-friendly canvas tote, perfect for events.',
-      basePrice: 5.5,
-      categoryId: catBags.id,
+      basePrice: 7.5,
+      sellingPrice: 5.5,
+      categoryIds: [catBags.id],
       tiers: [
         { minQuantity: 100, price: 4.5 },
         { minQuantity: 500, price: 3.25 },
@@ -117,12 +127,13 @@ async function main() {
   ];
 
   for (const p of products) {
-    const { tiers, ...data } = p;
+    const { tiers, categoryIds, ...data } = p;
     const product = await prisma.product.upsert({
       where: { sku: data.sku },
       update: {},
       create: {
         ...data,
+        categories: { connect: categoryIds.map((id) => ({ id })) },
         tierPrices: {
           create: tiers,
         },

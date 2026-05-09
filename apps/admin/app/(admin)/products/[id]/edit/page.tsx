@@ -22,7 +22,7 @@ export default async function EditProductPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
+    <div className="mx-auto max-w-7xl space-y-4">
       <PageHeader
         title={`Edit: ${product.name}`}
         description={`SKU: ${product.sku}`}

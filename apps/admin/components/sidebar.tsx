@@ -53,6 +53,27 @@ const MENU: MenuItem[] = [
     ),
   },
   {
+    label: "Media",
+    href: "/media",
+    icon: (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Suppliers",
+    icon: (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M3 7l9-4 9 4M3 7v10l9 4 9-4V7M3 7l9 4m0 0l9-4m-9 4v10" />
+      </svg>
+    ),
+    children: [
+      { label: "All Suppliers", href: "/suppliers" },
+      { label: "Add Supplier", href: "/suppliers/new" },
+    ],
+  },
+  {
     label: "Inquiries",
     href: "/inquiries",
     icon: (
@@ -129,14 +150,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center gap-2.5 px-6">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--admin-accent)]">
-            <span className="text-sm font-bold text-white">S</span>
-          </div>
-          <span className="text-lg font-bold text-white">ShopEase</span>
-          <span className="ml-1 rounded bg-[var(--admin-accent)]/20 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--admin-accent)]">
+        <div className="flex h-16 items-center gap-2.5 px-6 border-[var(--admin-border)] bg-[var(--admin-card)]">
+          <img src="/logo.png" alt="Easily" className="h-8 w-auto" />
+          <span className="text-lg font-bold text-white"></span>
+          {/* <span className="ml-1 rounded bg-[var(--admin-accent)]/20 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--admin-accent)]">
             Admin
-          </span>
+          </span> */}
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 py-4">
