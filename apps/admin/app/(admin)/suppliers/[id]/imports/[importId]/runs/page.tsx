@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import { apiFetch } from "../../../../../../../lib/api";
 import { PageHeader } from "../../../../../../../components/page-header";
+import { Pager } from "../../../../../../../components/pagination";
+import {
+  pickParam as p,
+  resolveSearchParams,
+  type SearchParamsRecord as SP,
+} from "../../../../../../../lib/search-params";
 import type {
   SupplierImport,
   SupplierImportRun,
@@ -25,16 +31,24 @@ export async function generateStaticParams() {
 
 export default async function RunHistoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; importId: string }>;
+  searchParams: Promise<SP>;
 }) {
   const { id, importId } = await params;
+  const sp = await resolveSearchParams(searchParams);
+  const page = Math.max(1, Number(p(sp, "page") ?? "1"));
+  const pageSize = 20;
+  const skip = (page - 1) * pageSize;
+
   const [imp, runs] = await Promise.all([
     apiFetch<SupplierImport>(`/suppliers/${id}/imports/${importId}`),
     apiFetch<{ items: SupplierImportRun[]; total: number }>(
-      `/suppliers/${id}/imports/${importId}/runs?take=50`,
+      `/suppliers/${id}/imports/${importId}/runs?take=${pageSize}&skip=${skip}`,
     ),
   ]);
+  const pageCount = Math.ceil(runs.total / pageSize);
   return (
     <div className="mx-auto max-w-7xl space-y-4">
       <PageHeader
@@ -50,6 +64,7 @@ export default async function RunHistoryPage({
         }
       />
       <RunsTable runs={runs.items} />
+      <Pager page={page} pageCount={pageCount} total={runs.total} />
     </div>
   );
 }

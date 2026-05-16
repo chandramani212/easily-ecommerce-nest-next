@@ -7,6 +7,7 @@ interface PagerProps {
   page: number;
   pageCount: number;
   total: number;
+  paramName?: string;
 }
 
 export function Pager(props: PagerProps) {
@@ -25,14 +26,14 @@ function PagerFallback({ total }: { total: number }) {
   );
 }
 
-function PagerInner({ page, pageCount, total }: PagerProps) {
+function PagerInner({ page, pageCount, total, paramName = "page" }: PagerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   function go(newPage: number) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
+    params.set(paramName, String(newPage));
     router.push(`${pathname}?${params.toString()}`);
   }
 

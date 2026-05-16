@@ -201,6 +201,12 @@ export class SupplierListQuery {
 
   @IsOptional() @IsBoolean() @Type(() => Boolean)
   active?: boolean;
+
+  @IsOptional() @IsInt() @Type(() => Number)
+  take?: number;
+
+  @IsOptional() @IsInt() @Type(() => Number)
+  skip?: number;
 }
 
 export class SupplierProductsQuery {

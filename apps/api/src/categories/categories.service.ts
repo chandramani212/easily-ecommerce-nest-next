@@ -10,7 +10,10 @@ export class CategoriesService {
   findAll() {
     return this.prisma.category.findMany({
       orderBy: { name: 'asc' },
-      include: { _count: { select: { products: true } } },
+      include: {
+        _count: { select: { products: true } },
+        parent: { select: { id: true, name: true } },
+      },
     });
   }
 

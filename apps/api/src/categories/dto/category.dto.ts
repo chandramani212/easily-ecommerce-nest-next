@@ -13,6 +13,11 @@ export class CreateCategoryDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  description?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   image?: string;
 
   @ApiProperty({ required: false })
@@ -31,6 +36,11 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   slug?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  description?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

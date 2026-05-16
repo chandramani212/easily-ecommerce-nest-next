@@ -50,16 +50,27 @@ export class SuppliersService {
     }
     if (query.active !== undefined) where.active = query.active;
 
-    const items = await this.prisma.supplier.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { imports: true, links: true } } },
-    });
-    return items.map((s) => ({
+    const take = Math.min(Math.max(1, query.take ?? 20), 100);
+    const skip = Math.max(0, query.skip ?? 0);
+
+    const [rawItems, total] = await Promise.all([
+      this.prisma.supplier.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: { _count: { select: { imports: true, links: true } } },
+        take,
+        skip,
+      }),
+      this.prisma.supplier.count({ where }),
+    ]);
+
+    const items = rawItems.map((s) => ({
       ...this.toPublic(s),
       productCount: s._count.links,
       importCount: s._count.imports,
     }));
+
+    return { items, total };
   }
 
   async findOne(id: string) {

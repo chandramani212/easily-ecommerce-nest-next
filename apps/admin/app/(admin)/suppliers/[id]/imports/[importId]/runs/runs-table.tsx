@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { formatDateTime } from "../../../../../../../lib/format";
 import type { SupplierImportRun } from "../../../../../../../lib/types";
@@ -82,8 +82,8 @@ export function RunsTable({ runs }: { runs: SupplierImportRun[] }) {
                 ) / 10}s`
               : "—";
             return (
-              <>
-                <tr key={run.id} className="border-t border-[var(--admin-border)]">
+              <React.Fragment key={run.id}>
+                <tr className="border-t border-[var(--admin-border)]">
                   <td className="px-4 py-3 text-[var(--admin-fg)]/80">
                     {formatDateTime(run.startedAt)}
                   </td>
@@ -178,7 +178,7 @@ export function RunsTable({ runs }: { runs: SupplierImportRun[] }) {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             );
           })}
         </tbody>

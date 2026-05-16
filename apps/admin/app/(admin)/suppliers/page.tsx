@@ -4,6 +4,7 @@ import { apiFetch } from "../../../lib/api";
 import { PageHeader } from "../../../components/page-header";
 import { DataTable, type Column } from "../../../components/data-table";
 import { SearchInput } from "../../../components/search-input";
+import { Pager } from "../../../components/pagination";
 import type { Supplier } from "../../../lib/types";
 import {
   pickParam as p,
@@ -32,11 +33,18 @@ export default async function SuppliersPage({
   const sp = await resolveSearchParams(searchParams);
   const params = new URLSearchParams();
   const q = p(sp, "q");
+  const page = Math.max(1, Number(p(sp, "page") ?? "1"));
+  const pageSize = 20;
+  const skip = (page - 1) * pageSize;
   if (q) params.set("search", q);
+  params.set("take", String(pageSize));
+  params.set("skip", String(skip));
 
-  const suppliers = await apiFetch<Supplier[]>(
+  const data = await apiFetch<{ items: Supplier[]; total: number }>(
     `/suppliers?${params.toString()}`,
   );
+  const suppliers = data.items;
+  const pageCount = Math.ceil(data.total / pageSize);
 
   const columns: Column<Supplier>[] = [
     {
@@ -151,6 +159,7 @@ export default async function SuppliersPage({
         rows={suppliers}
         emptyText="No suppliers yet. Add one to start importing products."
       />
+      <Pager page={page} pageCount={pageCount} total={data.total} />
     </div>
   );
 }

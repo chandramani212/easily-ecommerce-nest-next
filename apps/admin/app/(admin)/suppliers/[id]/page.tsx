@@ -50,11 +50,14 @@ export default async function SupplierDetailPage({
 
   // Fetch the data slice for the active tab. Other tabs lazy-load on visit.
   let productsData: { total: number; items: SupplierProductLinkEntry[] } | null = null;
+  let productsPage = 1;
   let activityData: SupplierImportRun[] | null = null;
 
   if (activeTab === "products") {
+    productsPage = Math.max(1, Number(p(sp, "productsPage") ?? "1"));
+    const productsSkip = (productsPage - 1) * 20;
     productsData = await apiFetchSafe<typeof productsData>(
-      `/suppliers/${id}/products?take=50`,
+      `/suppliers/${id}/products?take=20&skip=${productsSkip}`,
     );
   }
   if (activeTab === "activity") {
@@ -103,7 +106,11 @@ export default async function SupplierDetailPage({
         <SupplierImportsTab supplierId={id} imports={supplier.imports ?? []} />
       )}
       {activeTab === "products" && (
-        <SupplierProducts data={productsData ?? { total: 0, items: [] }} />
+        <SupplierProducts
+          data={productsData ?? { total: 0, items: [] }}
+          page={productsPage}
+          pageSize={20}
+        />
       )}
       {activeTab === "activity" && (
         <SupplierActivity supplierId={id} runs={activityData ?? []} />

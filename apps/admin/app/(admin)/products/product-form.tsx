@@ -85,6 +85,27 @@ export function ProductForm({ product, categories }: Props) {
     return categories.filter((c) => c.name.toLowerCase().includes(q));
   }, [categories, categorySearch]);
 
+  // Build ordered tree for display when not searching:
+  // root categories first, then each root's children indented beneath it.
+  const treeCategories = useMemo(() => {
+    const roots = filteredCategories.filter((c) => !c.parentId);
+    const childrenOf = (parentId: string) =>
+      filteredCategories.filter((c) => c.parentId === parentId);
+    const result: { category: Category; depth: number }[] = [];
+    for (const root of roots) {
+      result.push({ category: root, depth: 0 });
+      for (const child of childrenOf(root.id)) {
+        result.push({ category: child, depth: 1 });
+      }
+    }
+    // Append any orphans (parent not in current list, e.g. filtered out)
+    const placed = new Set(result.map((r) => r.category.id));
+    for (const c of filteredCategories) {
+      if (!placed.has(c.id)) result.push({ category: c, depth: 0 });
+    }
+    return result;
+  }, [filteredCategories]);
+
   function toggleCategory(id: string) {
     setSelectedCategoryIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
@@ -663,21 +684,22 @@ export function ProductForm({ product, categories }: Props) {
               placeholder="Search categories…"
               className="mb-3 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-1.5 text-sm outline-none focus:border-[var(--admin-accent)]"
             />
-            {filteredCategories.length === 0 ? (
+            {treeCategories.length === 0 ? (
               <p className="text-sm text-[var(--admin-fg)]/50">
                 No categories match.
               </p>
             ) : (
               <div className="max-h-72 overflow-y-auto rounded-md border border-[var(--admin-border)]">
                 <ul className="divide-y divide-[var(--admin-border)]">
-                  {filteredCategories.map((c) => {
+                  {treeCategories.map(({ category: c, depth }) => {
                     const checked = selectedCategoryIds.includes(c.id);
                     return (
                       <li key={c.id}>
                         <label
-                          className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--admin-muted)] ${
+                          className={`flex cursor-pointer items-center gap-2 py-2 pr-3 text-sm hover:bg-[var(--admin-muted)] ${
                             checked ? "bg-[var(--admin-accent)]/5" : ""
                           }`}
+                          style={{ paddingLeft: depth === 0 ? "0.75rem" : "1.75rem" }}
                         >
                           <input
                             type="checkbox"
@@ -685,6 +707,9 @@ export function ProductForm({ product, categories }: Props) {
                             onChange={() => toggleCategory(c.id)}
                             className="h-4 w-4 rounded border-[var(--admin-border)]"
                           />
+                          {depth > 0 && (
+                            <span className="text-[var(--admin-fg)]/30">↳</span>
+                          )}
                           <span className="flex-1 truncate">{c.name}</span>
                         </label>
                       </li>

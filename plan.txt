@@ -31,3 +31,18 @@ True WP-All-Import drag-and-drop template UI (drag {source.field} chips onto inp
 OAuth2 authorization-code flow (with callback URL flow + per-supplier client config UI).
 Stock / inventory sync (the schema has no stock field today).
 Multi-instance safe queue (would require BullMQ + Redis, deferred per your scheduler choice).
+
+
+in apps/admin and apps/api
+  in Product modules 
+    - need to add brand , and should support to configureable in import supplier
+
+
+- Need to ask question to hemant
+  - Hierarchy category import throught api (single or multiple with parent)
+  - variants product and simple product
+  - can u share the api/supplier giving variants products , if yes how shwing in prontend 
+
+
+-- claude cli
+  claude --resume 1794e7b1-7ad1-496c-8f2d-e93fa84a036b

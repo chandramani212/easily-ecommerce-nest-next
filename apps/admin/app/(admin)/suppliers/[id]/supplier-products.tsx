@@ -1,13 +1,19 @@
 import Link from "next/link";
 
 import { formatDateTime, formatMoney } from "../../../../lib/format";
+import { Pager } from "../../../../components/pagination";
 import type { SupplierProductLinkEntry } from "../../../../lib/types";
 
 export function SupplierProducts({
   data,
+  page,
+  pageSize,
 }: {
   data: { total: number; items: SupplierProductLinkEntry[] };
+  page: number;
+  pageSize: number;
 }) {
+  const pageCount = Math.ceil(data.total / pageSize);
   if (data.items.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-[var(--admin-border)] p-10 text-center">
@@ -22,6 +28,7 @@ export function SupplierProducts({
       <p className="text-xs text-[var(--admin-fg)]/60">
         {data.total} product{data.total === 1 ? "" : "s"} linked
       </p>
+
       <div className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card)]">
         <table className="w-full text-sm">
           <thead className="bg-[var(--admin-muted)]/60 text-xs uppercase tracking-wide text-[var(--admin-fg)]/60">
@@ -76,6 +83,7 @@ export function SupplierProducts({
           </tbody>
         </table>
       </div>
+      <Pager page={page} pageCount={pageCount} total={data.total} paramName="productsPage" />
     </div>
   );
 }
