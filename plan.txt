@@ -46,3 +46,6 @@ in apps/admin and apps/api
 
 -- claude cli
   claude --resume 1794e7b1-7ad1-496c-8f2d-e93fa84a036b
+
+  i want to integrate my apps/web with actual api from apps/api right now it is a static page but want to integrate , do not integrate any login 
+  module to web

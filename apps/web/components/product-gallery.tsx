@@ -6,6 +6,7 @@ interface ProductImage {
   id: string;
   color: string;
   label: string;
+  url?: string;
 }
 
 interface ProductGalleryProps {
@@ -39,24 +40,33 @@ export function ProductGallery({ images }: ProductGalleryProps) {
         onMouseMove={handleMouseMove}
       >
         <div
-          className="flex aspect-square items-center justify-center transition-transform duration-200"
+          className="flex aspect-square items-center justify-center overflow-hidden transition-transform duration-200"
           style={{
-            backgroundColor: current.color,
+            backgroundColor: current.url ? "transparent" : current.color,
             transform: zoomed ? "scale(2)" : "scale(1)",
             transformOrigin: `${origin.x}% ${origin.y}%`,
           }}
         >
-          <svg
-            width="64"
-            height="64"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="white"
-            strokeWidth="1"
-            className="opacity-30"
-          >
-            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
+          {current.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={current.url}
+              alt={current.label}
+              className="h-full w-full object-contain"
+            />
+          ) : (
+            <svg
+              width="64"
+              height="64"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth="1"
+              className="opacity-30"
+            >
+              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          )}
         </div>
 
         {/* Zoom hint icon */}
@@ -74,24 +84,33 @@ export function ProductGallery({ images }: ProductGalleryProps) {
           <button
             key={img.id}
             onClick={() => setSelected(i)}
-            className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${
+            className={`flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 transition-all ${
               i === selected
                 ? "border-[var(--accent)] shadow-sm"
                 : "border-[var(--border)] opacity-60 hover:opacity-100"
             }`}
-            style={{ backgroundColor: img.color }}
+            style={{ backgroundColor: img.url ? "transparent" : img.color }}
           >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-              strokeWidth="1.5"
-              className="opacity-40"
-            >
-              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
+            {img.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={img.url}
+                alt={img.label}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="white"
+                strokeWidth="1.5"
+                className="opacity-40"
+              >
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            )}
           </button>
         ))}
       </div>

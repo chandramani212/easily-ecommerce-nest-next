@@ -86,22 +86,30 @@ export function ProductForm({ product, categories }: Props) {
   }, [categories, categorySearch]);
 
   // Build ordered tree for display when not searching:
-  // root categories first, then each root's children indented beneath it.
+  // recursively walk root → children → grandchildren, tracking depth.
   const treeCategories = useMemo(() => {
-    const roots = filteredCategories.filter((c) => !c.parentId);
-    const childrenOf = (parentId: string) =>
-      filteredCategories.filter((c) => c.parentId === parentId);
+    const childrenOf = (parentId: string | null) =>
+      filteredCategories.filter((c) => (c.parentId ?? null) === parentId);
     const result: { category: Category; depth: number }[] = [];
-    for (const root of roots) {
-      result.push({ category: root, depth: 0 });
-      for (const child of childrenOf(root.id)) {
-        result.push({ category: child, depth: 1 });
+    const visited = new Set<string>();
+
+    const walk = (parentId: string | null, depth: number) => {
+      for (const node of childrenOf(parentId)) {
+        if (visited.has(node.id)) continue;
+        visited.add(node.id);
+        result.push({ category: node, depth });
+        walk(node.id, depth + 1);
       }
-    }
+    };
+
+    walk(null, 0);
+
     // Append any orphans (parent not in current list, e.g. filtered out)
-    const placed = new Set(result.map((r) => r.category.id));
     for (const c of filteredCategories) {
-      if (!placed.has(c.id)) result.push({ category: c, depth: 0 });
+      if (!visited.has(c.id)) {
+        visited.add(c.id);
+        result.push({ category: c, depth: 0 });
+      }
     }
     return result;
   }, [filteredCategories]);
@@ -699,7 +707,7 @@ export function ProductForm({ product, categories }: Props) {
                           className={`flex cursor-pointer items-center gap-2 py-2 pr-3 text-sm hover:bg-[var(--admin-muted)] ${
                             checked ? "bg-[var(--admin-accent)]/5" : ""
                           }`}
-                          style={{ paddingLeft: depth === 0 ? "0.75rem" : "1.75rem" }}
+                          style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
                         >
                           <input
                             type="checkbox"

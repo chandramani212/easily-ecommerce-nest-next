@@ -7,6 +7,7 @@ interface ProductCardProps {
   badge?: string;
   color: string;
   href?: string;
+  image?: string;
 }
 
 export function ProductCard({
@@ -16,6 +17,7 @@ export function ProductCard({
   badge,
   color,
   href,
+  image,
 }: ProductCardProps) {
   const slug = href || `/product/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -25,25 +27,34 @@ export function ProductCard({
       className="group block overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
     >
       <div
-        className="relative flex h-52 items-center justify-center"
-        style={{ backgroundColor: color }}
+        className="relative flex h-52 items-center justify-center overflow-hidden"
+        style={{ backgroundColor: image ? "#f8fafc" : color }}
       >
         {badge && (
-          <span className="absolute left-3 top-3 rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
             {badge}
           </span>
         )}
-        <svg
-          width="48"
-          height="48"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="white"
-          strokeWidth="1.5"
-          className="opacity-40"
-        >
-          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={image}
+            alt={name}
+            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <svg
+            width="48"
+            height="48"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="white"
+            strokeWidth="1.5"
+            className="opacity-40"
+          >
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        )}
       </div>
       <div className="p-4">
         <h3 className="font-medium leading-snug text-[var(--foreground)]">{name}</h3>

@@ -16,6 +16,7 @@ interface Product {
   brand: string;
   colorName: string;
   rating: number;
+  image?: string;
 }
 
 interface CategoryListingProps {
@@ -261,6 +262,7 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
                   badge={p.badge}
                   color={p.color}
                   href={`/product/${p.id}`}
+                  image={p.image}
                 />
               ))}
             </div>
@@ -273,17 +275,26 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
                   className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3 transition-all hover:shadow-md"
                 >
                   <div
-                    className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: p.color }}
+                    className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl"
+                    style={{ backgroundColor: p.image ? "#f8fafc" : p.color }}
                   >
                     {p.badge && (
-                      <span className="absolute left-2 top-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                         {p.badge}
                       </span>
                     )}
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.5" className="opacity-40">
-                      <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
+                    {p.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.5" className="opacity-40">
+                        <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    )}
                   </div>
                   <div className="flex flex-1 flex-col justify-center">
                     <h3 className="font-medium leading-snug">{p.name}</h3>

@@ -11,6 +11,7 @@ interface ProductImage {
   id: string;
   color: string;
   label: string;
+  url?: string;
 }
 
 interface QuantityPrice {
@@ -26,6 +27,7 @@ interface Product {
   categories: string[];
   images: ProductImage[];
   description: string;
+  shortDescription?: string;
   additionalInfo: string;
   quantityPricing: QuantityPrice[];
   colorVariations?: string;
@@ -97,9 +99,14 @@ export function ProductDetail({ product }: { product: Product }) {
   const inquiryUrl = (type: string) =>
     `/inquiry?type=${encodeURIComponent(type)}&product=${encodeURIComponent(product.name)}`;
 
-  const descriptionContent = (
+  const descriptionText =
+    (product.description && product.description.trim()) ||
+    (product.shortDescription && product.shortDescription.trim()) ||
+    "";
+
+  const descriptionContent = descriptionText ? (
     <div className="space-y-4">
-      <p>{product.description}</p>
+      <p className="whitespace-pre-line">{descriptionText}</p>
       {product.colorVariations && (
         <div className="flex gap-4">
           <span className="shrink-0 font-medium text-[var(--foreground)]">
@@ -109,7 +116,7 @@ export function ProductDetail({ product }: { product: Product }) {
         </div>
       )}
     </div>
-  );
+  ) : null;
 
   const shippingContent = (
     <div className="space-y-5">
@@ -368,7 +375,9 @@ export function ProductDetail({ product }: { product: Product }) {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <ProductTabs
             tabs={[
-              { label: "Description & Specs", content: descriptionContent },
+              ...(descriptionContent
+                ? [{ label: "Description & Specs", content: descriptionContent }]
+                : []),
               { label: "Shipping", content: shippingContent },
               { label: "Artwork", content: artworkContent },
             ]}

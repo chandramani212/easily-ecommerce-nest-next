@@ -191,7 +191,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-[var(--border)] bg-[var(--muted)]">
+      {/* <section className="border-t border-[var(--border)] bg-[var(--muted)]">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold">Ready to start shopping?</h2>
           <p className="mt-2 text-[var(--foreground)]/50">
@@ -213,7 +213,7 @@ export default function AboutPage() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
     </>

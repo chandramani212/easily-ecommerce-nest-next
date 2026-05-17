@@ -148,7 +148,7 @@ export default function ContactPage() {
       </section>
 
       {/* Map placeholder */}
-      <section className="border-t border-[var(--border)]">
+      {/* <section className="border-t border-[var(--border)]">
         <div className="flex h-64 items-center justify-center bg-[var(--muted)]">
           <div className="text-center">
             <svg
@@ -168,7 +168,7 @@ export default function ContactPage() {
             </p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
     </>

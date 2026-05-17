@@ -107,6 +107,15 @@ export class ProductsService {
     return withEffectiveTierPrices(product);
   }
 
+  async findBySlug(slug: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { slug },
+      include: PRODUCT_INCLUDE,
+    });
+    if (!product) throw new NotFoundException('Product not found');
+    return withEffectiveTierPrices(product);
+  }
+
   async create(dto: CreateProductDto) {
     try {
       const created = await this.prisma.product.create({

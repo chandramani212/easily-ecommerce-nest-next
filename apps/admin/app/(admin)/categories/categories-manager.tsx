@@ -9,18 +9,28 @@ import type { Category, MediaAsset } from "../../../lib/types";
 
 function buildTree(categories: Category[], excludeId?: string) {
   const pool = excludeId ? categories.filter((c) => c.id !== excludeId) : categories;
-  const roots = pool.filter((c) => !c.parentId);
+  const childrenOf = (parentId: string | null) =>
+    pool.filter((c) => (c.parentId ?? null) === parentId);
   const result: { category: Category; depth: number }[] = [];
-  for (const root of roots) {
-    result.push({ category: root, depth: 0 });
-    for (const child of pool.filter((c) => c.parentId === root.id)) {
-      result.push({ category: child, depth: 1 });
+  const visited = new Set<string>();
+
+  const walk = (parentId: string | null, depth: number) => {
+    for (const node of childrenOf(parentId)) {
+      if (visited.has(node.id)) continue;
+      visited.add(node.id);
+      result.push({ category: node, depth });
+      walk(node.id, depth + 1);
     }
-  }
+  };
+
+  walk(null, 0);
+
   // orphans whose parent was excluded
-  const placed = new Set(result.map((r) => r.category.id));
   for (const c of pool) {
-    if (!placed.has(c.id)) result.push({ category: c, depth: 0 });
+    if (!visited.has(c.id)) {
+      visited.add(c.id);
+      result.push({ category: c, depth: 0 });
+    }
   }
   return result;
 }
@@ -83,7 +93,7 @@ function CategorySelect({
                   type="button"
                   onClick={() => { onChange(c.id); setOpen(false); }}
                   className={`flex w-full items-center gap-1 py-2 pr-3 text-left text-sm hover:bg-[var(--admin-muted)] ${value === c.id ? "bg-[var(--admin-accent)]/5 font-medium" : ""}`}
-                  style={{ paddingLeft: depth === 0 ? "0.75rem" : "1.75rem" }}
+                  style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
                 >
                   {depth > 0 && <span className="text-[var(--admin-fg)]/30">↳</span>}
                   {c.name}
@@ -153,6 +163,7 @@ export function CategoriesManager({ initial }: { initial: Category[] }) {
   // Add-form state
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
   const [parentId, setParentId] = useState("");
@@ -189,6 +200,7 @@ export function CategoriesManager({ initial }: { initial: Category[] }) {
       });
       setName("");
       setSlug("");
+      setSlugTouched(false);
       setDescription("");
       setImage("");
       setParentId("");
@@ -250,8 +262,9 @@ export function CategoriesManager({ initial }: { initial: Category[] }) {
             required
             value={name}
             onChange={(e) => {
-              setName(e.target.value);
-              if (!slug) setSlug(slugify(e.target.value));
+              const next = e.target.value;
+              setName(next);
+              if (!slugTouched) setSlug(slugify(next));
             }}
             placeholder="Name *"
             className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 text-sm outline-none focus:border-[var(--admin-accent)]"
@@ -259,7 +272,10 @@ export function CategoriesManager({ initial }: { initial: Category[] }) {
           <input
             required
             value={slug}
-            onChange={(e) => setSlug(e.target.value)}
+            onChange={(e) => {
+              setSlug(e.target.value);
+              setSlugTouched(true);
+            }}
             placeholder="Slug *"
             className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 font-mono text-sm outline-none focus:border-[var(--admin-accent)]"
           />

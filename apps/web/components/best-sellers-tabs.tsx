@@ -9,6 +9,8 @@ interface Product {
   originalPrice?: number;
   badge?: string;
   color: string;
+  href?: string;
+  image?: string;
 }
 
 interface Tab {
@@ -42,9 +44,15 @@ export function BestSellersTabs({ tabs }: { tabs: Tab[] }) {
 
       {current && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {current.products.map((product) => (
-            <ProductCard key={product.name} {...product} />
-          ))}
+          {current.products.length === 0 ? (
+            <p className="col-span-full text-center text-sm text-[var(--foreground)]/50">
+              No products available.
+            </p>
+          ) : (
+            current.products.map((product) => (
+              <ProductCard key={product.name} {...product} />
+            ))
+          )}
         </div>
       )}
     </div>
