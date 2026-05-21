@@ -28,7 +28,7 @@ export function ProductCard({
     >
       <div
         className="relative flex h-52 items-center justify-center overflow-hidden"
-        style={{ backgroundColor: image ? "#f8fafc" : color }}
+        style={{ backgroundColor: image ? "#ffffff" : color }}
       >
         {badge && (
           <span className="absolute left-3 top-3 z-10 rounded-full bg-[var(--accent)] px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">

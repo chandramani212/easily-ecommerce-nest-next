@@ -82,6 +82,8 @@ export function HeroBanner() {
         <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-white/20" />
         <div className="absolute -bottom-32 -left-20 h-[500px] w-[500px] rounded-full bg-white/10" />
       </div>
+      {/* Left-side darkening overlay so text + buttons stay legible on lighter gradients */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
         <div className="max-w-2xl">
@@ -110,15 +112,15 @@ export function HeroBanner() {
           >
             <Button
               size="lg"
-              className="!ui:bg-white !ui:text-slate-900 hover:!ui:bg-white/90"
+              className="!ui:bg-white !ui:text-slate-900 !ui:shadow-lg !ui:ring-1 !ui:ring-black/5 hover:!ui:bg-white/95"
             >
               {slide.ctaLabel}
             </Button>
             {slide.ctaSecondaryLabel && (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="lg"
-                className="!ui:border-white/40 !ui:text-white hover:!ui:bg-white/10"
+                className="!ui:border !ui:border-white/30 !ui:bg-slate-900/60 !ui:text-white !ui:backdrop-blur-md !ui:shadow-md hover:!ui:bg-slate-900/80"
               >
                 {slide.ctaSecondaryLabel}
               </Button>
