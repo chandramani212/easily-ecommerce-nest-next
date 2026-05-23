@@ -16,6 +16,7 @@ import {
 } from './dto/supplier.dto';
 import { buildAuthAdapter } from './runner/auth';
 import { SecretsCipher } from './runner/encryption.util';
+import { AsiCentralFetcher } from './runner/fetchers/asi-central.fetcher';
 import { RestFetcher } from './runner/fetchers/rest.fetcher';
 
 const SUPPLIER_PUBLIC_SELECT = {
@@ -216,29 +217,44 @@ export class SuppliersService {
       where: { id: supplierId },
     });
     if (!supplier) throw new NotFoundException(`Supplier ${supplierId} not found`);
-    if (supplier.kind !== 'REST') {
+    if (supplier.kind === 'FILE_FEED') {
       throw new BadRequestException('FILE_FEED suppliers cannot be tested.');
-    }
-    const endpoint = dto.endpoint ?? '';
-    if (!endpoint && !supplier.baseUrl) {
-      throw new BadRequestException(
-        'No endpoint provided and supplier has no baseUrl.',
-      );
     }
     const credentials = supplier.authSecret
       ? this.cipher.tryDecryptJson(supplier.authSecret)
       : null;
     const auth = buildAuthAdapter(supplier.authType, credentials ?? {});
-    const fetcher = new RestFetcher(
-      {
-        baseUrl: supplier.baseUrl,
-        endpoint: endpoint || '/',
-        method: dto.httpMethod ?? 'GET',
-        timeoutMs: 15_000,
-        maxBytes: 5 * 1024 * 1024,
-      },
-      auth,
-    );
+
+    const fetcher =
+      supplier.kind === 'ASI_CENTRAL'
+        ? new AsiCentralFetcher(
+            {
+              baseUrl: supplier.baseUrl,
+              // Limit to one page / one detail call for a snappy connectivity check.
+              maxPages: 1,
+              maxRecords: 1,
+              timeoutMs: 15_000,
+            },
+            auth,
+          )
+        : (() => {
+            const endpoint = dto.endpoint ?? '';
+            if (!endpoint && !supplier.baseUrl) {
+              throw new BadRequestException(
+                'No endpoint provided and supplier has no baseUrl.',
+              );
+            }
+            return new RestFetcher(
+              {
+                baseUrl: supplier.baseUrl,
+                endpoint: endpoint || '/',
+                method: dto.httpMethod ?? 'GET',
+                timeoutMs: 15_000,
+                maxBytes: 5 * 1024 * 1024,
+              },
+              auth,
+            );
+          })();
     const startedAt = Date.now();
     try {
       const payload = await fetcher.fetch();

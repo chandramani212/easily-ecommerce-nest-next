@@ -42,8 +42,21 @@ export interface OAuth2ClientCredentials {
   audience?: string;
 }
 
+/**
+ * ASI Central member auth. Sends a single header of the form:
+ *   Authorization: AsiMemberAuth client_id=<id>&client_secret=<secret>
+ * Static — no token exchange.
+ */
+export interface AsiMemberAuthCredentials {
+  clientId: string;
+  clientSecret: string;
+  /** Header scheme prefix. Defaults to "AsiMemberAuth". */
+  scheme?: string;
+}
+
 export type AnyCredentials =
   | ApiKeyCredentials
   | BasicCredentials
   | BearerCredentials
-  | OAuth2ClientCredentials;
+  | OAuth2ClientCredentials
+  | AsiMemberAuthCredentials;

@@ -57,6 +57,31 @@ export interface ImagesMap {
   source: SimpleField;
   /** When source resolves to a single string with this separator, split it. */
   separator?: string;
+  /**
+   * Prepended to any resolved URL that's relative (doesn't start with http://,
+   * https://, or //). Useful for suppliers that return paths like
+   * `media/97346407` instead of absolute URLs.
+   */
+  baseUrl?: string;
+  /**
+   * Appended to every resolved URL. Use for required query strings such as
+   * `?size=normal`. If the URL already carries a query string and this value
+   * starts with `?`, it's auto-promoted to `&`.
+   */
+  urlSuffix?: string;
+  /**
+   * Optional path to a single "primary" image. When set, the resolved URL is
+   * placed at index 0 of `images` (deduped). `Product.images[0]` is treated
+   * as the featured image by convention.
+   */
+  featuredSource?: SimpleField;
+  /**
+   * When true, the runner downloads each image and stores it in the local
+   * media library (MediaAsset), replacing the remote URL with the local one.
+   * Download errors are swallowed — the remote URL is kept as a fallback so
+   * one bad image doesn't fail the record.
+   */
+  download?: boolean;
 }
 
 export interface CategoriesMap {

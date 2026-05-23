@@ -8,9 +8,11 @@ import {
   SupplierImportTrigger,
 } from '@prisma/client';
 
+import { MediaService } from '../../media/media.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { buildAuthAdapter } from './auth';
 import { SecretsCipher } from './encryption.util';
+import { AsiCentralFetcher } from './fetchers/asi-central.fetcher';
 import { FileFetcher } from './fetchers/file.fetcher';
 import { RestFetcher } from './fetchers/rest.fetcher';
 import { Fetcher } from './fetchers/fetcher';
@@ -71,6 +73,7 @@ export class ImportRunnerService {
     private readonly prisma: PrismaService,
     private readonly mapper: MapperService,
     private readonly cipher: SecretsCipher,
+    private readonly media: MediaService,
   ) {}
 
   /**
@@ -154,8 +157,16 @@ export class ImportRunnerService {
   ): Promise<unknown[]> {
     const fetcher = await this.buildFetcher(imp, opts);
     const payload = await fetcher.fetch();
-    const parser = parserFor(imp.format as SupplierImportFormat);
-    const parsed = parser.parse(payload.body, imp.recordsPath);
+    // ASI_CENTRAL fetcher emits a synthetic JSON envelope of shape
+    // `{ records: [...] }`; force-pin the parser config so user mis-settings
+    // on the import row can't break it.
+    const isAsi = imp.supplier.kind === 'ASI_CENTRAL' && !opts.sample;
+    const format: SupplierImportFormat = isAsi
+      ? 'JSON'
+      : (imp.format as SupplierImportFormat);
+    const recordsPath = isAsi ? '$.records' : imp.recordsPath;
+    const parser = parserFor(format);
+    const parsed = parser.parse(payload.body, recordsPath);
     return parsed.records;
   }
 
@@ -171,13 +182,27 @@ export class ImportRunnerService {
         'FILE_FEED imports require a sample/data file upload to run.',
       );
     }
-    if (!imp.endpoint) {
-      throw new Error('REST imports require an endpoint URL.');
-    }
     const credentials = imp.supplier.authSecret
       ? this.cipher.tryDecryptJson(imp.supplier.authSecret)
       : null;
     const auth = buildAuthAdapter(imp.supplier.authType, credentials ?? {});
+
+    if (imp.supplier.kind === 'ASI_CENTRAL') {
+      const asiCfg = parseAsiConfig(imp.body);
+      return new AsiCentralFetcher(
+        {
+          baseUrl: imp.supplier.baseUrl,
+          searchQuery: asiCfg.searchQuery ?? null,
+          maxPages: asiCfg.maxPages,
+          maxRecords: asiCfg.maxRecords,
+        },
+        auth,
+      );
+    }
+
+    if (!imp.endpoint) {
+      throw new Error('REST imports require an endpoint URL.');
+    }
     const headers =
       imp.headers && typeof imp.headers === 'object'
         ? (imp.headers as Record<string, string>)
@@ -206,6 +231,14 @@ export class ImportRunnerService {
     const rows: RunResultRow[] = [];
     const seenLinkIds: string[] = [];
 
+    const shouldDownloadImages = !!spec.images?.download;
+    // Build auth headers up front so we don't decrypt/build per image. The
+    // header set is identical across all images in a run because credentials
+    // live on the supplier, not the import.
+    const imageAuthHeaders = shouldDownloadImages
+      ? await this.buildAuthHeaders(imp.supplier)
+      : null;
+
     for (let i = 0; i < records.length; i += 1) {
       const record = records[i];
       try {
@@ -219,6 +252,12 @@ export class ImportRunnerService {
           });
           totals.updated += 1;
           continue;
+        }
+        if (shouldDownloadImages && mapped.images.length) {
+          mapped.images = await this.localizeImages(
+            mapped.images,
+            imageAuthHeaders ?? undefined,
+          );
         }
         const result = await this.upsertOne(imp.supplier.id, mapped);
         if (result.action === 'created') totals.created += 1;
@@ -243,6 +282,23 @@ export class ImportRunnerService {
 
     if (!dryRun && imp.autoDeactivateMissing && totals.failed === 0) {
       await this.deactivateMissing(imp.supplier.id, seenLinkIds);
+    }
+
+    // A 0-record fetch used to be reported as SUCCESS (totals.failed === 0,
+    // trivially). For ASI Central that masked a real bug — the search response
+    // key wasn't recognized, so nothing was ever imported.
+    if (records.length === 0) {
+      errors.push({
+        record: -1,
+        error:
+          'Fetcher returned 0 records. Check supplier endpoint, credentials, and search query.',
+      });
+      return {
+        status: 'FAILED',
+        totals,
+        errors,
+        rows: dryRun ? rows : undefined,
+      };
     }
 
     const status: SupplierImportRunStatus =
@@ -369,6 +425,56 @@ export class ImportRunnerService {
     });
   }
 
+  /**
+   * Download each remote image into the local media library and return the
+   * local URLs. Per-image failures are swallowed and the original remote URL
+   * is kept so one bad image doesn't fail the whole record.
+   */
+  private async localizeImages(
+    urls: string[],
+    authHeaders?: Record<string, string>,
+  ): Promise<string[]> {
+    const out: string[] = [];
+    for (const url of urls) {
+      // Already a local upload? Skip the round-trip.
+      if (url.includes('/uploads/')) {
+        out.push(url);
+        continue;
+      }
+      try {
+        const asset = await this.media.downloadFromUrl(
+          url,
+          undefined,
+          authHeaders,
+        );
+        out.push(asset.url);
+      } catch (err) {
+        this.logger.warn(
+          `Image download failed for ${url}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        out.push(url);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Resolve the supplier's auth adapter into a static header set. Returns null
+   * for `NONE` auth so we don't add empty headers. For OAuth-style adapters
+   * this triggers the token exchange once up front.
+   */
+  private async buildAuthHeaders(
+    supplier: Supplier,
+  ): Promise<Record<string, string> | null> {
+    if (supplier.authType === 'NONE') return null;
+    const credentials = supplier.authSecret
+      ? this.cipher.tryDecryptJson(supplier.authSecret)
+      : null;
+    const auth = buildAuthAdapter(supplier.authType, credentials ?? {});
+    const plan = await auth.apply({ url: '', headers: {} });
+    return plan.headers;
+  }
+
   private async resolveCategoryIds(
     tx: Prisma.TransactionClient,
     names: string[],
@@ -432,6 +538,36 @@ export class ImportRunnerService {
       where: { id: importId },
       data: { lastRunAt: finishedAt, lastStatus: result.status, lastRunId: runId },
     });
+  }
+}
+
+/**
+ * ASI_CENTRAL imports stash optional fetcher tuning (search query, pagination
+ * caps) as a small JSON blob in the otherwise-unused `body` column. Anything
+ * we can't parse falls back to defaults — never crashes the run.
+ */
+function parseAsiConfig(raw: string | null | undefined): {
+  searchQuery?: string | null;
+  maxPages?: number;
+  maxRecords?: number;
+} {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return {
+      searchQuery:
+        typeof parsed.searchQuery === 'string'
+          ? parsed.searchQuery
+          : parsed.searchQuery === null
+            ? null
+            : undefined,
+      maxPages:
+        typeof parsed.maxPages === 'number' ? parsed.maxPages : undefined,
+      maxRecords:
+        typeof parsed.maxRecords === 'number' ? parsed.maxRecords : undefined,
+    };
+  } catch {
+    return {};
   }
 }
 

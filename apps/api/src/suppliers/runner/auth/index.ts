@@ -1,8 +1,10 @@
 import { SupplierAuthType } from '@prisma/client';
 
 import { ApiKeyAdapter } from './api-key.adapter';
+import { AsiMemberAuthAdapter } from './asi-member.adapter';
 import {
   ApiKeyCredentials,
+  AsiMemberAuthCredentials,
   AuthAdapter,
   BasicCredentials,
   BearerCredentials,
@@ -40,6 +42,8 @@ export function buildAuthAdapter(
       return new OAuth2ClientCredentialsAdapter(
         credentials as OAuth2ClientCredentials,
       );
+    case 'ASI_MEMBER_AUTH':
+      return new AsiMemberAuthAdapter(credentials as AsiMemberAuthCredentials);
     default: {
       const _exhaustive: never = authType;
       void _exhaustive;
@@ -50,6 +54,7 @@ export function buildAuthAdapter(
 
 export type {
   ApiKeyCredentials,
+  AsiMemberAuthCredentials,
   AuthAdapter,
   BasicCredentials,
   BearerCredentials,

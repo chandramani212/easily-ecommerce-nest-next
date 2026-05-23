@@ -172,13 +172,14 @@ export interface Settings {
   notifyTo: string;
 }
 
-export type SupplierKind = "REST" | "FILE_FEED";
+export type SupplierKind = "REST" | "FILE_FEED" | "ASI_CENTRAL";
 export type SupplierAuthType =
   | "NONE"
   | "API_KEY"
   | "BASIC"
   | "BEARER"
-  | "OAUTH2_CLIENT_CREDENTIALS";
+  | "OAUTH2_CLIENT_CREDENTIALS"
+  | "ASI_MEMBER_AUTH";
 export type SupplierImportFormat = "JSON" | "XML" | "CSV";
 export type SupplierImportRunStatus =
   | "RUNNING"

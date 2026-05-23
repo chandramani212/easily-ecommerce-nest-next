@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { MediaModule } from '../media/media.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MapperService } from './runner/mapper.service';
 import { ImportRunnerService } from './runner/import-runner.service';
@@ -11,7 +12,7 @@ import { SuppliersController } from './suppliers.controller';
 import { SuppliersService } from './suppliers.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, MediaModule],
   controllers: [SuppliersController, SupplierImportsController],
   providers: [
     SuppliersService,

@@ -47,7 +47,7 @@ export class MapperService {
         : sellingPrice;
     }
 
-    const images = this.mapImages(record, spec.images);
+    const images = this.mapImages(record, spec.images, (f) => this.value(record, f));
     const attributes = this.mapAttributes(record, spec.attributes);
     const categories = this.mapCategories(record, spec.categories);
     const tiers = this.mapTiers(record, spec.tiers);
@@ -74,17 +74,44 @@ export class MapperService {
 
   /* ---- Sub-mappers. ---------------------------------------------------- */
 
-  private mapImages(record: unknown, cfg?: ImagesMap): string[] {
+  private mapImages(
+    record: unknown,
+    cfg?: ImagesMap,
+    resolve?: (f?: SimpleField) => unknown,
+  ): string[] {
     if (!cfg) return [];
-    const raw = this.value(record, cfg.source);
-    if (raw === undefined || raw === null) return [];
-    if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
-    if (typeof raw === 'string') {
-      return cfg.separator
+    const raw = (resolve ?? ((f) => this.value(record, f)))(cfg.source);
+    let urls: string[] = [];
+    if (Array.isArray(raw)) urls = raw.map(String).filter(Boolean);
+    else if (typeof raw === 'string') {
+      urls = cfg.separator
         ? raw.split(cfg.separator).map((s) => s.trim()).filter(Boolean)
         : [raw];
+    } else if (raw !== undefined && raw !== null) {
+      urls = [String(raw)];
     }
-    return [String(raw)];
+
+    if (cfg.featuredSource) {
+      const featuredRaw = (resolve ?? ((f) => this.value(record, f)))(
+        cfg.featuredSource,
+      );
+      if (typeof featuredRaw === 'string' && featuredRaw.trim()) {
+        urls.unshift(featuredRaw.trim());
+      } else if (Array.isArray(featuredRaw) && featuredRaw[0]) {
+        urls.unshift(String(featuredRaw[0]));
+      }
+    }
+
+    if (cfg.baseUrl) urls = urls.map((u) => applyBaseUrl(u, cfg.baseUrl!));
+    if (cfg.urlSuffix) urls = urls.map((u) => applyUrlSuffix(u, cfg.urlSuffix!));
+
+    // Dedupe while preserving order so the featured image stays at index 0.
+    const seen = new Set<string>();
+    return urls.filter((u) => {
+      if (!u || seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
   }
 
   private mapAttributes(
@@ -155,6 +182,22 @@ export class MapperService {
 }
 
 /* ---- Helpers (top-level so they're tree-shake-friendly + testable). ---- */
+
+function applyBaseUrl(url: string, base: string): string {
+  if (!url) return url;
+  if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+  const b = base.replace(/\/+$/, '');
+  const u = url.replace(/^\/+/, '');
+  return `${b}/${u}`;
+}
+
+function applyUrlSuffix(url: string, suffix: string): string {
+  if (!url || !suffix) return url;
+  if (suffix.startsWith('?') && url.includes('?')) {
+    return `${url}&${suffix.slice(1)}`;
+  }
+  return `${url}${suffix}`;
+}
 
 function applyMarkup(value: number, m: MarkupSpec): number {
   if (!Number.isFinite(value) || value <= 0) return value;

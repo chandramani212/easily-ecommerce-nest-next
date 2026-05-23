@@ -16,6 +16,7 @@ const AUTH_TYPES: { value: SupplierAuthType; label: string }[] = [
   { value: "BASIC", label: "Basic Auth" },
   { value: "BEARER", label: "Bearer Token" },
   { value: "OAUTH2_CLIENT_CREDENTIALS", label: "OAuth2 Client Credentials" },
+  { value: "ASI_MEMBER_AUTH", label: "ASI Member Auth" },
 ];
 
 interface FormState {
@@ -40,6 +41,8 @@ interface AuthState {
   oauthClientSecret: string;
   oauthScope: string;
   oauthAudience: string;
+  asiClientId: string;
+  asiClientSecret: string;
 }
 
 const EMPTY_AUTH: AuthState = {
@@ -54,6 +57,8 @@ const EMPTY_AUTH: AuthState = {
   oauthClientSecret: "",
   oauthScope: "",
   oauthAudience: "",
+  asiClientId: "",
+  asiClientSecret: "",
 };
 
 export function SupplierForm({ supplier }: { supplier?: Supplier }) {
@@ -98,6 +103,11 @@ export function SupplierForm({ supplier }: { supplier?: Supplier }) {
           clientSecret: auth.oauthClientSecret,
           scope: auth.oauthScope || undefined,
           audience: auth.oauthAudience || undefined,
+        };
+      case "ASI_MEMBER_AUTH":
+        return {
+          clientId: auth.asiClientId,
+          clientSecret: auth.asiClientSecret,
         };
       case "NONE":
       default:
@@ -199,6 +209,7 @@ export function SupplierForm({ supplier }: { supplier?: Supplier }) {
             >
               <option value="REST">REST API</option>
               <option value="FILE_FEED">File feed (upload per run)</option>
+              <option value="ASI_CENTRAL">ASI Central (paginated + detail)</option>
             </select>
           </Field>
           <Field label="Base URL">
@@ -461,6 +472,34 @@ function AuthFields({
           autoComplete="off"
         />
       </Field>
+    );
+  }
+  if (type === "ASI_MEMBER_AUTH") {
+    return (
+      <>
+        <Field label="Client ID *">
+          <input
+            value={auth.asiClientId}
+            onChange={(e) => setAuth({ ...auth, asiClientId: e.target.value })}
+            className={inputCls}
+            autoComplete="off"
+          />
+        </Field>
+        <Field label="Client Secret *">
+          <input
+            value={auth.asiClientSecret}
+            onChange={(e) =>
+              setAuth({ ...auth, asiClientSecret: e.target.value })
+            }
+            className={inputCls}
+            type="password"
+            autoComplete="off"
+          />
+        </Field>
+        <p className="sm:col-span-2 text-xs text-[var(--admin-fg)]/60">
+          Sent as <code>Authorization: AsiMemberAuth client_id=…&amp;client_secret=…</code>.
+        </p>
+      </>
     );
   }
   return (

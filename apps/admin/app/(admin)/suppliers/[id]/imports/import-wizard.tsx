@@ -48,6 +48,10 @@ interface TierMapItem {
 interface ImagesMap {
   source: SimpleField;
   separator?: string;
+  baseUrl?: string;
+  urlSuffix?: string;
+  featuredSource?: SimpleField;
+  download?: boolean;
 }
 
 interface CategoriesMap {
@@ -454,31 +458,131 @@ export function ImportWizard({
               }
             >
               {mapping.images && (
-                <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
-                  <SimpleFieldEditor
-                    value={mapping.images.source}
-                    onChange={(next) =>
-                      setMapping({
-                        ...mapping,
-                        images: { ...mapping.images!, source: next },
-                      })
-                    }
-                  />
-                  <input
-                    placeholder="Separator (e.g. ,)"
-                    value={mapping.images.separator ?? ""}
-                    onChange={(e) =>
-                      setMapping({
-                        ...mapping,
-                        images: {
-                          ...mapping.images!,
-                          separator: e.target.value,
-                        },
-                      })
-                    }
-                    className={inputCls}
-                  />
-                </div>
+                <>
+                  <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
+                    <SimpleFieldEditor
+                      value={mapping.images.source}
+                      onChange={(next) =>
+                        setMapping({
+                          ...mapping,
+                          images: { ...mapping.images!, source: next },
+                        })
+                      }
+                    />
+                    <input
+                      placeholder="Separator (e.g. ,)"
+                      value={mapping.images.separator ?? ""}
+                      onChange={(e) =>
+                        setMapping({
+                          ...mapping,
+                          images: {
+                            ...mapping.images!,
+                            separator: e.target.value,
+                          },
+                        })
+                      }
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Field
+                      label="Base URL (optional)"
+                      hint="Prepended to relative URLs. Example: https://api.uat-asicentral.com/v1"
+                    >
+                      <input
+                        placeholder="https://api.uat-asicentral.com/v1"
+                        value={mapping.images.baseUrl ?? ""}
+                        onChange={(e) =>
+                          setMapping({
+                            ...mapping,
+                            images: {
+                              ...mapping.images!,
+                              baseUrl: e.target.value || undefined,
+                            },
+                          })
+                        }
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field
+                      label="URL suffix (optional)"
+                      hint="Appended to every URL. Example: ?size=normal"
+                    >
+                      <input
+                        placeholder="?size=normal"
+                        value={mapping.images.urlSuffix ?? ""}
+                        onChange={(e) =>
+                          setMapping({
+                            ...mapping,
+                            images: {
+                              ...mapping.images!,
+                              urlSuffix: e.target.value || undefined,
+                            },
+                          })
+                        }
+                        className={inputCls}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="rounded-md border border-dashed border-[var(--admin-border)] p-2">
+                    <label className="mb-1 flex items-center gap-2 text-xs font-medium text-[var(--admin-fg)]/80">
+                      <input
+                        type="checkbox"
+                        checked={!!mapping.images.featuredSource}
+                        onChange={(e) =>
+                          setMapping({
+                            ...mapping,
+                            images: {
+                              ...mapping.images!,
+                              featuredSource: e.target.checked
+                                ? mapping.images!.featuredSource ?? { path: "" }
+                                : undefined,
+                            },
+                          })
+                        }
+                      />
+                      Featured image (separate path)
+                    </label>
+                    {mapping.images.featuredSource && (
+                      <SimpleFieldEditor
+                        value={mapping.images.featuredSource}
+                        onChange={(next) =>
+                          setMapping({
+                            ...mapping,
+                            images: {
+                              ...mapping.images!,
+                              featuredSource: next,
+                            },
+                          })
+                        }
+                        placeholder="Path to primary image (e.g. ImageUrl)"
+                      />
+                    )}
+                    <p className="mt-1 text-[11px] text-[var(--admin-fg)]/50">
+                      Resolved to a single URL and placed at position 0 of the
+                      gallery. Duplicates with the main source are removed.
+                    </p>
+                  </div>
+
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={!!mapping.images.download}
+                      onChange={(e) =>
+                        setMapping({
+                          ...mapping,
+                          images: {
+                            ...mapping.images!,
+                            download: e.target.checked || undefined,
+                          },
+                        })
+                      }
+                    />
+                    Download images into the local media library
+                  </label>
+                </>
               )}
             </SubMapper>
 

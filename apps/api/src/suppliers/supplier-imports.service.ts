@@ -14,6 +14,7 @@ import {
 } from './dto/supplier.dto';
 import { buildAuthAdapter } from './runner/auth';
 import { SecretsCipher } from './runner/encryption.util';
+import { AsiCentralFetcher } from './runner/fetchers/asi-central.fetcher';
 import { RestFetcher } from './runner/fetchers/rest.fetcher';
 import { ImportRunnerService } from './runner/import-runner.service';
 import { listPaths } from './runner/path.util';
@@ -106,20 +107,31 @@ export class SupplierImportsService {
     upload?: { body: Buffer; contentType?: string },
   ) {
     const imp = await this.findOne(supplierId, id);
+    const supplier = await this.prisma.supplier.findUnique({
+      where: { id: imp.supplierId },
+      select: { kind: true },
+    });
     let body: Buffer;
     let contentType: string | undefined;
     if (upload) {
       body = upload.body;
       contentType = upload.contentType;
     } else {
-      // Fetch via the runner's path: reuse buildFetcher by invoking dryRun path.
-      // Cleanest: instantiate a temporary fetcher equivalent here.
       const result = await this.fetchSample(imp);
       body = result.body;
       contentType = result.contentType;
     }
-    const parser = parserFor(imp.format as SupplierImportFormat);
-    const parsed = parser.parse(body, imp.recordsPath);
+    // ASI Central returns a synthetic `{ records: [<detail>, ...] }` envelope
+    // from the fetcher itself; pin format/recordsPath to match what the runner
+    // does (see ImportRunnerService.fetchAndParse). This is what lets the wizard
+    // show real DETAIL paths instead of search-summary paths.
+    const isAsi = supplier?.kind === 'ASI_CENTRAL' && !upload;
+    const format: SupplierImportFormat = isAsi
+      ? 'JSON'
+      : (imp.format as SupplierImportFormat);
+    const recordsPath = isAsi ? '$.records' : imp.recordsPath;
+    const parser = parserFor(format);
+    const parsed = parser.parse(body, recordsPath);
     const sampleRecord = parsed.records[0];
     const paths = sampleRecord ? listPaths(sampleRecord) : [];
     return {
@@ -164,15 +176,37 @@ export class SupplierImportsService {
       where: { id: imp.supplierId },
     });
     if (!supplier) throw new NotFoundException('Supplier missing');
-    if (supplier.kind === 'FILE_FEED' || !imp.endpoint) {
+    if (supplier.kind === 'FILE_FEED') {
       throw new BadRequestException(
-        'FILE_FEED imports or endpoint-less imports require a file upload to sample.',
+        'FILE_FEED imports require a file upload to sample.',
       );
     }
     const credentials = supplier.authSecret
       ? this.cipher.tryDecryptJson(supplier.authSecret)
       : null;
     const auth = buildAuthAdapter(supplier.authType, credentials ?? {});
+
+    // ASI Central needs the two-step search→detail walk to produce a real
+    // detail record; otherwise the mapping wizard only sees search-summary
+    // fields. Cap pages/records so the wizard responds quickly.
+    if (supplier.kind === 'ASI_CENTRAL') {
+      const fetcher = new AsiCentralFetcher(
+        {
+          baseUrl: supplier.baseUrl,
+          maxPages: 1,
+          maxRecords: 1,
+          timeoutMs: 30_000,
+        },
+        auth,
+      );
+      return fetcher.fetch();
+    }
+
+    if (!imp.endpoint) {
+      throw new BadRequestException(
+        'Endpoint-less imports require a file upload to sample.',
+      );
+    }
     const headers =
       imp.headers && typeof imp.headers === 'object'
         ? (imp.headers as Record<string, string>)

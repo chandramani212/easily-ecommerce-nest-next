@@ -42,6 +42,7 @@ enum TierPriceType {
 enum SupplierKind {
   REST
   FILE_FEED
+  ASI_CENTRAL
 }
 
 enum SupplierAuthType {
@@ -50,6 +51,7 @@ enum SupplierAuthType {
   BASIC
   BEARER
   OAUTH2_CLIENT_CREDENTIALS
+  ASI_MEMBER_AUTH
 }
 
 enum SupplierImportFormat {
