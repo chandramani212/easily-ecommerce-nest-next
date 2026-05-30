@@ -5,6 +5,7 @@ import { PageHeader } from "../../../components/page-header";
 import { SearchInput } from "../../../components/search-input";
 import { Pager } from "../../../components/pagination";
 import { StatusFilter } from "../orders/status-filter";
+import { ExportButton } from "../../../components/export-button";
 import { InquiryRow } from "./inquiry-row";
 
 import {
@@ -43,6 +44,9 @@ export default async function InquiriesPage({
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput placeholder="Search name, email, or message" />
         <StatusFilter statuses={statuses} selected={status} />
+        <div className="ml-auto">
+          <ExportButton path="/inquiries/export" filterParams={["q", "status"]} />
+        </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card)]">
         <table className="w-full text-sm">

@@ -8,6 +8,7 @@ import { DataTable, type Column } from "../../../components/data-table";
 import { SearchInput } from "../../../components/search-input";
 import { Pager } from "../../../components/pagination";
 import { DateRangeFilter } from "../../../components/date-range-filter";
+import { ExportButton } from "../../../components/export-button";
 
 import {
   pickParam as p,
@@ -81,6 +82,12 @@ export default async function CustomersPage({
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput placeholder="Search by name, email, or company" />
         <DateRangeFilter fromParam="createdFrom" toParam="createdTo" />
+        <div className="ml-auto">
+          <ExportButton
+            path="/customers/export"
+            filterParams={["q", "createdFrom", "createdTo"]}
+          />
+        </div>
       </div>
       <DataTable
         columns={columns}

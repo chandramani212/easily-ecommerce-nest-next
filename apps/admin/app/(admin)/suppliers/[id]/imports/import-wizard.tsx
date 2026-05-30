@@ -58,6 +58,10 @@ interface CategoriesMap {
   source: SimpleField;
   separator?: string;
   match?: "name" | "slug" | "create";
+  itemExternalIdPath?: string;
+  itemNamePath?: string;
+  itemParentExternalIdPath?: string;
+  itemParentNamePath?: string;
 }
 
 interface MappingSpec {
@@ -588,7 +592,7 @@ export function ImportWizard({
 
             <SubMapper
               title="Categories"
-              hint="Will resolve to existing categories by name; missing entries are created."
+              hint="Point at the source path, then either configure hierarchy (recommended) or use flat-string mode."
               enabled={!!mapping.categories}
               onToggle={(on) =>
                 setMapping({
@@ -604,54 +608,152 @@ export function ImportWizard({
               }
             >
               {mapping.categories && (
-                <div className="grid gap-2 sm:grid-cols-[1fr_140px_140px]">
-                  <SimpleFieldEditor
-                    value={mapping.categories.source}
-                    onChange={(next) =>
-                      setMapping({
-                        ...mapping,
-                        categories: {
-                          ...mapping.categories!,
-                          source: next,
-                        },
-                      })
-                    }
-                  />
-                  <input
-                    placeholder="Separator"
-                    value={mapping.categories.separator ?? ","}
-                    onChange={(e) =>
-                      setMapping({
-                        ...mapping,
-                        categories: {
-                          ...mapping.categories!,
-                          separator: e.target.value,
-                        },
-                      })
-                    }
-                    className={inputCls}
-                  />
-                  <select
-                    value={mapping.categories.match ?? "create"}
-                    onChange={(e) =>
-                      setMapping({
-                        ...mapping,
-                        categories: {
-                          ...mapping.categories!,
-                          match: e.target.value as
-                            | "name"
-                            | "slug"
-                            | "create",
-                        },
-                      })
-                    }
-                    className={inputCls}
-                  >
-                    <option value="create">Create missing</option>
-                    <option value="name">Match by name</option>
-                    <option value="slug">Match by slug</option>
-                  </select>
-                </div>
+                <>
+                  <Field label="Source path" hint="Path to the categories array or string on each record.">
+                    <SimpleFieldEditor
+                      value={mapping.categories.source}
+                      onChange={(next) =>
+                        setMapping({
+                          ...mapping,
+                          categories: {
+                            ...mapping.categories!,
+                            source: next,
+                          },
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <div className="rounded-md border border-dashed border-[var(--admin-border)] p-2">
+                    <p className="mb-2 text-xs font-medium text-[var(--admin-fg)]/80">
+                      Hierarchy mode (set the four paths below when the source
+                      is an array of objects like ASI&apos;s {`{Id, Name, Parent: {Id, Name}}`}).
+                    </p>
+                    <p className="mb-2 text-[11px] text-[var(--admin-fg)]/60">
+                      With hierarchy mode on, supplier categories are recorded
+                      in the Supplier Categories page and the storefront only
+                      shows them once you map them to a curated category.
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Field label="External ID path" hint="e.g. Id">
+                        <input
+                          placeholder="Id"
+                          value={mapping.categories.itemExternalIdPath ?? ""}
+                          onChange={(e) =>
+                            setMapping({
+                              ...mapping,
+                              categories: {
+                                ...mapping.categories!,
+                                itemExternalIdPath: e.target.value || undefined,
+                              },
+                            })
+                          }
+                          className={inputCls}
+                        />
+                      </Field>
+                      <Field label="Name path" hint="e.g. Name">
+                        <input
+                          placeholder="Name"
+                          value={mapping.categories.itemNamePath ?? ""}
+                          onChange={(e) =>
+                            setMapping({
+                              ...mapping,
+                              categories: {
+                                ...mapping.categories!,
+                                itemNamePath: e.target.value || undefined,
+                              },
+                            })
+                          }
+                          className={inputCls}
+                        />
+                      </Field>
+                      <Field
+                        label="Parent external ID path"
+                        hint="e.g. Parent.Id (optional)"
+                      >
+                        <input
+                          placeholder="Parent.Id"
+                          value={mapping.categories.itemParentExternalIdPath ?? ""}
+                          onChange={(e) =>
+                            setMapping({
+                              ...mapping,
+                              categories: {
+                                ...mapping.categories!,
+                                itemParentExternalIdPath:
+                                  e.target.value || undefined,
+                              },
+                            })
+                          }
+                          className={inputCls}
+                        />
+                      </Field>
+                      <Field
+                        label="Parent name path"
+                        hint="e.g. Parent.Name (optional)"
+                      >
+                        <input
+                          placeholder="Parent.Name"
+                          value={mapping.categories.itemParentNamePath ?? ""}
+                          onChange={(e) =>
+                            setMapping({
+                              ...mapping,
+                              categories: {
+                                ...mapping.categories!,
+                                itemParentNamePath:
+                                  e.target.value || undefined,
+                              },
+                            })
+                          }
+                          className={inputCls}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  {!mapping.categories.itemExternalIdPath && (
+                    <div className="rounded-md border border-dashed border-[var(--admin-border)] p-2">
+                      <p className="mb-2 text-xs font-medium text-[var(--admin-fg)]/80">
+                        Flat-string mode (legacy)
+                      </p>
+                      <div className="grid gap-2 sm:grid-cols-[1fr_140px]">
+                        <input
+                          placeholder="Separator"
+                          value={mapping.categories.separator ?? ","}
+                          onChange={(e) =>
+                            setMapping({
+                              ...mapping,
+                              categories: {
+                                ...mapping.categories!,
+                                separator: e.target.value,
+                              },
+                            })
+                          }
+                          className={inputCls}
+                        />
+                        <select
+                          value={mapping.categories.match ?? "create"}
+                          onChange={(e) =>
+                            setMapping({
+                              ...mapping,
+                              categories: {
+                                ...mapping.categories!,
+                                match: e.target.value as
+                                  | "name"
+                                  | "slug"
+                                  | "create",
+                              },
+                            })
+                          }
+                          className={inputCls}
+                        >
+                          <option value="create">Create missing</option>
+                          <option value="name">Match by name</option>
+                          <option value="slug">Match by slug</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </SubMapper>
 

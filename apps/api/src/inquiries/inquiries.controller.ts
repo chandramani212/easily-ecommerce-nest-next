@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 import { Public } from '../auth/decorators/public.decorator';
 import {
@@ -32,6 +34,21 @@ export class InquiriesController {
   @Get()
   findAll(@Query() query: InquiryListQuery) {
     return this.inquiries.findAll(query);
+  }
+
+  @ApiBearerAuth()
+  @Get('export')
+  async export(
+    @Query() query: InquiryListQuery,
+    @Res() res: Response,
+  ): Promise<void> {
+    const csv = await this.inquiries.exportCsv(query);
+    const date = new Date().toISOString().slice(0, 10);
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="inquiries-${date}.csv"`,
+    });
+    res.send(csv);
   }
 
   @ApiBearerAuth()

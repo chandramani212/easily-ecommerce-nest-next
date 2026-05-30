@@ -94,6 +94,11 @@ model Category {
   children    Category[] @relation("CategoryTree")
   products    Product[]  @relation("ProductCategories")
 
+  // Reverse side of supplier→curated mapping. A curated Category can be the
+  // target of many supplier-category mappings (e.g. ASI "Bags" and ASI
+  // "Tote Bags" can both map to your single curated "Bags & Totes").
+  supplierCategoryMappings SupplierCategory[] @relation("SupplierCategoryToCategory")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -136,6 +141,10 @@ model MediaAsset {
   alt          String?
   uploadedById String?
   uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  /// Original remote URL this asset was downloaded from (set by the supplier
+  /// import runner via MediaService.downloadFromUrl). Used to dedupe across
+  /// imports — same source URL → reuse the existing asset.
+  sourceUrl    String?  @unique
   createdAt    DateTime @default(now())
 
   @@index([createdAt])
@@ -246,8 +255,9 @@ model Supplier {
   notes            String           @default("")
   active           Boolean          @default(true)
 
-  imports SupplierImport[]
-  links   SupplierProductLink[]
+  imports    SupplierImport[]
+  links      SupplierProductLink[]
+  categories SupplierCategory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -325,4 +335,31 @@ model SupplierProductLink {
 
   @@unique([supplierId, externalId])
   @@index([productId])
+}
+
+/// Supplier-side categories, captured verbatim during import. Each row holds
+/// the supplier's own externalId + name + optional parent externalId so the
+/// supplier hierarchy can be reconstructed for the admin.
+///
+/// `categoryId` is optional: when an admin maps a supplier category to one of
+/// their curated `Category` rows, products imported under that supplier
+/// category are attached to the curated one. Until that mapping exists,
+/// imported products don't get a category from this source — keeping the
+/// storefront category tree clean.
+model SupplierCategory {
+  id               String   @id @default(cuid())
+  supplierId       String
+  supplier         Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  externalId       String
+  name             String
+  parentExternalId String?
+  categoryId       String?
+  category         Category? @relation("SupplierCategoryToCategory", fields: [categoryId], references: [id], onDelete: SetNull)
+
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([supplierId, externalId])
+  @@index([supplierId, categoryId])
 }

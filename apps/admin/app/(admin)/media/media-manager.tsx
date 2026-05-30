@@ -21,6 +21,7 @@ export function MediaManager({ initial, initialQuery }: Props) {
   const [items, setItems] = useState<MediaAsset[]>(initial.items);
   const [search, setSearch] = useState(initialQuery);
   const [uploading, setUploading] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [selected, setSelected] = useState<MediaAsset | null>(null);
@@ -66,6 +67,42 @@ export function MediaManager({ initial, initialQuery }: Props) {
       }
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function cleanupOrphans() {
+    if (
+      !window.confirm(
+        "Delete every media asset not currently referenced by any product? Files are removed from disk too. This cannot be undone.",
+      )
+    )
+      return;
+    setCleaning(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const res = await clientApi<{
+        deleted: number;
+        fileFailures: number;
+        sample: string[];
+      }>(`/media/cleanup-orphans`, { method: "POST" });
+      setInfo(
+        res.deleted === 0
+          ? "No orphan media assets found."
+          : `Removed ${res.deleted} orphan asset${res.deleted === 1 ? "" : "s"}` +
+              (res.fileFailures
+                ? ` (${res.fileFailures} file${res.fileFailures === 1 ? "" : "s"} missing from disk — DB rows cleaned).`
+                : "."),
+      );
+      void refresh(search);
+    } catch (e) {
+      if (e instanceof DemoReadOnlyError) {
+        setError("Demo mode — cleanup is disabled in the showcase build.");
+      } else {
+        setError(e instanceof Error ? e.message : "Cleanup failed");
+      }
+    } finally {
+      setCleaning(false);
     }
   }
 
@@ -156,6 +193,19 @@ export function MediaManager({ initial, initialQuery }: Props) {
               e.target.value = "";
             }}
           />
+          <button
+            type="button"
+            disabled={cleaning || IS_DEMO}
+            onClick={() => void cleanupOrphans()}
+            className="rounded-lg border border-[var(--admin-border)] px-3 py-2 text-sm font-medium hover:bg-[var(--admin-muted)] disabled:opacity-50"
+            title={
+              IS_DEMO
+                ? "Cleanup disabled in demo"
+                : "Remove media assets not referenced by any product"
+            }
+          >
+            {cleaning ? "Cleaning…" : "Cleanup orphans"}
+          </button>
           <button
             type="button"
             disabled={uploading || IS_DEMO}

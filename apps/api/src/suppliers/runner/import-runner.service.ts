@@ -17,7 +17,12 @@ import { FileFetcher } from './fetchers/file.fetcher';
 import { RestFetcher } from './fetchers/rest.fetcher';
 import { Fetcher } from './fetchers/fetcher';
 import { MapperService } from './mapper.service';
-import { MappedProduct, MappingSpec, MarkupSpec } from './mapping.types';
+import {
+  MappedCategory,
+  MappedProduct,
+  MappingSpec,
+  MarkupSpec,
+} from './mapping.types';
 import { slugify } from './mapper.service';
 import { parserFor } from './parsers/parser';
 
@@ -254,10 +259,20 @@ export class ImportRunnerService {
           continue;
         }
         if (shouldDownloadImages && mapped.images.length) {
-          mapped.images = await this.localizeImages(
+          const { urls, failures } = await this.localizeImages(
             mapped.images,
             imageAuthHeaders ?? undefined,
           );
+          mapped.images = urls;
+          for (const f of failures) {
+            if (errors.length < ImportRunnerService.MAX_LOGGED_ERRORS) {
+              errors.push({
+                record: i,
+                externalId: mapped.externalId,
+                error: `image download failed: ${f.url} — ${f.error}`,
+              });
+            }
+          }
         }
         const result = await this.upsertOne(imp.supplier.id, mapped);
         if (result.action === 'created') totals.created += 1;
@@ -330,7 +345,7 @@ export class ImportRunnerService {
         },
       });
 
-      const categoryIds = await this.resolveCategoryIds(tx, mapped.categories);
+      const categoryIds = await this.resolveCategoryIds(tx, supplierId, mapped.categories);
 
       const productData = {
         name: mapped.name,
@@ -427,14 +442,17 @@ export class ImportRunnerService {
 
   /**
    * Download each remote image into the local media library and return the
-   * local URLs. Per-image failures are swallowed and the original remote URL
-   * is kept so one bad image doesn't fail the whole record.
+   * local URLs alongside a list of per-image failures. The remote URL is
+   * kept in place of any failed download so one bad image doesn't break the
+   * whole record; the failures are surfaced to the run row so the admin can
+   * see which images and why.
    */
   private async localizeImages(
     urls: string[],
     authHeaders?: Record<string, string>,
-  ): Promise<string[]> {
+  ): Promise<{ urls: string[]; failures: { url: string; error: string }[] }> {
     const out: string[] = [];
+    const failures: { url: string; error: string }[] = [];
     for (const url of urls) {
       // Already a local upload? Skip the round-trip.
       if (url.includes('/uploads/')) {
@@ -449,13 +467,13 @@ export class ImportRunnerService {
         );
         out.push(asset.url);
       } catch (err) {
-        this.logger.warn(
-          `Image download failed for ${url}: ${err instanceof Error ? err.message : String(err)}`,
-        );
+        const error = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`Image download failed for ${url}: ${error}`);
+        failures.push({ url, error });
         out.push(url);
       }
     }
-    return out;
+    return { urls: out, failures };
   }
 
   /**
@@ -475,13 +493,86 @@ export class ImportRunnerService {
     return plan.headers;
   }
 
+  /**
+   * Resolve the curated Category IDs to attach to a product.
+   *
+   * Structured mode (any incoming category has `externalId`):
+   *   - Upsert every (parent + child) supplier category into SupplierCategory
+   *     so the admin can see the full hierarchy and map it later.
+   *   - A product is only attached to curated Categories that have been
+   *     mapped via SupplierCategory.categoryId. Unmapped supplier categories
+   *     contribute nothing — keeping the storefront tree clean.
+   *
+   * Flat-string mode (no externalId on any incoming category):
+   *   - Legacy behavior: find-or-create curated Category by slug/name.
+   */
   private async resolveCategoryIds(
     tx: Prisma.TransactionClient,
-    names: string[],
+    supplierId: string,
+    categories: MappedCategory[],
   ): Promise<string[]> {
-    if (!names.length) return [];
+    if (!categories.length) return [];
+    const isStructured = categories.some((c) => c.externalId);
+
+    if (isStructured) {
+      const seenExternal = new Set<string>();
+      for (const c of categories) {
+        if (
+          c.parentExternalId &&
+          c.parentName &&
+          !seenExternal.has(c.parentExternalId)
+        ) {
+          await tx.supplierCategory.upsert({
+            where: {
+              supplierId_externalId: {
+                supplierId,
+                externalId: c.parentExternalId,
+              },
+            },
+            create: {
+              supplierId,
+              externalId: c.parentExternalId,
+              name: c.parentName,
+            },
+            update: { name: c.parentName, lastSeenAt: new Date() },
+          });
+          seenExternal.add(c.parentExternalId);
+        }
+      }
+      for (const c of categories) {
+        if (!c.externalId || seenExternal.has(c.externalId)) continue;
+        await tx.supplierCategory.upsert({
+          where: {
+            supplierId_externalId: { supplierId, externalId: c.externalId },
+          },
+          create: {
+            supplierId,
+            externalId: c.externalId,
+            name: c.name,
+            parentExternalId: c.parentExternalId ?? null,
+          },
+          update: {
+            name: c.name,
+            parentExternalId: c.parentExternalId ?? null,
+            lastSeenAt: new Date(),
+          },
+        });
+        seenExternal.add(c.externalId);
+      }
+
+      const externalIds = [...seenExternal];
+      const mapped = await tx.supplierCategory.findMany({
+        where: { supplierId, externalId: { in: externalIds } },
+        select: { categoryId: true },
+      });
+      const ids = new Set<string>();
+      for (const m of mapped) if (m.categoryId) ids.add(m.categoryId);
+      return [...ids];
+    }
+
     const ids = new Set<string>();
-    for (const raw of names) {
+    for (const c of categories) {
+      const raw = c.name;
       const slug = slugify(raw);
       if (!slug) continue;
       const existing =

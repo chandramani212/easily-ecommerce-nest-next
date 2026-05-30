@@ -6,6 +6,7 @@ import {
   FieldTransform,
   ImagesMap,
   MappedAttribute,
+  MappedCategory,
   MappedProduct,
   MappedTier,
   MappingSpec,
@@ -128,16 +129,44 @@ export class MapperService {
     return out;
   }
 
-  private mapCategories(record: unknown, cfg?: CategoriesMap): string[] {
+  private mapCategories(record: unknown, cfg?: CategoriesMap): MappedCategory[] {
     if (!cfg) return [];
     const raw = this.value(record, cfg.source);
     if (raw === undefined || raw === null) return [];
-    if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
-    if (typeof raw === 'string') {
-      const sep = cfg.separator ?? ',';
-      return raw.split(sep).map((s) => s.trim()).filter(Boolean);
+
+    // Structured mode: array of objects with sub-paths for name/parent. Each
+    // item produces ONE MappedCategory; the parent is carried alongside so the
+    // runner can upsert it before the child.
+    if (cfg.itemExternalIdPath && Array.isArray(raw)) {
+      const out: MappedCategory[] = [];
+      for (const item of raw) {
+        const externalId = asTrimmedString(getPath(item, cfg.itemExternalIdPath));
+        const name = cfg.itemNamePath
+          ? asTrimmedString(getPath(item, cfg.itemNamePath))
+          : externalId;
+        if (!externalId || !name) continue;
+        const parentExternalId = cfg.itemParentExternalIdPath
+          ? asTrimmedString(getPath(item, cfg.itemParentExternalIdPath)) || undefined
+          : undefined;
+        const parentName = cfg.itemParentNamePath
+          ? asTrimmedString(getPath(item, cfg.itemParentNamePath)) || undefined
+          : undefined;
+        out.push({ externalId, name, parentExternalId, parentName });
+      }
+      return dedupeCategories(out);
     }
-    return [String(raw)];
+
+    // Flat-string fallback (legacy behavior). No externalId, no parent.
+    let names: string[];
+    if (Array.isArray(raw)) {
+      names = raw.map((v) => String(v).trim()).filter(Boolean);
+    } else if (typeof raw === 'string') {
+      const sep = cfg.separator ?? ',';
+      names = raw.split(sep).map((s) => s.trim()).filter(Boolean);
+    } else {
+      names = [String(raw).trim()].filter(Boolean);
+    }
+    return dedupeCategories(names.map((name) => ({ name })));
   }
 
   private mapTiers(record: unknown, items?: TierMapItem[]): MappedTier[] {
@@ -300,6 +329,23 @@ function slugify(s: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function asTrimmedString(v: unknown): string {
+  if (v === undefined || v === null) return '';
+  return String(v).trim();
+}
+
+function dedupeCategories(cats: MappedCategory[]): MappedCategory[] {
+  const seen = new Set<string>();
+  const out: MappedCategory[] = [];
+  for (const c of cats) {
+    const key = c.externalId ?? `name:${c.name.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c);
+  }
+  return out;
 }
 
 function dedupeTiers(tiers: MappedTier[]): MappedTier[] {

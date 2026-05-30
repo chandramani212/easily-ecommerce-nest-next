@@ -14,6 +14,7 @@ import {
 } from "../../../../lib/search-params";
 import { SupplierDetailTabs, type Tab } from "./supplier-detail-tabs";
 import { SupplierActivity } from "./supplier-activity";
+import { SupplierCategoriesTab } from "./supplier-categories-tab";
 import { SupplierProducts } from "./supplier-products";
 import { SupplierImportsTab } from "./supplier-imports-tab";
 import { SupplierOverview } from "./supplier-overview";
@@ -32,6 +33,7 @@ const TABS: Tab[] = [
   { id: "overview", label: "Overview" },
   { id: "imports", label: "Imports" },
   { id: "products", label: "Products" },
+  { id: "categories", label: "Categories" },
   { id: "activity", label: "Activity" },
 ];
 
@@ -111,6 +113,9 @@ export default async function SupplierDetailPage({
           page={productsPage}
           pageSize={20}
         />
+      )}
+      {activeTab === "categories" && (
+        <SupplierCategoriesTab supplierId={id} />
       )}
       {activeTab === "activity" && (
         <SupplierActivity supplierId={id} runs={activityData ?? []} />

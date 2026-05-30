@@ -1,111 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { clientApi } from "../../../lib/client-api";
+import { CategorySelect } from "../../../components/category-select";
 import { MediaPicker } from "../../../components/media-picker";
 import type { Category, MediaAsset } from "../../../lib/types";
-
-function buildTree(categories: Category[], excludeId?: string) {
-  const pool = excludeId ? categories.filter((c) => c.id !== excludeId) : categories;
-  const childrenOf = (parentId: string | null) =>
-    pool.filter((c) => (c.parentId ?? null) === parentId);
-  const result: { category: Category; depth: number }[] = [];
-  const visited = new Set<string>();
-
-  const walk = (parentId: string | null, depth: number) => {
-    for (const node of childrenOf(parentId)) {
-      if (visited.has(node.id)) continue;
-      visited.add(node.id);
-      result.push({ category: node, depth });
-      walk(node.id, depth + 1);
-    }
-  };
-
-  walk(null, 0);
-
-  // orphans whose parent was excluded
-  for (const c of pool) {
-    if (!visited.has(c.id)) {
-      visited.add(c.id);
-      result.push({ category: c, depth: 0 });
-    }
-  }
-  return result;
-}
-
-function CategorySelect({
-  value,
-  onChange,
-  categories,
-  excludeId,
-  placeholder = "No parent (top-level)",
-}: {
-  value: string;
-  onChange: (id: string) => void;
-  categories: Category[];
-  excludeId?: string;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const tree = buildTree(categories, excludeId);
-  const selected = categories.find((c) => c.id === value);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 text-sm outline-none focus:border-[var(--admin-accent)]"
-      >
-        <span className={selected ? "" : "text-[var(--admin-fg)]/40"}>
-          {selected?.name ?? placeholder}
-        </span>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="opacity-40">
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute z-20 mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-card)] shadow-lg">
-          <ul className="max-h-56 overflow-y-auto divide-y divide-[var(--admin-border)]">
-            <li>
-              <button
-                type="button"
-                onClick={() => { onChange(""); setOpen(false); }}
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-[var(--admin-muted)] ${!value ? "bg-[var(--admin-accent)]/5 font-medium" : "text-[var(--admin-fg)]/50"}`}
-              >
-                {placeholder}
-              </button>
-            </li>
-            {tree.map(({ category: c, depth }) => (
-              <li key={c.id}>
-                <button
-                  type="button"
-                  onClick={() => { onChange(c.id); setOpen(false); }}
-                  className={`flex w-full items-center gap-1 py-2 pr-3 text-left text-sm hover:bg-[var(--admin-muted)] ${value === c.id ? "bg-[var(--admin-accent)]/5 font-medium" : ""}`}
-                  style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
-                >
-                  {depth > 0 && <span className="text-[var(--admin-fg)]/30">↳</span>}
-                  {c.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function slugify(s: string): string {
   return s

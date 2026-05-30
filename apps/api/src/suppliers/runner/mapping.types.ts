@@ -92,8 +92,28 @@ export interface CategoriesMap {
    * "slug" — match by slug,
    * "create" — create missing categories on the fly using the value as both
    *   name and slug (slugified).
+   *
+   * Only used in flat-string mode (when `itemExternalIdPath` is NOT set).
    */
   match?: 'name' | 'slug' | 'create';
+
+  /**
+   * When the source resolves to an array of objects (e.g. ASI's
+   * `{Id, Name, Parent: {Id, Name}}` shape), these paths describe where to
+   * read the externalId / name / parent fields from each item.
+   *
+   * Setting `itemExternalIdPath` switches the runner into "structured" mode:
+   *   - each (parent + child) category is upserted into `SupplierCategory`
+   *   - the product is attached only to curated `Category` rows that the
+   *     admin has mapped via `SupplierCategory.categoryId`
+   *
+   * When `itemExternalIdPath` is unset, the runner falls back to the
+   * legacy flat-string behavior (auto-create against `Category`).
+   */
+  itemExternalIdPath?: string;
+  itemNamePath?: string;
+  itemParentExternalIdPath?: string;
+  itemParentNamePath?: string;
 }
 
 export interface MappingSpec {
@@ -139,6 +159,18 @@ export interface MappedAttribute {
   value: string;
 }
 
+/**
+ * One supplier category as the mapper extracts it from a record. `externalId`
+ * is set in structured mode (hierarchy-aware); in flat-string mode it's
+ * derived from the slugified name and the parent fields are absent.
+ */
+export interface MappedCategory {
+  externalId?: string;
+  name: string;
+  parentExternalId?: string;
+  parentName?: string;
+}
+
 export interface MappedProduct {
   externalId: string;
   name: string;
@@ -149,7 +181,7 @@ export interface MappedProduct {
   sellingPrice: number;
   images: string[];
   attributes: MappedAttribute[];
-  categories: string[];
+  categories: MappedCategory[];
   tiers: MappedTier[];
   active: boolean;
 }

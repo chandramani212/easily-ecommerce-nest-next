@@ -3,6 +3,7 @@ import { InquiryStatus, Prisma } from '@prisma/client';
 
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { toCsv } from '../common/csv.util';
 import {
   CreateInquiryDto,
   UpdateInquiryStatusDto,
@@ -43,12 +44,7 @@ export class InquiriesService {
     return { id: inquiry.id, success: true };
   }
 
-  async findAll(query: InquiryListQuery) {
-    const page = Math.max(1, parseInt(query.page ?? '1', 10) || 1);
-    const pageSize = Math.min(
-      100,
-      Math.max(1, parseInt(query.pageSize ?? '20', 10) || 20),
-    );
+  private buildWhere(query: InquiryListQuery): Prisma.InquiryWhereInput {
     const where: Prisma.InquiryWhereInput = {};
     if (query.status) where.status = query.status;
     if (query.q) {
@@ -60,6 +56,16 @@ export class InquiriesService {
         { message: { contains: query.q, mode: 'insensitive' } },
       ];
     }
+    return where;
+  }
+
+  async findAll(query: InquiryListQuery) {
+    const page = Math.max(1, parseInt(query.page ?? '1', 10) || 1);
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(query.pageSize ?? '20', 10) || 20),
+    );
+    const where = this.buildWhere(query);
 
     const [total, items] = await Promise.all([
       this.prisma.inquiry.count({ where }),
@@ -78,6 +84,26 @@ export class InquiriesService {
       pageSize,
       pageCount: Math.ceil(total / pageSize),
     };
+  }
+
+  async exportCsv(query: InquiryListQuery): Promise<string> {
+    const where = this.buildWhere(query);
+    const rows = await this.prisma.inquiry.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+    return toCsv(rows, [
+      { header: 'Received', value: (i) => i.createdAt },
+      { header: 'Name', value: (i) => i.name },
+      { header: 'Email', value: (i) => i.email },
+      { header: 'Phone', value: (i) => i.phone },
+      { header: 'Company', value: (i) => i.company },
+      { header: 'Inquiry Type', value: (i) => i.inquiryType },
+      { header: 'Product', value: (i) => i.productName },
+      { header: 'Quantity', value: (i) => i.quantity },
+      { header: 'Message', value: (i) => i.message },
+      { header: 'Status', value: (i) => i.status },
+    ]);
   }
 
   async findOne(id: string) {

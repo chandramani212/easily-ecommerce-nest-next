@@ -37,12 +37,20 @@ export default async function EditImportPage({
         title={`Edit ${imp.name}`}
         description="Adjust source, mapping, markup and schedule for this import"
         actions={
-          <Link
-            href={`/suppliers/${id}/imports/${importId}/runs`}
-            className="rounded-lg border border-[var(--admin-border)] px-3.5 py-2 text-sm font-medium hover:bg-[var(--admin-muted)]"
-          >
-            Run history
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/suppliers/${id}?tab=imports`}
+              className="rounded-lg border border-[var(--admin-border)] px-3.5 py-2 text-sm font-medium hover:bg-[var(--admin-muted)]"
+            >
+              ← Back to imports
+            </Link>
+            <Link
+              href={`/suppliers/${id}/imports/${importId}/runs`}
+              className="rounded-lg border border-[var(--admin-border)] px-3.5 py-2 text-sm font-medium hover:bg-[var(--admin-muted)]"
+            >
+              Run history
+            </Link>
+          </div>
         }
       />
       <ImportWizard supplierId={id} imp={imp} />

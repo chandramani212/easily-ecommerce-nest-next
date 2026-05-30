@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export interface Tab {
-  id: "overview" | "imports" | "products" | "activity";
+  id: "overview" | "imports" | "products" | "categories" | "activity";
   label: string;
 }
 
