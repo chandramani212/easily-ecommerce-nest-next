@@ -49,7 +49,13 @@ interface ImagesMap {
   source: SimpleField;
   separator?: string;
   baseUrl?: string;
+  /** @deprecated kept for backward compatibility; mapped into `sizes.normal`. */
   urlSuffix?: string;
+  sizes?: {
+    thumbnail?: string;
+    normal?: string;
+    detail?: string;
+  };
   featuredSource?: SimpleField;
   download?: boolean;
 }
@@ -489,45 +495,71 @@ export function ImportWizard({
                     />
                   </div>
 
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Field
-                      label="Base URL (optional)"
-                      hint="Prepended to relative URLs. Example: https://api.uat-asicentral.com/v1"
-                    >
-                      <input
-                        placeholder="https://api.uat-asicentral.com/v1"
-                        value={mapping.images.baseUrl ?? ""}
-                        onChange={(e) =>
-                          setMapping({
-                            ...mapping,
-                            images: {
-                              ...mapping.images!,
-                              baseUrl: e.target.value || undefined,
-                            },
-                          })
-                        }
-                        className={inputCls}
-                      />
-                    </Field>
-                    <Field
-                      label="URL suffix (optional)"
-                      hint="Appended to every URL. Example: ?size=normal"
-                    >
-                      <input
-                        placeholder="?size=normal"
-                        value={mapping.images.urlSuffix ?? ""}
-                        onChange={(e) =>
-                          setMapping({
-                            ...mapping,
-                            images: {
-                              ...mapping.images!,
-                              urlSuffix: e.target.value || undefined,
-                            },
-                          })
-                        }
-                        className={inputCls}
-                      />
-                    </Field>
+                  <Field
+                    label="Base URL (optional)"
+                    hint="Prepended to relative URLs. Example: https://api.uat-asicentral.com/v1"
+                  >
+                    <input
+                      placeholder="https://api.uat-asicentral.com/v1"
+                      value={mapping.images.baseUrl ?? ""}
+                      onChange={(e) =>
+                        setMapping({
+                          ...mapping,
+                          images: {
+                            ...mapping.images!,
+                            baseUrl: e.target.value || undefined,
+                          },
+                        })
+                      }
+                      className={inputCls}
+                    />
+                  </Field>
+
+                  <div className="rounded-md border border-dashed border-[var(--admin-border)] p-2">
+                    <p className="mb-2 text-xs font-medium text-[var(--admin-fg)]/80">
+                      Size suffixes (optional)
+                    </p>
+                    <p className="mb-2 text-[11px] leading-snug text-[var(--admin-fg)]/50">
+                      Most image CDNs serve the same picture at several sizes via
+                      a query param. Set each variant below — the import stores
+                      the largest (Detail) so the product page stays sharp, and
+                      the storefront swaps the size for cards and thumbnails.
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {(
+                        [
+                          ["thumbnail", "Thumbnail", "?size=thumb"],
+                          ["normal", "Normal (cards)", "?size=normal"],
+                          ["detail", "Detail (product page)", "?size=detail"],
+                        ] as const
+                      ).map(([key, label, placeholder]) => (
+                        <Field key={key} label={label} hint={`e.g. ${placeholder}`}>
+                          <input
+                            placeholder={placeholder}
+                            value={
+                              mapping.images!.sizes?.[key] ??
+                              (key === "normal"
+                                ? mapping.images!.urlSuffix ?? ""
+                                : "")
+                            }
+                            onChange={(e) =>
+                              setMapping({
+                                ...mapping,
+                                images: {
+                                  ...mapping.images!,
+                                  urlSuffix: undefined,
+                                  sizes: {
+                                    ...mapping.images!.sizes,
+                                    [key]: e.target.value || undefined,
+                                  },
+                                },
+                              })
+                            }
+                            className={inputCls}
+                          />
+                        </Field>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="rounded-md border border-dashed border-[var(--admin-border)] p-2">

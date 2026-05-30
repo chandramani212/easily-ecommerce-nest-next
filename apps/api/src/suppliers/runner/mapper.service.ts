@@ -104,7 +104,11 @@ export class MapperService {
     }
 
     if (cfg.baseUrl) urls = urls.map((u) => applyBaseUrl(u, cfg.baseUrl!));
-    if (cfg.urlSuffix) urls = urls.map((u) => applyUrlSuffix(u, cfg.urlSuffix!));
+    // Store the largest configured variant so the product-detail gallery stays
+    // sharp; the storefront down-shifts to smaller sizes by query swap.
+    const storeSuffix =
+      cfg.sizes?.detail ?? cfg.sizes?.normal ?? cfg.urlSuffix ?? undefined;
+    if (storeSuffix) urls = urls.map((u) => applyUrlSuffix(u, storeSuffix));
 
     // Dedupe while preserving order so the featured image stays at index 0.
     const seen = new Set<string>();

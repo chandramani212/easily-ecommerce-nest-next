@@ -12,6 +12,7 @@ interface ProductImage {
   color: string;
   label: string;
   url?: string;
+  thumbUrl?: string;
 }
 
 interface QuantityPrice {
@@ -242,28 +243,39 @@ export function ProductDetail({ product }: { product: Product }) {
                         Unit Price
                       </th>
                       <th className="px-4 py-2.5 text-left font-medium text-[var(--foreground)]/60">
+                        Total
+                      </th>
+                      {/* Savings column hidden
+                      <th className="px-4 py-2.5 text-left font-medium text-[var(--foreground)]/60">
                         Savings
                       </th>
+                      */}
                     </tr>
                   </thead>
                   <tbody>
                     {product.quantityPricing.map((tier) => {
-                      const save =
-                        product.price > tier.price
-                          ? Math.round(
-                              ((product.price - tier.price) / product.price) *
-                                100,
-                            )
-                          : 0;
+                      const qty = parseInt(tier.quantity, 10) || 0;
+                      const total = qty * tier.price;
+                      // const save =
+                      //   product.price > tier.price
+                      //     ? Math.round(
+                      //         ((product.price - tier.price) / product.price) *
+                      //           100,
+                      //       )
+                      //     : 0;
                       return (
                         <tr
                           key={tier.quantity}
                           className="border-t border-[var(--border)]"
                         >
-                          <td className="px-4 py-2.5">{tier.quantity}</td>
+                          <td className="px-4 py-2.5">{qty}</td>
                           <td className="px-4 py-2.5 font-medium">
                             ${tier.price.toFixed(2)}
                           </td>
+                          <td className="px-4 py-2.5 font-medium">
+                            ${total.toFixed(2)}
+                          </td>
+                          {/* Savings column hidden
                           <td className="px-4 py-2.5">
                             {save > 0 ? (
                               <Badge variant="success">{save}% off</Badge>
@@ -273,6 +285,7 @@ export function ProductDetail({ product }: { product: Product }) {
                               </span>
                             )}
                           </td>
+                          */}
                         </tr>
                       );
                     })}

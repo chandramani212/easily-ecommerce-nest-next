@@ -7,6 +7,7 @@ interface ProductImage {
   color: string;
   label: string;
   url?: string;
+  thumbUrl?: string;
 }
 
 interface ProductGalleryProps {
@@ -30,7 +31,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
   const current = images[selected]!;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex w-full max-w-md flex-col gap-3 lg:mx-auto">
       {/* Main image with hover zoom */}
       <div
         ref={containerRef}
@@ -94,7 +95,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
             {img.url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={img.url}
+                src={img.thumbUrl ?? img.url}
                 alt={img.label}
                 className="h-full w-full object-cover"
               />

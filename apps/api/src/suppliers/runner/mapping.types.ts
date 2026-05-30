@@ -67,8 +67,27 @@ export interface ImagesMap {
    * Appended to every resolved URL. Use for required query strings such as
    * `?size=normal`. If the URL already carries a query string and this value
    * starts with `?`, it's auto-promoted to `&`.
+   *
+   * @deprecated Prefer `sizes`. When `sizes` is absent this is still honored
+   * as the "normal" size for backward compatibility.
    */
   urlSuffix?: string;
+  /**
+   * Per-size URL suffixes. Most image CDNs expose the same picture at several
+   * resolutions via a query param (e.g. `?size=thumb` / `?size=normal` /
+   * `?size=detail`). Configure each variant here; the runner stores images at
+   * the largest configured size (detail → normal → thumbnail) so the
+   * storefront can down-shift to smaller variants at render time. The
+   * storefront swaps the size by rewriting that query param.
+   */
+  sizes?: {
+    /** Smallest — used for gallery thumbnail strips and tiny previews. */
+    thumbnail?: string;
+    /** Medium — used for product cards and listings. */
+    normal?: string;
+    /** Largest — used for the product-detail main image. Stored on Product. */
+    detail?: string;
+  };
   /**
    * Optional path to a single "primary" image. When set, the resolved URL is
    * placed at index 0 of `images` (deduped). `Product.images[0]` is treated

@@ -13,6 +13,34 @@ export function normalizeImageUrl(src: string): string {
   return `${API_URL}/${src}`;
 }
 
+export type ImageSize = "thumbnail" | "normal" | "detail";
+
+// Images are imported at the configured detail size, so the detail/main image
+// uses the stored URL as-is. Smaller variants (cards, gallery thumbs) are
+// produced by rewriting the size query param to these tokens. Override via env
+// if a supplier uses different token values.
+const IMAGE_SIZE_PARAM = process.env.NEXT_PUBLIC_IMAGE_SIZE_PARAM || "size";
+const IMAGE_SIZE_TOKENS: Record<ImageSize, string> = {
+  thumbnail: process.env.NEXT_PUBLIC_IMAGE_SIZE_THUMBNAIL || "thumb",
+  normal: process.env.NEXT_PUBLIC_IMAGE_SIZE_NORMAL || "normal",
+  detail: process.env.NEXT_PUBLIC_IMAGE_SIZE_DETAIL || "detail",
+};
+
+/**
+ * Returns `url` with its size query param swapped to the requested variant.
+ * No-op when the URL has no size param (e.g. locally downloaded images), so it
+ * is always safe to call.
+ */
+export function sizedImage(
+  url: string | undefined,
+  size: ImageSize,
+): string | undefined {
+  if (!url) return url;
+  const token = IMAGE_SIZE_TOKENS[size];
+  const re = new RegExp(`([?&]${IMAGE_SIZE_PARAM}=)[^&#]*`, "i");
+  return re.test(url) ? url.replace(re, `$1${token}`) : url;
+}
+
 const PLACEHOLDER_COLORS = [
   "#1a9e7a",
   "#1b2e4b",
@@ -106,7 +134,9 @@ export function adaptProductForCard(p: ApiProduct): CardProduct {
     colorName,
     rating: 4,
     href: `/product/${p.slug}`,
-    image: firstImage ? normalizeImageUrl(firstImage) : undefined,
+    image: firstImage
+      ? sizedImage(normalizeImageUrl(firstImage), "normal")
+      : undefined,
   };
 }
 
@@ -114,7 +144,10 @@ export interface DetailImage {
   id: string;
   color: string;
   label: string;
+  /** Largest (detail) variant — used for the main gallery image. */
   url?: string;
+  /** Thumbnail variant — used for the gallery thumbnail strip. */
+  thumbUrl?: string;
 }
 
 export interface QuantityPrice {
@@ -162,12 +195,19 @@ export function adaptProductForDetail(p: ApiProduct): DetailProduct {
   const seedColor = pickColor(p.id || p.slug);
   const images: DetailImage[] =
     p.images && p.images.length
-      ? p.images.map((src, i) => ({
-          id: String(i + 1),
-          color: seedColor,
-          label: `Image ${i + 1}`,
-          url: normalizeImageUrl(src),
-        }))
+      ? p.images.map((src, i) => {
+          // Images are imported at the configured detail suffix, so the main
+          // image uses the stored URL as-is. Only the thumbnail strip is
+          // down-shifted to a smaller variant.
+          const normalized = normalizeImageUrl(src);
+          return {
+            id: String(i + 1),
+            color: seedColor,
+            label: `Image ${i + 1}`,
+            url: normalized,
+            thumbUrl: sizedImage(normalized, "thumbnail"),
+          };
+        })
       : [
           { id: "1", color: seedColor, label: "Front" },
           { id: "2", color: seedColor, label: "Side" },
@@ -182,9 +222,10 @@ export function adaptProductForDetail(p: ApiProduct): DetailProduct {
     .slice()
     .sort((a, b) => a.minQuantity - b.minQuantity)
     .map((t) => tierToQuantity(t, selling));
-  const quantityPricing = tiers.find((t) => t.quantity === "1+")
-    ? tiers
-    : [baseTier, ...tiers];
+  // Show bulk tiers first and the single-unit (qty 1) price as the last row.
+  const baseRow = tiers.find((t) => t.quantity === "1+") ?? baseTier;
+  const bulkTiers = tiers.filter((t) => t.quantity !== "1+");
+  const quantityPricing = [...bulkTiers, baseRow];
 
   const additionalInfo = attrs.length
     ? attrs.map((a) => `${a.name}: ${a.value}`).join(" | ")
