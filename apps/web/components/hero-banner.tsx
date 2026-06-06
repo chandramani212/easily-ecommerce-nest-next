@@ -11,6 +11,8 @@ interface Slide {
   ctaLabel: string;
   ctaSecondaryLabel?: string;
   gradient: string;
+  /** Right-side image. Replace these placeholders with 1200×1200 art. */
+  image: string;
 }
 
 const SLIDES: Slide[] = [
@@ -23,6 +25,7 @@ const SLIDES: Slide[] = [
     ctaLabel: "Shop Now",
     ctaSecondaryLabel: "View Categories",
     gradient: "from-teal-700 via-emerald-700 to-green-800",
+    image: "/hero/slide-1.svg",
   },
   {
     tag: "Bulk Discount",
@@ -33,6 +36,7 @@ const SLIDES: Slide[] = [
     ctaLabel: "Shop Deals",
     ctaSecondaryLabel: "See All Offers",
     gradient: "from-slate-800 via-slate-700 to-teal-800",
+    image: "/hero/slide-2.svg",
   },
   {
     tag: "Free Shipping",
@@ -42,6 +46,7 @@ const SLIDES: Slide[] = [
       "Free shipping on all orders over $50. Get your products delivered to your door in 2-5 business days.",
     ctaLabel: "Start Shopping",
     gradient: "from-emerald-600 via-teal-600 to-slate-700",
+    image: "/hero/slide-3.svg",
   },
 ];
 
@@ -85,7 +90,8 @@ export function HeroBanner() {
       {/* Left-side darkening overlay so text + buttons stay legible on lighter gradients */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12 lg:px-8 lg:pb-24 lg:pt-16">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
         <div className="max-w-2xl">
           <span
             key={`tag-${current}`}
@@ -125,6 +131,20 @@ export function HeroBanner() {
                 {slide.ctaSecondaryLabel}
               </Button>
             )}
+          </div>
+        </div>
+
+          {/* Right-side image */}
+          <div className="hidden lg:flex lg:justify-end">
+            <div className="relative aspect-square w-full max-w-[520px] rounded-3xl bg-white/5 p-6 ring-1 ring-white/15 backdrop-blur-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={`img-${current}`}
+                src={slide.image}
+                alt=""
+                className="h-full w-full animate-[fadeSlideIn_0.5s_ease-out_0.2s_both] object-contain drop-shadow-2xl"
+              />
+            </div>
           </div>
         </div>
 

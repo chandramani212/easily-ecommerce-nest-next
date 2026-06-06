@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" fill="none" role="img" aria-label="Free shipping placeholder">
+  <rect x="40" y="40" width="1120" height="1120" rx="64" stroke="white" stroke-opacity="0.25" stroke-width="3" stroke-dasharray="16 18"/>
+  <g stroke="white" stroke-opacity="0.85" stroke-width="20" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M360 440 H700 V700 H360 Z"/>
+    <path d="M700 530 H800 L860 600 V700 H700 Z"/>
+    <circle cx="470" cy="730" r="46"/>
+    <circle cx="775" cy="730" r="46"/>
+    <path d="M300 520 H440 M280 600 H420" stroke-width="16"/>
+  </g>
+  <text x="600" y="960" text-anchor="middle" font-family="system-ui, sans-serif" font-size="58" font-weight="700" fill="white" fill-opacity="0.9">Fast Delivery</text>
+  <text x="600" y="1030" text-anchor="middle" font-family="system-ui, sans-serif" font-size="34" fill="white" fill-opacity="0.55">Designer image · 1200 × 1200</text>
+</svg>

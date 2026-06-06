@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" fill="none" role="img" aria-label="Custom branding placeholder">
+  <rect x="40" y="40" width="1120" height="1120" rx="64" stroke="white" stroke-opacity="0.25" stroke-width="3" stroke-dasharray="16 18"/>
+  <g stroke="white" stroke-opacity="0.85" stroke-width="20" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M455 360 L545 320 L600 360 L655 320 L745 360 L825 440 L760 520 L710 480 L710 840 H490 V480 L440 520 L375 440 Z"/>
+    <circle cx="600" cy="600" r="78"/>
+    <path d="M600 560 L612 590 L644 592 L619 612 L628 644 L600 626 L572 644 L581 612 L556 592 L588 590 Z" stroke-width="14"/>
+  </g>
+  <text x="600" y="960" text-anchor="middle" font-family="system-ui, sans-serif" font-size="58" font-weight="700" fill="white" fill-opacity="0.9">Custom Branding</text>
+  <text x="600" y="1030" text-anchor="middle" font-family="system-ui, sans-serif" font-size="34" fill="white" fill-opacity="0.55">Designer image · 1200 × 1200</text>
+</svg>

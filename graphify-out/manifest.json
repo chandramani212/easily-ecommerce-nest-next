@@ -112,8 +112,8 @@
     "hash": "58f70d68a94c401b48981ad3e9296f19"
   },
   "/var/www/html/ecommerce/apps/web/lib/adapt.ts": {
-    "mtime": 1780142271.9077592,
-    "hash": "a1c260901db28603fa561ee0f505f2c6"
+    "mtime": 1780143231.6390796,
+    "hash": "8a7f18dbe012bac54804723de0d4aa40"
   },
   "/var/www/html/ecommerce/apps/web/components/category-bar-client.tsx": {
     "mtime": 1778930473.5855987,
@@ -172,8 +172,8 @@
     "hash": "60b02fd00f969a230bef3b57edb98f40"
   },
   "/var/www/html/ecommerce/apps/web/components/hero-banner.tsx": {
-    "mtime": 1779012411.8697226,
-    "hash": "d6513fd649872528a70942cde5550e96"
+    "mtime": 1780146572.3944547,
+    "hash": "c4bd3b5ed81eb4725de577b73b3ac1d0"
   },
   "/var/www/html/ecommerce/apps/web/components/pagination.tsx": {
     "mtime": 1774695224.6378086,
@@ -1082,6 +1082,18 @@
   "/var/www/html/ecommerce/apps/web/public/next.svg": {
     "mtime": 1774674136.5271826,
     "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/var/www/html/ecommerce/apps/web/public/hero/slide-2.svg": {
+    "mtime": 1780145654.0435214,
+    "hash": "36fc36f55b4167fcdcd86aefbb986f43"
+  },
+  "/var/www/html/ecommerce/apps/web/public/hero/slide-1.svg": {
+    "mtime": 1780145645.4572556,
+    "hash": "3426e53931a6c9f19f2645f716550f9c"
+  },
+  "/var/www/html/ecommerce/apps/web/public/hero/slide-3.svg": {
+    "mtime": 1780145664.8598557,
+    "hash": "c5f56d2fbee1e2ec5a9c5ca71b505122"
   },
   "/var/www/html/ecommerce/apps/admin/public/logo.png": {
     "mtime": 1777208585.162137,
