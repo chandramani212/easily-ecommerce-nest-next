@@ -156,8 +156,21 @@ export class MapperService {
     const out: MappedAttribute[] = [];
     for (const item of items) {
       const v = this.value(record, item.value);
-      if (v === undefined || v === null || v === '') continue;
-      out.push({ name: item.name, value: String(v) });
+      // Array-valued attributes (e.g. a wildcard path like
+      // `Attributes.Colors.Values[*].Name`) are joined into a readable,
+      // comma-separated string so multi-value attributes such as Color stay
+      // splittable downstream instead of becoming "[object Object]" or a
+      // delimiter-less blob.
+      const value = Array.isArray(v)
+        ? v
+            .map((x) => String(x).trim())
+            .filter(Boolean)
+            .join(', ')
+        : v === undefined || v === null
+          ? ''
+          : String(v).trim();
+      if (!value) continue;
+      out.push({ name: item.name, value });
     }
     return out;
   }

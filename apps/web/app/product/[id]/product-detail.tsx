@@ -195,6 +195,7 @@ export function ProductDetail({ product }: { product: Product }) {
               {discount && <Badge variant="danger">-{discount}%</Badge>}
             </div>
 
+            {/* Rating temporarily hidden until real review data is available.
             <div className="mt-3 flex items-center gap-2">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -216,6 +217,7 @@ export function ProductDetail({ product }: { product: Product }) {
                 4.0 (128 reviews)
               </span>
             </div>
+            */}
 
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-[var(--foreground)]/50">
               <span>

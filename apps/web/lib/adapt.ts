@@ -93,6 +93,35 @@ function findAttribute(
   return hit?.value;
 }
 
+/** Title-cases a color name so "SILVER"/"silver" both render as "Silver". */
+function canonicalColor(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Split a Color attribute value into individual, de-duplicated color names.
+ * The importer stores multi-color products as a comma-separated string (e.g.
+ * ASI's `Attributes.Colors.Values[*].Name` → "Black, Blue, Green"); we also
+ * tolerate `/` and `|` separators from other feeds. Returns [] when no color
+ * is assigned so such products contribute no color filter chip.
+ */
+function splitColors(value: string | undefined): string[] {
+  if (!value) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of value.split(/[,/|]/)) {
+    const c = canonicalColor(part);
+    if (c && !seen.has(c)) {
+      seen.add(c);
+      out.push(c);
+    }
+  }
+  return out;
+}
+
 export interface CardProduct {
   id: string;
   name: string;
@@ -101,7 +130,8 @@ export interface CardProduct {
   badge?: string;
   color: string;
   brand: string;
-  colorName: string;
+  /** Individual, filterable color names. Empty when no color is assigned. */
+  colors: string[];
   rating: number;
   href: string;
   image?: string;
@@ -116,10 +146,9 @@ export function adaptProductForCard(p: ApiProduct): CardProduct {
     ? Math.round(((base - selling) / base) * 100)
     : 0;
 
-  const colorName =
-    findAttribute(attrs, "color") ??
-    findAttribute(attrs, "colour") ??
-    "Default";
+  const colors = splitColors(
+    findAttribute(attrs, "color") ?? findAttribute(attrs, "colour"),
+  );
 
   const firstImage = p.images?.[0];
 
@@ -130,8 +159,8 @@ export function adaptProductForCard(p: ApiProduct): CardProduct {
     originalPrice: hasDiscount ? base : undefined,
     badge: hasDiscount ? `-${discount}%` : undefined,
     color: pickColor(p.id || p.slug),
-    brand: findAttribute(attrs, "brand") ?? "House",
-    colorName,
+    brand: findAttribute(attrs, "brand") ?? "",
+    colors,
     rating: 4,
     href: `/product/${p.slug}`,
     image: firstImage

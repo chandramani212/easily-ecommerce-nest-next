@@ -63,6 +63,7 @@ export function FilterSidebar({
       </FilterSection>
 
       {/* Brands */}
+      {filters.brands.length > 0 && (
       <FilterSection title="Brand">
         <div className="space-y-2">
           {filters.brands.map((b) => (
@@ -82,8 +83,10 @@ export function FilterSidebar({
           ))}
         </div>
       </FilterSection>
+      )}
 
       {/* Colors */}
+      {filters.colors.length > 0 && (
       <FilterSection title="Color">
         <div className="flex flex-wrap gap-2">
           {filters.colors.map((c) => (
@@ -101,8 +104,10 @@ export function FilterSidebar({
           ))}
         </div>
       </FilterSection>
+      )}
 
-      {/* Ratings */}
+      {/* Ratings — temporarily hidden until real rating data is available.
+      {filters.ratings.length > 0 && (
       <FilterSection title="Rating">
         <div className="space-y-2">
           {filters.ratings.map((r) => (
@@ -124,6 +129,8 @@ export function FilterSidebar({
           ))}
         </div>
       </FilterSection>
+      )}
+      */}
     </aside>
   );
 }

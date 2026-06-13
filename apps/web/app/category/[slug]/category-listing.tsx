@@ -14,7 +14,7 @@ interface Product {
   badge?: string;
   color: string;
   brand: string;
-  colorName: string;
+  colors: string[];
   rating: number;
   image?: string;
 }
@@ -48,7 +48,14 @@ const COLOR_MAP: Record<string, string> = {
   Pink: "#f472b6",
   Teal: "#2dd4bf",
   Gray: "#94a3b8",
-  Silver: "#94a3b8",
+  Grey: "#94a3b8",
+  Silver: "#cbd5e1",
+  Navy: "#1e3a8a",
+  Maroon: "#7f1d1d",
+  Brown: "#92400e",
+  Beige: "#e7d8b1",
+  Gold: "#d4af37",
+  Natural: "#e7d8b1",
 };
 
 function deriveFilters(products: Product[]) {
@@ -57,8 +64,12 @@ function deriveFilters(products: Product[]) {
   const ratingCounts: Record<number, number> = {};
 
   for (const p of products) {
-    brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
-    colorSet.add(p.colorName);
+    // Skip products with no brand attribute so the Brand filter only appears
+    // when at least one product is actually branded.
+    if (p.brand) brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
+    // Products with no color contribute no chip — so the filter never shows a
+    // misleading "Default" swatch for unassigned colors.
+    for (const c of p.colors) colorSet.add(c);
     for (let r = p.rating; r >= 1; r--) {
       ratingCounts[r] = (ratingCounts[r] || 0) + 1;
     }
@@ -120,7 +131,7 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
         p.price >= priceRange[0] &&
         p.price <= priceRange[1] &&
         (!activeBrands.length || activeBrands.includes(p.brand)) &&
-        (!activeColors.length || activeColors.includes(p.colorName)) &&
+        (!activeColors.length || p.colors.some((c) => activeColors.includes(c))) &&
         p.rating >= minRating,
     );
 
@@ -299,7 +310,9 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
                   <div className="flex flex-1 flex-col justify-center">
                     <h3 className="font-medium leading-snug">{p.name}</h3>
                     <p className="mt-0.5 text-xs text-[var(--foreground)]/50">
-                      {p.brand} &middot; {p.colorName}
+                      {[p.brand, p.colors.join(", ")]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                     <div className="mt-2 flex items-baseline gap-2">
                       <span className="text-sm text-[var(--foreground)]/50">from</span>

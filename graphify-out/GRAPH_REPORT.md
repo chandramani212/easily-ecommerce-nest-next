@@ -1,16 +1,16 @@
-# Graph Report - ecommerce  (2026-06-06)
+# Graph Report - ecommerce  (2026-06-13)
 
 ## Corpus Check
-- 292 files · ~86,080 words
+- 292 files · ~86,359 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1599 nodes · 3344 edges · 104 communities (75 shown, 29 thin omitted)
+- 1601 nodes · 3348 edges · 104 communities (74 shown, 30 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8c2bcceb`
+- Built from commit: `e384eeb8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -128,230 +128,226 @@
   plan.txt → README.md
 - `Supplier Product Import Feature` --conceptually_related_to--> `apps/api Directory NestJS Backend`  [INFERRED]
   plan.txt → README.md
-- `CustomerDetailPage()` --calls--> `formatDate()`  [EXTRACTED]
-  apps/admin/app/(admin)/customers/[id]/page.tsx → apps/admin/lib/format.ts
+- `demoHandle()` --calls--> `demoRoute()`  [INFERRED]
+  apps/admin/lib/client-api.ts → apps/admin/lib/demo-api.ts
 
 ## Hyperedges (group relationships)
 - **Monorepo Workspace Structure** — pnpm_workspace_yaml, readme_monorepo_turborepo, readme_monorepo_pnpm, apps_api_dir, apps_web_dir, apps_admin_dir [INFERRED 0.85]
 - **Supplier Import Feature Scope** — plan_supplier_import, plan_tier_pricing, plan_phase2_out_of_scope, apps_admin_dir, apps_api_dir [INFERRED 0.75]
 
-## Communities (104 total, 29 thin omitted)
+## Communities (104 total, 30 thin omitted)
 
 ### Community 0 - "Supplier Import Pipeline"
 Cohesion: 0.07
 Nodes (50): AsiCentralFetcher, AsiCentralFetcherConfig, AsiProductSummary, AsiSearchResponse, DETAIL_PATH(), extractSummaries(), pickId(), safeText() (+42 more)
 
 ### Community 1 - "Auth & User Management"
-Cohesion: 0.08
-Nodes (38): Column, DataTable(), DateRangeFilter(), DateRangeFilterProps, Pager(), PagerProps, SearchInput(), SearchInputProps (+30 more)
+Cohesion: 0.05
+Nodes (16): CsvColumn, toCsv(), ContactMessagesController, ContactMessagesModule, ContactListQuery, ContactMessagesService, escapeHtml(), CustomersController (+8 more)
 
 ### Community 2 - "Admin Page Components"
 Cohesion: 0.05
 Nodes (21): AuthController, AuthModule, AuthService, CurrentUser, JwtUser, LoginDto, MediaListQuery, UpdateMediaDto (+13 more)
 
 ### Community 3 - "API Middleware & Settings"
-Cohesion: 0.06
-Nodes (15): CsvColumn, toCsv(), ContactMessagesController, ContactMessagesModule, ContactListQuery, ContactMessagesService, escapeHtml(), CustomersController (+7 more)
+Cohesion: 0.1
+Nodes (31): Column, DataTable(), DateRangeFilter(), DateRangeFilterProps, ExportButton(), Pager(), PagerProps, SearchInput() (+23 more)
 
 ### Community 4 - "Admin Product UI"
 Cohesion: 0.06
-Nodes (31): DemoMockExports, ORIGIN_LABEL, TABS, SourceActivity(), STATUS_BADGE, SourceDetailTabs(), Tab, SourceImportsTab() (+23 more)
+Nodes (40): DEMO_CATEGORY_IDS, DEMO_SOURCE_IDS, DEMO_SOURCE_IMPORT_IDS, DEMO_SUPPLIER_IDS, DEMO_SUPPLIER_IMPORT_IDS, buildOrder(), computeSummary(), customerWithOrders() (+32 more)
 
 ### Community 5 - "Product API Module"
-Cohesion: 0.07
-Nodes (37): DEMO_CATEGORY_IDS, DEMO_SOURCE_IDS, DEMO_SOURCE_IMPORT_IDS, DEMO_SUPPLIER_IDS, DEMO_SUPPLIER_IMPORT_IDS, buildOrder(), computeSummary(), customerWithOrders() (+29 more)
-
-### Community 6 - "Admin Shell & Layout"
 Cohesion: 0.13
 Nodes (18): ApiKeyAdapter, AsiMemberAuthAdapter, AnyCredentials, ApiKeyCredentials, AsiMemberAuthCredentials, AuthAdapter, BasicCredentials, BearerCredentials (+10 more)
 
-### Community 7 - "Supplier Admin UI"
+### Community 6 - "Admin Shell & Layout"
 Cohesion: 0.07
 Nodes (22): CreateInquiryDto, UpdateInquiryStatusDto, InquiriesController, InquiriesModule, escapeHtml(), InquiriesService, InquiryListQuery, AttributionInput (+14 more)
 
-### Community 8 - "Inquiries & Mail"
+### Community 7 - "Supplier Admin UI"
 Cohesion: 0.09
-Nodes (23): PageHeader(), DemoMockExports, EditProductPage(), generateStaticParams(), DemoMockExports, EditImportPage(), generateStaticParams(), ApiError (+15 more)
+Nodes (22): ExportButtonProps, PageHeader(), DemoMockExports, EditProductPage(), generateStaticParams(), DemoMockExports, EditImportPage(), generateStaticParams() (+14 more)
 
-### Community 9 - "Auth Adapters"
+### Community 8 - "Inquiries & Mail"
 Cohesion: 0.12
 Nodes (13): CsvParser, JsonParser, ParseResult, parserFor(), RecordParser, xml, XmlParser, getPath() (+5 more)
 
-### Community 10 - "Import Run History UI"
-Cohesion: 0.07
-Nodes (31): DEFAULT_MILESTONES, DEFAULT_STATS, DEFAULT_TEAM, DEFAULT_VALUES, generateMetadata(), metadata, MILESTONES, TEAM (+23 more)
-
-### Community 11 - "Web Store Catalog UI"
+### Community 9 - "Auth Adapters"
 Cohesion: 0.09
 Nodes (13): CreateProductDto, ProductAttributeDto, TierPriceDto, UpdateProductDto, ProductsController, ProductsModule, ProductListQuery, ProductsService (+5 more)
 
+### Community 10 - "Import Run History UI"
+Cohesion: 0.09
+Nodes (24): CATEGORIES, Category, CategoryBar(), CategoryBarClient(), CategoryBarClientProps, MobileCategoryRowProps, SubCategory, absoluteImage() (+16 more)
+
+### Community 11 - "Web Store Catalog UI"
+Cohesion: 0.12
+Nodes (10): HttpExceptionFilter, JwtAuthGuard, MailModule, MediaModule, PagesModule, PrismaModule, SourcesModule, AppController (+2 more)
+
 ### Community 12 - "Demo API Layer"
-Cohesion: 0.11
-Nodes (12): Public(), HttpExceptionFilter, JwtAuthGuard, MailModule, MediaModule, PagesModule, PrismaModule, SourcesModule (+4 more)
-
-### Community 13 - "Web Home & Navigation"
-Cohesion: 0.09
-Nodes (23): CATEGORIES, categoryIcon(), PRODUCT_TABS, TESTIMONIALS, CATEGORIES, Category, CategoryBar(), SubCategory (+15 more)
-
-### Community 14 - "Orders API Module"
-Cohesion: 0.09
-Nodes (29): CategoryBarClient(), CategoryBarClientProps, MobileCategoryRowProps, Build, code:bash (pnpm build), adaptCategory(), AdaptedCategory, adaptProductForCard() (+21 more)
-
-### Community 15 - "Contact Messages API"
 Cohesion: 0.12
 Nodes (26): AttributeMapItem, CategoriesMap, Field(), FIELD_TRANSFORMS, FieldRow(), FieldTransform, ImagesMap, ImportWizard() (+18 more)
 
-### Community 16 - "Mock Data Generation"
+### Community 13 - "Web Home & Navigation"
 Cohesion: 0.1
-Nodes (18): CartContents(), metadata, CheckoutFlow(), INITIAL_PAYMENT, INITIAL_SHIPPING, PaymentData, ReviewStep(), ShippingData (+10 more)
+Nodes (19): StatusBadge(), STYLES, OrderStatusEditor(), STATUSES, CustomerDetailPage(), generateStaticParams(), InquiryRow(), STATUSES (+11 more)
 
-### Community 17 - "Customers API Module"
+### Community 14 - "Orders API Module"
+Cohesion: 0.11
+Nodes (15): metadata, CheckoutFlow(), metadata, Breadcrumb(), BreadcrumbItem, BreadcrumbProps, COMPANY, Footer() (+7 more)
+
+### Community 15 - "Contact Messages API"
 Cohesion: 0.08
 Nodes (20): BestSellersTabs(), Product, Tab, FilterOption, Filters, FilterSidebar(), FilterSidebarProps, buildPageRange() (+12 more)
 
-### Community 18 - "Middleware & Routes"
+### Community 16 - "Mock Data Generation"
 Cohesion: 0.1
-Nodes (17): AdminUser, Category, LeadSource, Settings, SourceImportRunStatus, SourceImportTrigger, SupplierImportRunStatus, SupplierImportTrigger (+9 more)
+Nodes (17): ContactRow(), STATUSES, AboutContent, ContactContent, ContactStatus, HomeContent, LeadSource, OrderItem (+9 more)
+
+### Community 17 - "Customers API Module"
+Cohesion: 0.11
+Nodes (17): OrderDetailPage(), ORIGIN_LABEL, STATUS_BADGE, SupplierActivity(), SupplierDetailTabs(), Tab, STATUS_BADGE, SupplierImportsTab() (+9 more)
+
+### Community 18 - "Middleware & Routes"
+Cohesion: 0.11
+Nodes (9): Public(), LinksController, LinksModule, LinksService, dto, link, links, removed (+1 more)
 
 ### Community 19 - "Import Wizard UI"
+Cohesion: 0.12
+Nodes (9): Roles(), CreateUserDto, UpdateUserDto, RolesGuard, PagesController, SetSourceCategoryMappingDto, SourceCategoriesController, SourceCategoryListQueryDto (+1 more)
+
+### Community 20 - "Supplier API Module"
 Cohesion: 0.1
 Nodes (18): AdminShell(), AdminShellProps, MeResponse, MENU, MenuItem, PAGES, Sidebar(), SidebarProps (+10 more)
 
-### Community 20 - "Supplier API Module"
-Cohesion: 0.17
-Nodes (14): CreateImportDto, CreateSourceDto, CronPreviewDto, DryRunOptionsDto, RunNowOptionsDto, RunsListQuery, SampleFromUrlDto, SourceAuthCredentialsDto (+6 more)
-
 ### Community 21 - "Import Service Internals"
 Cohesion: 0.1
-Nodes (10): Roles(), RolesGuard, SetSourceCategoryMappingDto, SourceCategoriesController, SourceCategoryListQueryDto, SetSupplierCategoryMappingDto, SupplierCategoriesController, SupplierCategoryListQueryDto (+2 more)
+Nodes (18): CATEGORIES, categoryIcon(), PRODUCT_TABS, TESTIMONIALS, CategoryCard(), CategoryCardProps, HeroBanner(), Slide (+10 more)
 
 ### Community 22 - "Admin Category Management"
-Cohesion: 0.12
-Nodes (8): LinksController, LinksModule, LinksService, dto, link, links, removed, updated
+Cohesion: 0.1
+Nodes (17): geist, metadata, RootLayout(), CartContents(), INITIAL_PAYMENT, INITIAL_SHIPPING, PaymentData, ReviewStep() (+9 more)
 
 ### Community 23 - "Links CRUD Module"
-Cohesion: 0.12
-Nodes (12): ExportButton(), ExportButtonProps, ContactRow(), STATUSES, InquiryRow(), STATUSES, ContactMessage, ContactStatus (+4 more)
+Cohesion: 0.13
+Nodes (24): Build, code:bash (pnpm build), AdaptedCategory, adaptProductForCard(), adaptProductForDetail(), buildCategoryTree(), canonicalColor(), CardProduct (+16 more)
 
 ### Community 24 - "Project Architecture Docs"
-Cohesion: 0.13
-Nodes (7): CreateOrderDto, OrderItemDto, UpdateOrderStatusDto, OrdersController, OrdersModule, OrderListQuery, OrdersService
+Cohesion: 0.11
+Nodes (17): DemoMockExports, SourceDetailPage(), TABS, SourceActivity(), STATUS_BADGE, SourceDetailTabs(), Tab, SourceImportsTab() (+9 more)
 
 ### Community 25 - "API Core Module"
-Cohesion: 0.13
-Nodes (6): CreateUserDto, UpdateUserDto, UsersController, UsersModule, userSelect, UsersService
+Cohesion: 0.12
+Nodes (20): generateMetadata(), generateMetadata(), Page(), ContactForm(), SUBJECTS, CONTACT_INFO, DEFAULT_FAQ, DEFAULT_INFO (+12 more)
 
 ### Community 26 - "Admin Contacts & Users"
-Cohesion: 0.14
-Nodes (6): TestEmailDto, UpdateSettingsDto, MailService, SettingsController, SettingsModule, SettingsService
+Cohesion: 0.13
+Nodes (7): CreateOrderDto, OrderItemDto, UpdateOrderStatusDto, OrdersController, OrdersModule, OrderListQuery, OrdersService
 
 ### Community 27 - "Web Inquiry Form"
 Cohesion: 0.09
 Nodes (22): code:block1 (├── apps/), code:bash (pnpm install), code:bash (pnpm dev), code:bash (# API only), code:bash (pnpm lint), code:bash (pnpm test), code:bash (pnpm format), Customization (+14 more)
 
 ### Community 28 - "Web Checkout Flow"
+Cohesion: 0.12
+Nodes (7): SecretsCipher, SetSupplierCategoryMappingDto, SupplierCategoriesController, SupplierCategoryListQueryDto, SupplierCategoriesService, SupplierCategoryListQuery, SuppliersModule
+
+### Community 29 - "Web Category Pages"
+Cohesion: 0.13
+Nodes (9): UpdatePageDto, MailOptions, PAGE_DEFAULTS, PAGE_SLUGS, PageSeed, PageSlug, PrismaService, SourceCategoriesService (+1 more)
+
+### Community 30 - "Web Product Detail"
 Cohesion: 0.24
 Nodes (14): CreateImportDto, CreateSupplierDto, CronPreviewDto, DryRunOptionsDto, RunNowOptionsDto, RunsListQuery, SampleFromUrlDto, SupplierAuthCredentialsDto (+6 more)
 
-### Community 29 - "Web Category Pages"
+### Community 31 - "Supplier Imports Controller"
 Cohesion: 0.15
 Nodes (5): CategoriesController, CategoriesModule, CategoriesService, CreateCategoryDto, UpdateCategoryDto
 
-### Community 30 - "Web Product Detail"
-Cohesion: 0.15
-Nodes (7): UpdatePageDto, PAGE_DEFAULTS, PAGE_SLUGS, PageSeed, PageSlug, PagesController, PagesService
-
-### Community 31 - "Supplier Imports Controller"
+### Community 32 - "Web Footer & Thank You"
 Cohesion: 0.13
 Nodes (12): config, middleware(), PUBLIC_PATHS, AdminSessionPayload, verifyToken(), Ctx, DELETE(), forward() (+4 more)
 
-### Community 32 - "Web Footer & Thank You"
-Cohesion: 0.23
-Nodes (15): AboutEditor(), ImageField(), SeoFields(), SeoValue, ContactEditor(), EditorSection(), ListEditor(), moveItem() (+7 more)
-
 ### Community 33 - "Categories API Module"
-Cohesion: 0.14
-Nodes (11): Breadcrumb(), BreadcrumbItem, BreadcrumbProps, INQUIRY_TYPES, InquiryForm(), InquiryFormProps, InquiryFormPage(), metadata (+3 more)
+Cohesion: 0.24
+Nodes (14): AboutEditor(), ImageField(), SeoFields(), SeoValue, ContactEditor(), EditorSection(), ListEditor(), moveItem() (+6 more)
 
 ### Community 34 - "Web App Layout"
-Cohesion: 0.15
-Nodes (12): StatusBadge(), STYLES, OrderStatusEditor(), STATUSES, CustomerDetailPage(), generateStaticParams(), OrderDetailPage(), DEMO_CUSTOMER_IDS (+4 more)
+Cohesion: 0.25
+Nodes (13): CreateImportDto, CreateSourceDto, CronPreviewDto, DryRunOptionsDto, RunNowOptionsDto, RunsListQuery, SampleFromUrlDto, SourceAuthCredentialsDto (+5 more)
 
 ### Community 35 - "Web Cart & Header"
+Cohesion: 0.19
+Nodes (5): TestEmailDto, UpdateSettingsDto, SettingsController, SettingsModule, SettingsService
+
+### Community 36 - "Admin Stats Module"
+Cohesion: 0.13
+Nodes (10): MediaPicker(), Props, ProductPicker(), Props, ProductAttribute, RelatedProductSummary, TierPriceType, AttrRow (+2 more)
+
+### Community 37 - "API App Controller"
+Cohesion: 0.14
+Nodes (3): UsersController, UsersModule, UsersService
+
+### Community 38 - "Suppliers Controller"
+Cohesion: 0.19
+Nodes (11): Filter, SupplierCategoriesTab(), SupplierCategoryRow, clientApi(), demoHandle(), DemoReadOnlyError, isMutation(), formatBytes() (+3 more)
+
+### Community 39 - "Import Runner Service"
 Cohesion: 0.2
 Nodes (15): apps/admin Directory Admin App, apps/api Directory NestJS Backend, apps/web Directory Next.js Frontend, Ecommerce Monorepo Plan, Phase 2 Out-of-Scope Features, Supplier Product Import Feature, Tier Price Types Fixed Price and Percentage Discount, NestJS Next.js Monorepo Starter README (+7 more)
 
-### Community 36 - "Admin Stats Module"
+### Community 40 - "Web About Page"
 Cohesion: 0.14
 Nodes (9): SourceAuthType, SourceKind, AUTH_TYPES, AuthState, EMPTY_AUTH, FormState, ManualSupplier, SourceForm() (+1 more)
 
-### Community 38 - "Suppliers Controller"
-Cohesion: 0.21
-Nodes (11): buildCategoryTree(), categoryLabel(), CategorySelect(), nameCollisions(), parentNameFor(), Filter, SourceCategoriesTab(), SourceCategoryRow (+3 more)
-
-### Community 39 - "Import Runner Service"
-Cohesion: 0.15
-Nodes (8): ProductPicker(), Props, ProductAttribute, RelatedProductSummary, TierPriceType, AttrRow, Props, TierRow
-
 ### Community 41 - "Sync Scheduler Service"
-Cohesion: 0.19
-Nodes (4): MailOptions, PrismaService, SourceCategoriesService, SourceCategoryListQuery
+Cohesion: 0.15
+Nodes (11): DEFAULT_MILESTONES, DEFAULT_STATS, DEFAULT_TEAM, DEFAULT_VALUES, metadata, MILESTONES, TEAM, VALUE_ICONS (+3 more)
 
-### Community 42 - "Suppliers Service"
+### Community 43 - "Prisma & Scheduler Module"
+Cohesion: 0.21
+Nodes (9): CategoriesManager(), buildCategoryTree(), categoryLabel(), CategorySelect(), nameCollisions(), parentNameFor(), Filter, SourceCategoriesTab() (+1 more)
+
+### Community 44 - "ESLint & Build Configs"
 Cohesion: 0.18
 Nodes (10): ProductGallery(), ProductGalleryProps, ProductImage, ProductTabs(), ProductTabsProps, TabContent, ACTION_BUTTONS, Product (+2 more)
 
-### Community 44 - "ESLint & Build Configs"
-Cohesion: 0.24
-Nodes (7): CategoriesManager(), MediaPicker(), Props, clientApi(), demoHandle(), isMutation(), DeleteButton()
-
-### Community 45 - "Web Contact Form"
+### Community 48 - "Links Controller"
 Cohesion: 0.17
 Nodes (7): SupplierAuthType, SupplierKind, AUTH_TYPES, AuthState, EMPTY_AUTH, FormState, SupplierForm()
 
-### Community 47 - "Categories Controller"
-Cohesion: 0.2
-Nodes (6): COMPANY, Footer(), QUICK_LINKS, SUPPORT, metadata, ThankYouContent()
+### Community 51 - "Animated Circles SVG"
+Cohesion: 0.27
+Nodes (8): SourceImport, SupplierImport, DemoMockExports, generateStaticParams(), RunHistoryPage(), RunsTable(), sanitize(), STATUS_BADGE
 
-### Community 48 - "Links Controller"
+### Community 52 - "Shared UI Avatar"
 Cohesion: 0.17
 Nodes (11): 1. Suppliers List (`/suppliers`), 2. Products Tab (`/suppliers/[id]?tab=products`), 3. Import Runs Page (`/suppliers/[id]/imports/[importId]/runs`), API Response Shape, code:block1 (const page = Number(p(sp, "page") ?? "1");), Files Changed, Out of Scope, Overview (+3 more)
 
-### Community 51 - "Animated Circles SVG"
+### Community 53 - "Shared UI Badge"
+Cohesion: 0.24
+Nodes (7): INQUIRY_TYPES, InquiryForm(), InquiryFormProps, InquiryFormPage(), Attribution, captureAttribution(), getAttribution()
+
+### Community 57 - "Link DTOs"
 Cohesion: 0.29
 Nodes (3): StatsController, StatsModule, StatsService
 
-### Community 52 - "Shared UI Avatar"
+### Community 58 - "Shared UI Tabs"
 Cohesion: 0.24
 Nodes (7): DashboardPage(), formatMoney(), SOURCE_LABELS, Summary, StatCard(), StatCardProps, LeadSourceReport
 
-### Community 57 - "Link DTOs"
+### Community 60 - "Category Filter Component"
 Cohesion: 0.36
 Nodes (4): config, nestJsConfig, nextJsConfig, config
 
-### Community 58 - "Shared UI Tabs"
-Cohesion: 0.29
-Nodes (5): TestimonialCard(), TestimonialCardProps, Testimonial, TestimonialCarousel(), TestimonialCarouselProps
-
-### Community 59 - "Product Performance Widget"
-Cohesion: 0.36
-Nodes (7): absoluteImage(), generateMetadata(), MOCK_PRODUCT, PageProps, ProductPage(), resolveProduct(), ApiProduct
-
-### Community 61 - "Easily Branded Brand Assets"
+### Community 62 - "Shared UI Card"
 Cohesion: 0.29
 Nodes (5): ButtonProps, ButtonSize, ButtonVariant, sizeClasses, variantClasses
 
-### Community 62 - "Shared UI Card"
+### Community 63 - "Shared UI Input"
 Cohesion: 0.29
 Nodes (4): adminRoot, here, moves, stash
-
-### Community 63 - "Shared UI Input"
-Cohesion: 0.47
-Nodes (4): geist, metadata, RootLayout(), CartProvider()
-
-### Community 64 - "Quantity Selector"
-Cohesion: 0.4
-Nodes (4): DemoReadOnlyError, formatBytes(), MediaManager(), Props
 
 ### Community 65 - "Database Seed Script"
 Cohesion: 0.33
@@ -388,22 +384,22 @@ Nodes (3): Monorepo Build Tooling, Turborepo Brand Identity, Turborepo SVG Logo
 ## Knowledge Gaps
 - **286 isolated node(s):** `UpdateLinkDto`, `Link`, `TabItem`, `TabsProps`, `ButtonVariant` (+281 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **29 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `apiFetchSafe()` connect `Web Home & Navigation` to `Admin Product UI`, `Inquiries & Mail`, `Import Run History UI`, `Import Wizard UI`, `Shared UI Avatar`, `Product Performance Widget`?**
-  _High betweenness centrality (0.052) - this node is a cross-community bridge._
-- **Why does `PrismaService` connect `Sync Scheduler Service` to `Supplier Import Pipeline`, `Admin Page Components`, `API Middleware & Settings`, `Supplier Admin UI`, `Web Store Catalog UI`, `Demo API Layer`, `Animated Circles SVG`, `Supplier API Module`, `Import Service Internals`, `Project Architecture Docs`, `API Core Module`, `Admin Contacts & Users`, `Web Checkout Flow`, `Web Category Pages`, `Web Product Detail`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
-- **Why does `apiFetch()` connect `Inquiries & Mail` to `Auth & User Management`, `Web App Layout`, `Admin Product UI`, `Web Home & Navigation`, `Middleware & Routes`, `Links CRUD Module`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `apiFetchSafe()` connect `Import Run History UI` to `Supplier Admin UI`, `Customers API Module`, `Supplier API Module`, `Import Service Internals`, `Project Architecture Docs`, `API Core Module`, `Shared UI Tabs`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+- **Why does `PrismaService` connect `Web Category Pages` to `Supplier Import Pipeline`, `Auth & User Management`, `Web App Layout`, `Admin Page Components`, `Web Cart & Header`, `Admin Shell & Layout`, `Auth Adapters`, `Web Store Catalog UI`, `Import Wizard UI`, `Link DTOs`, `Admin Contacts & Users`, `Web Checkout Flow`, `Web Product Detail`, `Supplier Imports Controller`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **Why does `apiFetch()` connect `Supplier Admin UI` to `API Middleware & Settings`, `Import Run History UI`, `Web Home & Navigation`, `Mock Data Generation`, `Customers API Module`, `Animated Circles SVG`, `Project Architecture Docs`?**
+  _High betweenness centrality (0.028) - this node is a cross-community bridge._
 - **What connects `UpdateLinkDto`, `Link`, `TabItem` to the rest of the system?**
   _286 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Supplier Import Pipeline` be split into smaller, more focused modules?**
   _Cohesion score 0.07 - nodes in this community are weakly interconnected._
 - **Should `Auth & User Management` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Admin Page Components` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
