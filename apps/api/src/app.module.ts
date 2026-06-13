@@ -17,11 +17,12 @@ import { LinksModule } from './links/links.module';
 import { MailModule } from './mail/mail.module';
 import { MediaModule } from './media/media.module';
 import { OrdersModule } from './orders/orders.module';
+import { PagesModule } from './pages/pages.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { SettingsModule } from './settings/settings.module';
 import { StatsModule } from './stats/stats.module';
-import { SuppliersModule } from './suppliers/suppliers.module';
+import { SourcesModule } from './sources/sources.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -60,7 +61,8 @@ import { UsersModule } from './users/users.module';
     StatsModule,
     LinksModule,
     MediaModule,
-    SuppliersModule,
+    SourcesModule,
+    PagesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -11,11 +11,11 @@ import type {
   Product,
   ProductAttribute,
   Settings,
-  Supplier,
-  SupplierImport,
-  SupplierImportRun,
-  SupplierImportSummary,
-  SupplierProductLinkEntry,
+  Source,
+  SourceImport,
+  SourceImportRun,
+  SourceImportSummary,
+  SourceProductLinkEntry,
 } from "./types";
 
 const now = new Date("2026-04-18T10:30:00Z");
@@ -958,11 +958,11 @@ export const mockMediaAssets: MediaAsset[] = [
   seedMedia(20, "shop-banner", 0),
 ];
 
-/* ---- Suppliers (demo). ------------------------------------------------- */
+/* ---- Sources (demo). ------------------------------------------------- */
 
-const supplierImportSummary = (
-  imp: SupplierImport,
-): SupplierImportSummary => ({
+const sourceImportSummary = (
+  imp: SourceImport,
+): SourceImportSummary => ({
   id: imp.id,
   name: imp.name,
   format: imp.format,
@@ -974,10 +974,10 @@ const supplierImportSummary = (
   updatedAt: imp.updatedAt,
 });
 
-export const mockSupplierImports: SupplierImport[] = [
+export const mockSourceImports: SourceImport[] = [
   {
     id: "imp-1",
-    supplierId: "sup-printpartner",
+    sourceId: "sup-printpartner",
     name: "Apparel daily sync",
     format: "JSON",
     cron: "0 */6 * * *",
@@ -1017,7 +1017,7 @@ export const mockSupplierImports: SupplierImport[] = [
   },
   {
     id: "imp-2",
-    supplierId: "sup-printpartner",
+    sourceId: "sup-printpartner",
     name: "Hourly inventory delta",
     format: "JSON",
     cron: "*/30 * * * *",
@@ -1042,7 +1042,7 @@ export const mockSupplierImports: SupplierImport[] = [
   },
   {
     id: "imp-3",
-    supplierId: "sup-eurofeed",
+    sourceId: "sup-eurofeed",
     name: "Euro CSV catalog",
     format: "CSV",
     cron: "",
@@ -1068,7 +1068,7 @@ export const mockSupplierImports: SupplierImport[] = [
   },
 ];
 
-export const mockSuppliers: Supplier[] = [
+export const mockSources: Source[] = [
   {
     id: "sup-printpartner",
     name: "PrintPartner Apparel",
@@ -1081,9 +1081,9 @@ export const mockSuppliers: Supplier[] = [
     productCount: 12,
     importCount: 2,
     authConfigured: true,
-    imports: mockSupplierImports
-      .filter((imp) => imp.supplierId === "sup-printpartner")
-      .map(supplierImportSummary),
+    imports: mockSourceImports
+      .filter((imp) => imp.sourceId === "sup-printpartner")
+      .map(sourceImportSummary),
     createdAt: daysAgo(45),
     updatedAt: daysAgo(0),
   },
@@ -1099,9 +1099,9 @@ export const mockSuppliers: Supplier[] = [
     productCount: 6,
     importCount: 1,
     authConfigured: false,
-    imports: mockSupplierImports
-      .filter((imp) => imp.supplierId === "sup-eurofeed")
-      .map(supplierImportSummary),
+    imports: mockSourceImports
+      .filter((imp) => imp.sourceId === "sup-eurofeed")
+      .map(sourceImportSummary),
     createdAt: daysAgo(20),
     updatedAt: daysAgo(2),
   },
@@ -1126,11 +1126,11 @@ export const mockSuppliers: Supplier[] = [
 const seedRun = (
   id: string,
   importId: string,
-  status: SupplierImportRun["status"],
+  status: SourceImportRun["status"],
   daysOld: number,
-  totals: Partial<Pick<SupplierImportRun, "created" | "updated" | "skipped" | "failed">>,
-  errors: SupplierImportRun["errors"] = [],
-): SupplierImportRun => ({
+  totals: Partial<Pick<SourceImportRun, "created" | "updated" | "skipped" | "failed">>,
+  errors: SourceImportRun["errors"] = [],
+): SourceImportRun => ({
   id,
   importId,
   status,
@@ -1146,7 +1146,7 @@ const seedRun = (
   errors,
 });
 
-export const mockSupplierRuns: SupplierImportRun[] = [
+export const mockSourceRuns: SourceImportRun[] = [
   seedRun("run-1", "imp-1", "SUCCESS", 0, { updated: 12 }),
   seedRun("run-2", "imp-1", "SUCCESS", 1, { created: 1, updated: 11 }),
   seedRun("run-3", "imp-1", "PARTIAL", 2, { updated: 10, failed: 2 }, [
@@ -1161,9 +1161,9 @@ export const mockSupplierRuns: SupplierImportRun[] = [
   seedRun("run-7", "imp-3", "SUCCESS", 9, { created: 6 }),
 ];
 
-const productLinkSeeds: { supplierId: string; entries: { externalId: string; productIndex: number; daysOld: number }[] }[] = [
+const productLinkSeeds: { sourceId: string; entries: { externalId: string; productIndex: number; daysOld: number }[] }[] = [
   {
-    supplierId: "sup-printpartner",
+    sourceId: "sup-printpartner",
     entries: [
       { externalId: "PP-100", productIndex: 0, daysOld: 0 },
       { externalId: "PP-101", productIndex: 1, daysOld: 0 },
@@ -1172,7 +1172,7 @@ const productLinkSeeds: { supplierId: string; entries: { externalId: string; pro
     ],
   },
   {
-    supplierId: "sup-eurofeed",
+    sourceId: "sup-eurofeed",
     entries: [
       { externalId: "EU-NB-01", productIndex: 4, daysOld: 2 },
       { externalId: "EU-PEN-01", productIndex: 5, daysOld: 2 },
@@ -1180,10 +1180,10 @@ const productLinkSeeds: { supplierId: string; entries: { externalId: string; pro
   },
 ];
 
-export const mockSupplierProductLinks: Record<string, SupplierProductLinkEntry[]> =
+export const mockSourceProductLinks: Record<string, SourceProductLinkEntry[]> =
   Object.fromEntries(
-    productLinkSeeds.map(({ supplierId, entries }) => [
-      supplierId,
+    productLinkSeeds.map(({ sourceId, entries }) => [
+      sourceId,
       entries
         .map(({ externalId, productIndex, daysOld }) => {
           const product = mockProducts[productIndex];
@@ -1203,7 +1203,7 @@ export const mockSupplierProductLinks: Record<string, SupplierProductLinkEntry[]
             },
           };
         })
-        .filter((x): x is SupplierProductLinkEntry => x !== null),
+        .filter((x): x is SourceProductLinkEntry => x !== null),
     ]),
   );
 

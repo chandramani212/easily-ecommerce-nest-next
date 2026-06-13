@@ -52,6 +52,12 @@ export class InquiriesController {
   }
 
   @ApiBearerAuth()
+  @Get('report/source')
+  sourceReport(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.inquiries.sourceReport({ from, to });
+  }
+
+  @ApiBearerAuth()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.inquiries.findOne(id);

@@ -14,6 +14,16 @@ import {
   categoryIconPath,
 } from "../lib/adapt";
 import type { ApiCategory, ProductsResponse } from "../lib/types";
+import { getPage, pageMetadata, type HomeContent } from "../lib/pages";
+
+export async function generateMetadata() {
+  const page = await getPage("home");
+  return pageMetadata(page, {
+    title: "Easily Branded — Custom Branded Products",
+    description:
+      "Custom branded T-shirts, stationery, drinkware, and more.",
+  });
+}
 
 const TESTIMONIALS = [
   {
@@ -82,10 +92,12 @@ function categoryIcon(slug: string) {
 }
 
 export default async function Page() {
-  const [categoriesRaw, popularRaw] = await Promise.all([
+  const [categoriesRaw, popularRaw, homePage] = await Promise.all([
     apiFetchSafe<ApiCategory[]>("/categories"),
     apiFetchSafe<ProductsResponse>("/products?active=true&pageSize=8"),
+    getPage<HomeContent>("home"),
   ]);
+  const hero = homePage?.content?.hero;
 
   const rootCategories = (categoriesRaw ?? [])
     .filter((c) => !c.parentId)
@@ -124,7 +136,7 @@ export default async function Page() {
     <>
       <Header />
       <CategoryBar />
-      <HeroBanner />
+      <HeroBanner slides={hero?.slides} autoPlayMs={hero?.autoPlayMs} />
       <TrustBadges />
 
       <section className="bg-[var(--muted)]" id="categories">

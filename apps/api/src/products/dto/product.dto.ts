@@ -126,6 +126,22 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => TierPriceDto)
   tierPrices?: TierPriceDto[];
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(200)
+  metaTitle?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(400)
+  metaDescription?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(500)
+  ogImage?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(400)
+  keywords?: string;
 }
 
 export class UpdateProductDto {
@@ -204,4 +220,20 @@ export class UpdateProductDto {
   @ValidateNested({ each: true })
   @Type(() => TierPriceDto)
   tierPrices?: TierPriceDto[];
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(200)
+  metaTitle?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(400)
+  metaDescription?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(500)
+  ogImage?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString() @MaxLength(400)
+  keywords?: string;
 }

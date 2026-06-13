@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { MediaPicker } from "../../../components/media-picker";
 import { ProductPicker } from "../../../components/product-picker";
+import { SeoFields, type SeoValue } from "../../../components/seo-fields";
 import { clientApi, DemoReadOnlyError } from "../../../lib/client-api";
 import type {
   Category,
@@ -56,6 +57,12 @@ export function ProductForm({ product, categories }: Props) {
   );
   const [active, setActive] = useState(product?.active ?? true);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
+  const [seo, setSeo] = useState<SeoValue>({
+    metaTitle: product?.metaTitle ?? "",
+    metaDescription: product?.metaDescription ?? "",
+    ogImage: product?.ogImage ?? "",
+    keywords: product?.keywords ?? "",
+  });
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     product?.categories?.map((c) => c.id) ?? [],
   );
@@ -228,6 +235,10 @@ export function ProductForm({ product, categories }: Props) {
           type: t.type,
           price: parseFloat(t.price),
         })),
+      metaTitle: seo.metaTitle,
+      metaDescription: seo.metaDescription,
+      ogImage: seo.ogImage || undefined,
+      keywords: seo.keywords,
     };
 
     try {
@@ -631,6 +642,10 @@ export function ProductForm({ product, categories }: Props) {
                 ))}
               </ul>
             )}
+          </Section>
+
+          <Section title="SEO">
+            <SeoFields value={seo} onChange={setSeo} />
           </Section>
 
           {error && (

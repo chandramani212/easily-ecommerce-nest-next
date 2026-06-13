@@ -43,6 +43,10 @@ export interface ApiProduct {
   categories: ApiProductCategoryRef[];
   tierPrices: ApiTierPrice[];
   relatedTo?: ApiRelatedProduct[];
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string | null;
+  keywords?: string;
   createdAt?: string;
   updatedAt?: string;
 }

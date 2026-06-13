@@ -39,7 +39,7 @@ export class MediaService {
 
   /**
    * Fetches a remote image and stores it via the storage adapter, creating a
-   * MediaAsset row. Used by the supplier-import runner when the import is
+   * MediaAsset row. Used by the source-import runner when the import is
    * configured with `images.download = true`.
    *
    * Dedup + format-preference rules:
@@ -270,7 +270,7 @@ export class MediaService {
    * Delete every MediaAsset whose `url` is not referenced by any
    * `Product.images` entry. Removes the on-disk file too. Used by the admin
    * "Cleanup orphans" button to reclaim space left over from duplicate
-   * supplier-image downloads done before the sourceUrl dedup landed.
+   * source-image downloads done before the sourceUrl dedup landed.
    *
    * Returns the number of assets actually deleted plus a small sample of
    * filenames for the UI to display.

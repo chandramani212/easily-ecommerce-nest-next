@@ -97,8 +97,13 @@ export function ProductDetail({ product }: { product: Product }) {
     );
   };
 
-  const inquiryUrl = (type: string) =>
-    `/inquiry?type=${encodeURIComponent(type)}&product=${encodeURIComponent(product.name)}`;
+  const inquiryUrl = (type: string) => {
+    const params = new URLSearchParams({ type, product: product.name });
+    if (product.sku) params.set("sku", product.sku);
+    const img = product.images[0]?.url;
+    if (img) params.set("image", img);
+    return `/inquiry?${params.toString()}`;
+  };
 
   const descriptionText =
     (product.description && product.description.trim()) ||

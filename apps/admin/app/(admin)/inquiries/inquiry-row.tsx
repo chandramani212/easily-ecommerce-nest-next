@@ -53,8 +53,42 @@ export function InquiryRow({
         <td className="px-4 py-3">
           <p className="font-medium">{inquiry.inquiryType}</p>
           {inquiry.productName && (
-            <p className="text-xs text-[var(--admin-fg)]/60">
-              {inquiry.productName}
+            <div className="mt-1 flex items-center gap-2">
+              {inquiry.productImage && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={inquiry.productImage}
+                  alt=""
+                  className="h-8 w-8 shrink-0 rounded object-cover"
+                />
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-xs text-[var(--admin-fg)]/70">
+                  {inquiry.productName}
+                </p>
+                {inquiry.productSku && (
+                  <p className="font-mono text-[10px] text-[var(--admin-fg)]/50">
+                    {inquiry.productSku}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </td>
+        <td className="px-4 py-3">
+          <span
+            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+              (inquiry.organic ?? true)
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-amber-100 text-amber-700"
+            }`}
+            title={(inquiry.organic ?? true) ? "Organic" : "Other (paid / campaign)"}
+          >
+            {inquiry.source ?? "direct"}
+          </span>
+          {inquiry.provider && (
+            <p className="mt-0.5 text-xs capitalize text-[var(--admin-fg)]/60">
+              {inquiry.provider}
             </p>
           )}
         </td>
@@ -89,12 +123,46 @@ export function InquiryRow({
       </tr>
       {open && (
         <tr className="border-t border-[var(--admin-border)] bg-[var(--admin-muted)]/30">
-          <td colSpan={6} className="px-4 py-4">
+          <td colSpan={7} className="px-4 py-4">
+            {inquiry.productName && (
+              <div className="mb-4 flex items-center gap-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-card)] p-3">
+                {inquiry.productImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={inquiry.productImage}
+                    alt={inquiry.productName}
+                    className="h-16 w-16 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-[var(--admin-muted)] text-[10px] text-[var(--admin-fg)]/40">
+                    No image
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-medium uppercase text-[var(--admin-fg)]/50">
+                    Product enquired about
+                  </p>
+                  <p className="mt-0.5 font-medium">{inquiry.productName}</p>
+                  {inquiry.productSku && (
+                    <p className="font-mono text-xs text-[var(--admin-fg)]/60">
+                      SKU: {inquiry.productSku}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="grid gap-3 text-sm sm:grid-cols-2">
               <Field label="Phone" value={inquiry.phone ?? "—"} />
               <Field label="Quantity" value={inquiry.quantity ?? "—"} />
               <Field label="Company" value={inquiry.company ?? "—"} />
               <Field label="Received" value={formattedDate} />
+              <Field
+                label="Lead source"
+                value={`${inquiry.source ?? "direct"}${(inquiry.organic ?? true) ? " (organic)" : " (other)"}`}
+              />
+              <Field label="Platform" value={inquiry.provider || "—"} />
+              <Field label="Campaign" value={inquiry.campaign || "—"} />
+              <Field label="Referrer" value={inquiry.referrer || "—"} />
             </div>
             {inquiry.message && (
               <div className="mt-3">

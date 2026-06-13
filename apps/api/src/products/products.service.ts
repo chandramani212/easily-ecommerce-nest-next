@@ -129,6 +129,10 @@ export class ProductsService {
           sellingPrice: dto.sellingPrice,
           images: dto.images ?? [],
           active: dto.active ?? true,
+          metaTitle: dto.metaTitle ?? '',
+          metaDescription: dto.metaDescription ?? '',
+          ogImage: dto.ogImage ?? null,
+          keywords: dto.keywords ?? '',
           attributes: toAttributes(dto.attributes) as unknown as Prisma.InputJsonValue,
           categories: dto.categoryIds?.length
             ? { connect: dto.categoryIds.map((id) => ({ id })) }
@@ -191,6 +195,11 @@ export class ProductsService {
       if (dto.sellingPrice !== undefined) data.sellingPrice = dto.sellingPrice;
       if (dto.images !== undefined) data.images = dto.images;
       if (dto.active !== undefined) data.active = dto.active;
+      if (dto.metaTitle !== undefined) data.metaTitle = dto.metaTitle;
+      if (dto.metaDescription !== undefined)
+        data.metaDescription = dto.metaDescription;
+      if (dto.ogImage !== undefined) data.ogImage = dto.ogImage || null;
+      if (dto.keywords !== undefined) data.keywords = dto.keywords;
       if (dto.attributes !== undefined) {
         data.attributes = toAttributes(
           dto.attributes,

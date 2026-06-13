@@ -39,13 +39,13 @@ enum TierPriceType {
   PERCENTAGE
 }
 
-enum SupplierKind {
+enum SourceKind {
   REST
   FILE_FEED
   ASI_CENTRAL
 }
 
-enum SupplierAuthType {
+enum SourceAuthType {
   NONE
   API_KEY
   BASIC
@@ -54,22 +54,30 @@ enum SupplierAuthType {
   ASI_MEMBER_AUTH
 }
 
-enum SupplierImportFormat {
+enum SourceImportFormat {
   JSON
   XML
   CSV
 }
 
-enum SupplierImportRunStatus {
+enum SourceImportRunStatus {
   RUNNING
   SUCCESS
   PARTIAL
   FAILED
 }
 
-enum SupplierImportTrigger {
+enum SourceImportTrigger {
   SCHEDULE
   MANUAL
+}
+
+/// How a Supplier (the real-world company you order from) was captured.
+/// MANUAL — typed in by an admin on a direct Source.
+/// FEED   — extracted from aggregator import rows during a run.
+enum SupplierOrigin {
+  MANUAL
+  FEED
 }
 
 model User {
@@ -94,10 +102,10 @@ model Category {
   children    Category[] @relation("CategoryTree")
   products    Product[]  @relation("ProductCategories")
 
-  // Reverse side of supplier→curated mapping. A curated Category can be the
-  // target of many supplier-category mappings (e.g. ASI "Bags" and ASI
+  // Reverse side of source→curated mapping. A curated Category can be the
+  // target of many source-category mappings (e.g. ASI "Bags" and ASI
   // "Tote Bags" can both map to your single curated "Bags & Totes").
-  supplierCategoryMappings SupplierCategory[] @relation("SupplierCategoryToCategory")
+  sourceCategoryMappings SourceCategory[] @relation("SourceCategoryToCategory")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -116,14 +124,20 @@ model Product {
   attributes       Json     @default("[]")
   active           Boolean  @default(true)
 
+  // SEO overrides for the product page. Empty = fall back to name/description.
+  metaTitle       String  @default("")
+  metaDescription String  @default("")
+  ogImage         String? // URL (media library) for social share cards.
+  keywords        String  @default("")
+
   categories Category[] @relation("ProductCategories")
 
   relatedTo Product[] @relation("RelatedProducts")
   relatedBy Product[] @relation("RelatedProducts")
 
-  tierPrices    TierPrice[]
-  orderItems    OrderItem[]
-  supplierLinks SupplierProductLink[]
+  tierPrices  TierPrice[]
+  orderItems  OrderItem[]
+  sourceLinks SourceProductLink[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -141,7 +155,7 @@ model MediaAsset {
   alt          String?
   uploadedById String?
   uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
-  /// Original remote URL this asset was downloaded from (set by the supplier
+  /// Original remote URL this asset was downloaded from (set by the source
   /// import runner via MediaService.downloadFromUrl). Used to dedupe across
   /// imports — same source URL → reuse the existing asset.
   sourceUrl    String?  @unique
@@ -182,8 +196,8 @@ model Order {
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
   status          OrderStatus @default(PENDING)
   subtotal        Decimal     @db.Decimal(12, 2)
-  shipping        Decimal     @db.Decimal(12, 2) @default(0)
-  tax             Decimal     @db.Decimal(12, 2) @default(0)
+  shipping        Decimal     @default(0) @db.Decimal(12, 2)
+  tax             Decimal     @default(0) @db.Decimal(12, 2)
   total           Decimal     @db.Decimal(12, 2)
   shippingAddress Json?
   items           OrderItem[]
@@ -192,21 +206,24 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   name      String
   quantity  Int
-  unitPrice Decimal @db.Decimal(12, 2)
-  lineTotal Decimal @db.Decimal(12, 2)
+  unitPrice Decimal  @db.Decimal(12, 2)
+  lineTotal Decimal  @db.Decimal(12, 2)
 }
 
 model Inquiry {
   id          String        @id @default(cuid())
   inquiryType String
   productName String?
+  // The product this lead is about, captured from the storefront enquiry link.
+  productSku   String?
+  productImage String?
   name        String
   email       String
   phone       String?
@@ -214,8 +231,24 @@ model Inquiry {
   quantity    String?
   message     String?
   status      InquiryStatus @default(NEW)
+
+  // Lead-source attribution, derived server-side from UTM params + referrer.
+  // `source` is the classified bucket; `organic` is the headline split
+  // (organic = not from paid/email marketing). Raw signals kept for context.
+  source   String  @default("direct") // organic | paid | social | referral | email | direct
+  organic  Boolean @default(true)
+  // Specific platform the lead came from (google, yahoo, facebook, bing, ...),
+  // derived from utm_source or the referrer host. Empty for direct.
+  provider String  @default("")
+  medium   String  @default("") // raw utm_medium
+  campaign String  @default("") // raw utm_campaign
+  referrer String  @default("") // referring URL/host
+
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  @@index([source])
+  @@index([createdAt])
 }
 
 model ContactMessage {
@@ -242,124 +275,184 @@ model Settings {
   updatedAt  DateTime @updatedAt
 }
 
-model Supplier {
-  id               String           @id @default(cuid())
+model Source {
+  id               String         @id @default(cuid())
   name             String
-  kind             SupplierKind     @default(REST)
+  kind             SourceKind     @default(REST)
   baseUrl          String?
-  authType         SupplierAuthType @default(NONE)
+  authType         SourceAuthType @default(NONE)
   // AES-256-GCM encrypted JSON blob holding credentials. Shape depends on authType.
   // Use SecretsCipher to encrypt/decrypt; never return raw to clients.
   authSecret       String?
-  defaultMarkupPct Decimal          @default(0) @db.Decimal(6, 2)
-  notes            String           @default("")
-  active           Boolean          @default(true)
+  defaultMarkupPct Decimal        @default(0) @db.Decimal(6, 2)
+  notes            String         @default("")
+  active           Boolean        @default(true)
 
-  imports    SupplierImport[]
-  links      SupplierProductLink[]
-  categories SupplierCategory[]
+  imports    SourceImport[]
+  links      SourceProductLink[]
+  categories SourceCategory[]
+  // The real-world supplier companies behind this source. Direct sources have
+  // one (origin MANUAL); aggregators accumulate many (origin FEED) as imports run.
+  suppliers  Supplier[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model SupplierImport {
-  id                    String               @id @default(cuid())
-  supplierId            String
-  supplier              Supplier             @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+model SourceImport {
+  id                    String             @id @default(cuid())
+  sourceId              String
+  source                Source             @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   name                  String
-  format                SupplierImportFormat @default(JSON)
+  format                SourceImportFormat @default(JSON)
   // Source config (REST only). FILE_FEED imports ignore these and use sampleFile/runs upload.
   endpoint              String?
-  httpMethod            String               @default("GET")
-  headers               Json                 @default("{}")
+  httpMethod            String             @default("GET")
+  headers               Json               @default("{}")
   body                  String?
   // JSONPath ($.data.products) or XPath-ish (//products/product) selecting the records array.
-  recordsPath           String               @default("$")
+  recordsPath           String             @default("$")
   // Mapping spec (see runner/mapper.service.ts for shape).
-  mapping               Json                 @default("{}")
+  mapping               Json               @default("{}")
   // Markup spec: { kind: "percent"|"fixed", value: number, appliesTo: ("basePrice"|"sellingPrice")[] }
-  markup                Json                 @default("{}")
+  markup                Json               @default("{}")
   // 5-field cron expression. Empty disables auto-run; manual triggers still work.
-  cron                  String               @default("")
-  active                Boolean              @default(true)
+  cron                  String             @default("")
+  active                Boolean            @default(true)
   // Optional sample file uploaded for FILE_FEED dry-runs / cached body for sample fetches.
   sampleFilename        String?
   sampleMime            String?
   // When true and a previously-linked product is missing from a successful run, deactivate it.
-  autoDeactivateMissing Boolean              @default(false)
+  autoDeactivateMissing Boolean            @default(false)
 
-  lastRunAt    DateTime?
-  lastStatus   SupplierImportRunStatus?
-  lastRunId    String?
+  lastRunAt  DateTime?
+  lastStatus SourceImportRunStatus?
+  lastRunId  String?
 
-  runs SupplierImportRun[]
+  runs SourceImportRun[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([supplierId])
+  @@index([sourceId])
 }
 
-model SupplierImportRun {
-  id          String                  @id @default(cuid())
+model SourceImportRun {
+  id          String                @id @default(cuid())
   importId    String
-  import      SupplierImport          @relation(fields: [importId], references: [id], onDelete: Cascade)
-  status      SupplierImportRunStatus @default(RUNNING)
-  triggeredBy SupplierImportTrigger   @default(MANUAL)
-  startedAt   DateTime                @default(now())
+  import      SourceImport          @relation(fields: [importId], references: [id], onDelete: Cascade)
+  status      SourceImportRunStatus @default(RUNNING)
+  triggeredBy SourceImportTrigger   @default(MANUAL)
+  startedAt   DateTime              @default(now())
   finishedAt  DateTime?
   // Aggregate counters incremented as records are processed.
-  created     Int                     @default(0)
-  updated     Int                     @default(0)
-  skipped     Int                     @default(0)
-  failed      Int                     @default(0)
+  created     Int                   @default(0)
+  updated     Int                   @default(0)
+  skipped     Int                   @default(0)
+  failed      Int                   @default(0)
   // Array of { record: number, externalId?: string, error: string }
-  errors      Json                    @default("[]")
+  errors      Json                  @default("[]")
 
   @@index([importId, startedAt])
 }
 
-model SupplierProductLink {
-  id         String   @id @default(cuid())
-  supplierId String
-  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+model SourceProductLink {
+  id         String    @id @default(cuid())
+  sourceId   String
+  source     Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  // The real supplier company this product came from. Set during import from the
+  // feed's vendor mapping (aggregators) or the source's manual supplier (direct).
+  // Nullable: legacy links and sources without supplier info carry none.
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   externalId String
   productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   // Last time this link was seen by a successful sync. Used by autoDeactivateMissing.
-  lastSeenAt DateTime @default(now())
+  lastSeenAt DateTime  @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([supplierId, externalId])
+  @@unique([sourceId, externalId])
   @@index([productId])
+  @@index([supplierId])
 }
 
-/// Supplier-side categories, captured verbatim during import. Each row holds
-/// the supplier's own externalId + name + optional parent externalId so the
-/// supplier hierarchy can be reconstructed for the admin.
+/// A real-world supplier company — the entity you actually phone or reorder
+/// from. Distinct from `Source`, which is the integration/connection the
+/// catalog is imported through. A direct source has exactly one Supplier (typed
+/// in by an admin, origin MANUAL); an aggregator source accumulates many
+/// Suppliers (origin FEED) as products are imported, each carrying its own
+/// contact details extracted from the feed.
+model Supplier {
+  id         String         @id @default(cuid())
+  sourceId   String
+  source     Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  origin     SupplierOrigin @default(MANUAL)
+  // Vendor identity within an aggregator feed; used to upsert across runs.
+  // Empty string for MANUAL suppliers (one per direct source).
+  externalId String         @default("")
+  name       String
+  phone      String?
+  altPhone   String?
+  tollFree   String?
+  website    String?
+  active     Boolean        @default(true)
+
+  productLinks SourceProductLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sourceId, externalId])
+  @@index([sourceId])
+}
+
+/// Source-side categories, captured verbatim during import. Each row holds
+/// the source's own externalId + name + optional parent externalId so the
+/// source hierarchy can be reconstructed for the admin.
 ///
-/// `categoryId` is optional: when an admin maps a supplier category to one of
-/// their curated `Category` rows, products imported under that supplier
+/// `categoryId` is optional: when an admin maps a source category to one of
+/// their curated `Category` rows, products imported under that source
 /// category are attached to the curated one. Until that mapping exists,
 /// imported products don't get a category from this source — keeping the
 /// storefront category tree clean.
-model SupplierCategory {
-  id               String   @id @default(cuid())
-  supplierId       String
-  supplier         Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+model SourceCategory {
+  id               String    @id @default(cuid())
+  sourceId         String
+  source           Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   externalId       String
   name             String
   parentExternalId String?
   categoryId       String?
-  category         Category? @relation("SupplierCategoryToCategory", fields: [categoryId], references: [id], onDelete: SetNull)
+  category         Category? @relation("SourceCategoryToCategory", fields: [categoryId], references: [id], onDelete: SetNull)
 
   lastSeenAt DateTime @default(now())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@unique([supplierId, externalId])
-  @@index([supplierId, categoryId])
+  @@unique([sourceId, externalId])
+  @@index([sourceId, categoryId])
+}
+
+/// Editable storefront page content + SEO. One row per well-known `slug`
+/// ("home", "about", "contact"). `content` is a slug-specific JSON blob
+/// (hero slides for home; fixed sections for about/contact) consumed by the
+/// public web app; the SEO columns drive each page's <head> metadata.
+model Page {
+  id      String @id @default(cuid())
+  slug    String @unique
+  title   String @default("")
+  content Json   @default("{}")
+
+  // SEO
+  metaTitle       String  @default("")
+  metaDescription String  @default("")
+  ogImage         String?
+  keywords        String  @default("")
+  canonicalUrl    String  @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

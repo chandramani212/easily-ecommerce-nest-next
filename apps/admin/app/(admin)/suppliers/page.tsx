@@ -5,24 +5,16 @@ import { PageHeader } from "../../../components/page-header";
 import { DataTable, type Column } from "../../../components/data-table";
 import { SearchInput } from "../../../components/search-input";
 import { Pager } from "../../../components/pagination";
-import type { Supplier } from "../../../lib/types";
+import type { Supplier, SupplierListResponse } from "../../../lib/types";
 import {
   pickParam as p,
   resolveSearchParams,
   type SearchParamsRecord as SP,
 } from "../../../lib/search-params";
 
-const KIND_LABEL: Record<string, string> = {
-  REST: "REST API",
-  FILE_FEED: "File feed",
-};
-
-const AUTH_LABEL: Record<string, string> = {
-  NONE: "None",
-  API_KEY: "API key",
-  BASIC: "Basic",
-  BEARER: "Bearer",
-  OAUTH2_CLIENT_CREDENTIALS: "OAuth2 (CC)",
+const ORIGIN_LABEL: Record<string, string> = {
+  MANUAL: "Manual",
+  FEED: "From feed",
 };
 
 export default async function SuppliersPage({
@@ -40,7 +32,7 @@ export default async function SuppliersPage({
   params.set("take", String(pageSize));
   params.set("skip", String(skip));
 
-  const data = await apiFetch<{ items: Supplier[]; total: number }>(
+  const data = await apiFetch<SupplierListResponse>(
     `/suppliers?${params.toString()}`,
   );
   const suppliers = data.items;
@@ -59,25 +51,39 @@ export default async function SuppliersPage({
       ),
     },
     {
-      header: "Type",
+      header: "Source",
+      accessor: (row) =>
+        row.source ? (
+          <Link
+            href={`/sources/${row.source.id}`}
+            className="text-sm text-[var(--admin-fg)]/80 hover:text-[var(--admin-accent)]"
+          >
+            {row.source.name}
+          </Link>
+        ) : (
+          <span className="text-[var(--admin-fg)]/40">—</span>
+        ),
+    },
+    {
+      header: "Origin",
       accessor: (row) => (
-        <span className="text-sm text-[var(--admin-fg)]/80">
-          {KIND_LABEL[row.kind] ?? row.kind}
+        <span
+          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+            row.origin === "MANUAL"
+              ? "bg-blue-100 text-blue-700"
+              : "bg-violet-100 text-violet-700"
+          }`}
+        >
+          {ORIGIN_LABEL[row.origin] ?? row.origin}
         </span>
       ),
     },
     {
-      header: "Auth",
+      header: "Phone",
       accessor: (row) => (
-        <span className="text-xs text-[var(--admin-fg)]/70">
-          {AUTH_LABEL[row.authType] ?? row.authType}
+        <span className="text-sm text-[var(--admin-fg)]/70">
+          {row.phone || row.tollFree || "—"}
         </span>
-      ),
-    },
-    {
-      header: "Imports",
-      accessor: (row) => (
-        <span className="text-[var(--admin-fg)]/70">{row.importCount ?? 0}</span>
       ),
     },
     {
@@ -85,17 +91,6 @@ export default async function SuppliersPage({
       accessor: (row) => (
         <span className="text-[var(--admin-fg)]/70">{row.productCount ?? 0}</span>
       ),
-    },
-    {
-      header: "Markup",
-      accessor: (row) =>
-        row.defaultMarkupPct > 0 ? (
-          <span className="text-[var(--admin-fg)]/80">
-            {row.defaultMarkupPct.toFixed(2)}%
-          </span>
-        ) : (
-          <span className="text-[var(--admin-fg)]/40">—</span>
-        ),
     },
     {
       header: "Status",
@@ -129,35 +124,17 @@ export default async function SuppliersPage({
     <div className="mx-auto max-w-7xl space-y-4">
       <PageHeader
         title="Suppliers"
-        description="Connect third-party catalogs and schedule product syncs"
-        actions={
-          <Link
-            href="/suppliers/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--admin-accent)] px-3.5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            <svg
-              width="14"
-              height="14"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Add Supplier
-          </Link>
-        }
+        description="The real companies behind your sources — direct suppliers and aggregator vendors"
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <SearchInput placeholder="Search by name or base URL" />
+        <SearchInput placeholder="Search by name, phone, or website" />
       </div>
 
       <DataTable
         columns={columns}
         rows={suppliers}
-        emptyText="No suppliers yet. Add one to start importing products."
+        emptyText="No suppliers yet. Add a manual supplier on a Source, or run an aggregator import to capture them automatically."
       />
       <Pager page={page} pageCount={pageCount} total={data.total} />
     </div>

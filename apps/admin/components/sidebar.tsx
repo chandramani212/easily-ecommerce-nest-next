@@ -62,15 +62,37 @@ const MENU: MenuItem[] = [
     ),
   },
   {
-    label: "Suppliers",
+    label: "Sources",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
         <path d="M3 7l9-4 9 4M3 7v10l9 4 9-4V7M3 7l9 4m0 0l9-4m-9 4v10" />
       </svg>
     ),
     children: [
-      { label: "All Suppliers", href: "/suppliers" },
-      { label: "Add Supplier", href: "/suppliers/new" },
+      { label: "All Sources", href: "/sources" },
+      { label: "Add Source", href: "/sources/new" },
+    ],
+  },
+  {
+    label: "Suppliers",
+    href: "/suppliers",
+    icon: (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M3 9l1-5h16l1 5M3 9h18M3 9v10a1 1 0 001 1h16a1 1 0 001-1V9M8 13h8" />
+      </svg>
+    ),
+  },
+  {
+    label: "Content",
+    icon: (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+    children: [
+      { label: "Home page", href: "/content/home" },
+      { label: "About page", href: "/content/about" },
+      { label: "Contact page", href: "/content/contact" },
     ],
   },
   {

@@ -4,38 +4,19 @@ import { apiFetch, apiFetchSafe } from "../../../../lib/api";
 import { PageHeader } from "../../../../components/page-header";
 import type {
   Supplier,
-  SupplierImportRun,
-  SupplierProductLinkEntry,
+  SupplierProductsResponse,
 } from "../../../../lib/types";
 import {
   pickParam as p,
   resolveSearchParams,
   type SearchParamsRecord as SP,
 } from "../../../../lib/search-params";
-import { SupplierDetailTabs, type Tab } from "./supplier-detail-tabs";
-import { SupplierActivity } from "./supplier-activity";
-import { SupplierCategoriesTab } from "./supplier-categories-tab";
-import { SupplierProducts } from "./supplier-products";
-import { SupplierImportsTab } from "./supplier-imports-tab";
-import { SupplierOverview } from "./supplier-overview";
+import { SourceProducts } from "../../sources/[id]/source-products";
 
-interface DemoMockExports {
-  mockSuppliers?: Supplier[];
-}
-
-export async function generateStaticParams() {
-  if (process.env.NEXT_PUBLIC_DEMO !== "1") return [];
-  const mod = (await import("../../../../lib/mock-data")) as DemoMockExports;
-  return (mod.mockSuppliers ?? []).map((s) => ({ id: s.id }));
-}
-
-const TABS: Tab[] = [
-  { id: "overview", label: "Overview" },
-  { id: "imports", label: "Imports" },
-  { id: "products", label: "Products" },
-  { id: "categories", label: "Categories" },
-  { id: "activity", label: "Activity" },
-];
+const ORIGIN_LABEL: Record<string, string> = {
+  MANUAL: "Manually entered",
+  FEED: "Captured from import feed",
+};
 
 export default async function SupplierDetailPage({
   params,
@@ -46,80 +27,134 @@ export default async function SupplierDetailPage({
 }) {
   const { id } = await params;
   const sp = await resolveSearchParams(searchParams);
-  const activeTab = (p(sp, "tab") ?? "overview") as Tab["id"];
 
   const supplier = await apiFetch<Supplier>(`/suppliers/${id}`);
 
-  // Fetch the data slice for the active tab. Other tabs lazy-load on visit.
-  let productsData: { total: number; items: SupplierProductLinkEntry[] } | null = null;
-  let productsPage = 1;
-  let activityData: SupplierImportRun[] | null = null;
-
-  if (activeTab === "products") {
-    productsPage = Math.max(1, Number(p(sp, "productsPage") ?? "1"));
-    const productsSkip = (productsPage - 1) * 20;
-    productsData = await apiFetchSafe<typeof productsData>(
-      `/suppliers/${id}/products?take=20&skip=${productsSkip}`,
-    );
-  }
-  if (activeTab === "activity") {
-    // Aggregate latest runs across all imports.
-    const runs: SupplierImportRun[] = [];
-    for (const imp of supplier.imports ?? []) {
-      const data = await apiFetchSafe<{ items: SupplierImportRun[] }>(
-        `/suppliers/${id}/imports/${imp.id}/runs?take=10`,
-      );
-      runs.push(...(data?.items ?? []));
-    }
-    runs.sort(
-      (a, b) =>
-        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
-    );
-    activityData = runs.slice(0, 50);
-  }
+  const productsPage = Math.max(1, Number(p(sp, "productsPage") ?? "1"));
+  const productsSkip = (productsPage - 1) * 20;
+  const productsData = await apiFetchSafe<SupplierProductsResponse>(
+    `/suppliers/${id}/products?take=20&skip=${productsSkip}`,
+  );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4">
+    <div className="mx-auto max-w-7xl space-y-5">
       <PageHeader
         title={supplier.name}
-        description={supplier.baseUrl ?? "File-feed supplier"}
+        description={
+          supplier.source
+            ? `Supplied through ${supplier.source.name}`
+            : undefined
+        }
         actions={
-          <div className="flex gap-2">
+          supplier.source ? (
             <Link
-              href={`/suppliers/${id}/edit`}
+              href={`/sources/${supplier.source.id}`}
               className="rounded-lg border border-[var(--admin-border)] px-3.5 py-2 text-sm font-medium hover:bg-[var(--admin-muted)]"
             >
-              Edit
+              View source
             </Link>
-            <Link
-              href={`/suppliers/${id}/imports/new`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--admin-accent)] px-3.5 py-2 text-sm font-semibold text-white hover:opacity-90"
-            >
-              + New Import
-            </Link>
-          </div>
+          ) : undefined
         }
       />
 
-      <SupplierDetailTabs supplierId={id} tabs={TABS} active={activeTab} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <ContactCard supplier={supplier} />
+        <MetaCard supplier={supplier} />
+      </div>
 
-      {activeTab === "overview" && <SupplierOverview supplier={supplier} />}
-      {activeTab === "imports" && (
-        <SupplierImportsTab supplierId={id} imports={supplier.imports ?? []} />
-      )}
-      {activeTab === "products" && (
-        <SupplierProducts
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-[var(--admin-fg)]/80">
+          Products from this supplier
+        </h2>
+        <SourceProducts
           data={productsData ?? { total: 0, items: [] }}
           page={productsPage}
           pageSize={20}
         />
-      )}
-      {activeTab === "categories" && (
-        <SupplierCategoriesTab supplierId={id} />
-      )}
-      {activeTab === "activity" && (
-        <SupplierActivity supplierId={id} runs={activityData ?? []} />
-      )}
+      </div>
+    </div>
+  );
+}
+
+function ContactCard({ supplier }: { supplier: Supplier }) {
+  const rows: { label: string; value?: string | null; href?: string }[] = [
+    { label: "Phone", value: supplier.phone },
+    { label: "Alternate phone", value: supplier.altPhone },
+    { label: "Toll-free", value: supplier.tollFree },
+    {
+      label: "Website",
+      value: supplier.website,
+      href: supplier.website ?? undefined,
+    },
+  ];
+  return (
+    <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card)] p-5">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--admin-fg)]/50">
+        Contact details
+      </h3>
+      <dl className="space-y-2.5">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-baseline justify-between gap-4">
+            <dt className="text-sm text-[var(--admin-fg)]/60">{r.label}</dt>
+            <dd className="text-sm font-medium text-[var(--admin-fg)]">
+              {r.value ? (
+                r.href ? (
+                  <a
+                    href={r.href.startsWith("http") ? r.href : `https://${r.href}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--admin-accent)] hover:underline"
+                  >
+                    {r.value}
+                  </a>
+                ) : (
+                  r.value
+                )
+              ) : (
+                <span className="text-[var(--admin-fg)]/30">—</span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function MetaCard({ supplier }: { supplier: Supplier }) {
+  return (
+    <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card)] p-5">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--admin-fg)]/50">
+        About
+      </h3>
+      <dl className="space-y-2.5">
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-sm text-[var(--admin-fg)]/60">Origin</dt>
+          <dd className="text-sm font-medium text-[var(--admin-fg)]">
+            {ORIGIN_LABEL[supplier.origin] ?? supplier.origin}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-sm text-[var(--admin-fg)]/60">Products</dt>
+          <dd className="text-sm font-medium text-[var(--admin-fg)]">
+            {supplier.productCount ?? 0}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-sm text-[var(--admin-fg)]/60">Status</dt>
+          <dd>
+            <span
+              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                supplier.active
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {supplier.active ? "Active" : "Inactive"}
+            </span>
+          </dd>
+        </div>
+      </dl>
     </div>
   );
 }

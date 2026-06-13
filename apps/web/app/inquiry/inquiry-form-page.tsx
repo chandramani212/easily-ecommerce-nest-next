@@ -8,10 +8,17 @@ function InquiryInner() {
   const params = useSearchParams();
   const type = params.get("type") || undefined;
   const product = params.get("product") || undefined;
+  const sku = params.get("sku") || undefined;
+  const image = params.get("image") || undefined;
 
   return (
     <section className="mx-auto max-w-2xl px-4 pb-16 sm:px-6 lg:px-8">
-      <InquiryForm defaultType={type} productName={product} />
+      <InquiryForm
+        defaultType={type}
+        productName={product}
+        productSku={sku}
+        productImage={image}
+      />
     </section>
   );
 }

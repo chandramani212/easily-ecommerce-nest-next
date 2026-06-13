@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@repo/ui/button";
+import { captureAttribution, getAttribution } from "../lib/attribution";
 
 const INQUIRY_TYPES = [
   "Instant Quote",
@@ -14,11 +15,18 @@ const INQUIRY_TYPES = [
 interface InquiryFormProps {
   defaultType?: string;
   productName?: string;
+  productSku?: string;
+  productImage?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-export function InquiryForm({ defaultType, productName }: InquiryFormProps) {
+export function InquiryForm({
+  defaultType,
+  productName,
+  productSku,
+  productImage,
+}: InquiryFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     inquiryType: defaultType || INQUIRY_TYPES[0]!,
@@ -32,23 +40,30 @@ export function InquiryForm({ defaultType, productName }: InquiryFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Record first-touch source as soon as the form mounts.
+  useEffect(() => captureAttribution(), []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
+      const attribution = getAttribution();
       const res = await fetch(`${API_URL}/inquiries`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           inquiryType: formData.inquiryType,
           productName,
+          productSku,
+          productImage,
           name: formData.name,
           email: formData.email,
           phone: formData.phone || undefined,
           company: formData.company || undefined,
           quantity: formData.quantity || undefined,
           message: formData.message || undefined,
+          ...attribution,
         }),
       });
       if (!res.ok) {
@@ -76,9 +91,26 @@ export function InquiryForm({ defaultType, productName }: InquiryFormProps) {
           Product Inquiry
         </h3>
         {productName && (
-          <p className="mt-0.5 text-sm text-[var(--foreground)]/50">
-            {productName}
-          </p>
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--muted)] p-3">
+            {productImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={productImage}
+                alt={productName}
+                className="h-14 w-14 shrink-0 rounded-md object-cover"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-[var(--foreground)]">
+                {productName}
+              </p>
+              {productSku && (
+                <p className="text-xs text-[var(--foreground)]/50">
+                  SKU: {productSku}
+                </p>
+              )}
+            </div>
+          </div>
         )}
       </div>
 

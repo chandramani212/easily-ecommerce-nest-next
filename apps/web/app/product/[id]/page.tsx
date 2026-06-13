@@ -4,7 +4,7 @@ import { CategoryBar } from "../../../components/category-bar";
 import { Footer } from "../../../components/footer";
 import { Breadcrumb } from "../../../components/breadcrumb";
 import { ProductDetail } from "./product-detail";
-import { apiFetchSafe } from "../../../lib/api";
+import { apiFetchSafe, API_URL } from "../../../lib/api";
 import { adaptProductForDetail } from "../../../lib/adapt";
 import type { ApiProduct } from "../../../lib/types";
 
@@ -21,6 +21,36 @@ async function resolveProduct(idOrSlug: string): Promise<ApiProduct | null> {
   return apiFetchSafe<ApiProduct>(
     `/products/${encodeURIComponent(idOrSlug)}`,
   );
+}
+
+function absoluteImage(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/uploads")) return `${API_URL}${url}`;
+  return url;
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params;
+  const p = await resolveProduct(id);
+  if (!p) return { title: "Product not found — Easily Branded" };
+  const title = p.metaTitle || `${p.name} — Easily Branded`;
+  const description =
+    p.metaDescription ||
+    p.shortDescription ||
+    p.description?.slice(0, 160) ||
+    undefined;
+  const img = absoluteImage(p.ogImage || p.images?.[0]);
+  return {
+    title,
+    description,
+    keywords: p.keywords || undefined,
+    openGraph: {
+      title,
+      description,
+      images: img ? [img] : undefined,
+    },
+  };
 }
 
 export default async function ProductPage({ params }: PageProps) {

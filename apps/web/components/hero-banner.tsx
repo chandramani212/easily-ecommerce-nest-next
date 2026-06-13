@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@repo/ui/button";
 
-interface Slide {
+export interface Slide {
   tag: string;
   heading: string;
   highlight: string;
   description: string;
   ctaLabel: string;
+  ctaHref?: string;
   ctaSecondaryLabel?: string;
+  ctaSecondaryHref?: string;
   gradient: string;
   /** Right-side image. Replace these placeholders with 1200×1200 art. */
   image: string;
@@ -52,26 +54,34 @@ const SLIDES: Slide[] = [
 
 const AUTO_PLAY_MS = 5000;
 
-export function HeroBanner() {
+export function HeroBanner({
+  slides,
+  autoPlayMs,
+}: {
+  slides?: Slide[];
+  autoPlayMs?: number;
+} = {}) {
+  const data = slides && slides.length ? slides : SLIDES;
+  const playMs = autoPlayMs ?? AUTO_PLAY_MS;
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
   const next = useCallback(
-    () => setCurrent((c) => (c + 1) % SLIDES.length),
-    [],
+    () => setCurrent((c) => (c + 1) % data.length),
+    [data.length],
   );
   const prev = useCallback(
-    () => setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length),
-    [],
+    () => setCurrent((c) => (c - 1 + data.length) % data.length),
+    [data.length],
   );
 
   useEffect(() => {
     if (paused) return;
-    const id = setInterval(next, AUTO_PLAY_MS);
+    const id = setInterval(next, playMs);
     return () => clearInterval(id);
-  }, [paused, next]);
+  }, [paused, next, playMs]);
 
-  const slide = SLIDES[current]!;
+  const slide = data[current] ?? data[0]!;
 
   return (
     <section
@@ -116,20 +126,24 @@ export function HeroBanner() {
             key={`cta-${current}`}
             className="mt-8 flex animate-[fadeSlideIn_0.5s_ease-out_0.3s_both] flex-wrap gap-4"
           >
-            <Button
-              size="lg"
-              className="!ui:bg-white !ui:text-slate-900 !ui:shadow-lg !ui:ring-1 !ui:ring-black/5 hover:!ui:bg-white/95"
-            >
-              {slide.ctaLabel}
-            </Button>
-            {slide.ctaSecondaryLabel && (
+            <a href={slide.ctaHref || "/#shop"}>
               <Button
-                variant="secondary"
                 size="lg"
-                className="!ui:border !ui:border-white/30 !ui:bg-slate-900/60 !ui:text-white !ui:backdrop-blur-md !ui:shadow-md hover:!ui:bg-slate-900/80"
+                className="!ui:bg-white !ui:text-slate-900 !ui:shadow-lg !ui:ring-1 !ui:ring-black/5 hover:!ui:bg-white/95"
               >
-                {slide.ctaSecondaryLabel}
+                {slide.ctaLabel}
               </Button>
+            </a>
+            {slide.ctaSecondaryLabel && (
+              <a href={slide.ctaSecondaryHref || "/#shop"}>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="!ui:border !ui:border-white/30 !ui:bg-slate-900/60 !ui:text-white !ui:backdrop-blur-md !ui:shadow-md hover:!ui:bg-slate-900/80"
+                >
+                  {slide.ctaSecondaryLabel}
+                </Button>
+              </a>
             )}
           </div>
         </div>
@@ -170,7 +184,7 @@ export function HeroBanner() {
 
         {/* Dot indicators */}
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-6">
-          {SLIDES.map((_, i) => (
+          {data.map((_, i) => (
             <button
               key={i}
               aria-label={`Go to slide ${i + 1}`}
