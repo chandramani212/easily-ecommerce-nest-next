@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { CartProvider } from "../context/cart-context";
+import { AttributionTracker } from "../components/attribution-tracker";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={geist.className}>
+        <AttributionTracker />
         <CartProvider>{children}</CartProvider>
       </body>
     </html>

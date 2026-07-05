@@ -47,6 +47,7 @@ export function ProductForm({ product, categories }: Props) {
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
   const [sku, setSku] = useState(product?.sku ?? "");
+  const externalSku = product?.externalSku ?? "";
   const [shortDescription, setShortDescription] = useState(
     product?.shortDescription ?? "",
   );
@@ -295,13 +296,19 @@ export function ProductForm({ product, categories }: Props) {
                 />
               </div>
               <div>
-                <Label>SKU *</Label>
+                <Label>Website SKU</Label>
                 <Input
-                  required
                   value={sku}
+                  placeholder="Auto-generated (EB-000123) if left blank"
                   onChange={(e) => setSku(e.target.value)}
                 />
               </div>
+              {externalSku && (
+                <div>
+                  <Label>Supplier SKU</Label>
+                  <Input value={externalSku} readOnly disabled />
+                </div>
+              )}
               <div className="sm:col-span-2">
                 <Label>
                   Short Description{" "}

@@ -9,7 +9,7 @@ import { StatusBadge } from "../../../components/status-badge";
 
 type UserRow = AdminUser & { createdAtFormatted: string };
 
-const ROLES: UserRole[] = ["ADMIN", "MANAGER", "STAFF"];
+const ROLES: UserRole[] = ["SUPER_ADMIN", "ADMIN", "MANAGER", "STAFF"];
 
 export function UsersManager({ initial }: { initial: UserRow[] }) {
   const router = useRouter();

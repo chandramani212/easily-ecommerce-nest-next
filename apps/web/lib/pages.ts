@@ -28,6 +28,8 @@ export interface HeroSlide {
 
 export interface HomeContent {
   hero: { autoPlayMs: number; slides: HeroSlide[] };
+  /** Optional free-form content block rendered at the bottom of the home page. */
+  content?: { heading: string; body: string };
 }
 
 export interface AboutContent {
@@ -52,6 +54,11 @@ export interface ContactContent {
   faqHeading: string;
   faqSubheading: string;
   faq: { question: string; answer: string }[];
+}
+
+/** Privacy Policy / Terms & Conditions — a single rich-text body. */
+export interface LegalContent {
+  body: string;
 }
 
 /** Fetch an editable page from the API (public endpoint). Null on failure. */

@@ -5,6 +5,7 @@ import { useState } from "react";
 interface TabContent {
   label: string;
   content: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 interface ProductTabsProps {
@@ -21,12 +22,13 @@ export function ProductTabs({ tabs }: ProductTabsProps) {
           <button
             key={tab.label}
             onClick={() => setActive(i)}
-            className={`relative px-5 py-3 text-sm font-medium transition-colors ${
+            className={`relative flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
               i === active
                 ? "text-[var(--accent)]"
                 : "text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
             }`}
           >
+            {tab.icon}
             {tab.label}
             {i === active && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]" />

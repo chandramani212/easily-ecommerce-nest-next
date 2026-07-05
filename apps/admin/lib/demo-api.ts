@@ -67,6 +67,13 @@ export function demoRoute<T>(path: string): T {
     return mockCategories as unknown as T;
   }
 
+  if (pathname.startsWith("/categories/")) {
+    const id = pathname.slice("/categories/".length);
+    const category = mockCategories.find((c) => c.id === id);
+    if (!category) throw new Error(`Category ${id} not found`);
+    return category as unknown as T;
+  }
+
   if (pathname === "/settings") {
     return mockSettings as unknown as T;
   }

@@ -46,22 +46,25 @@ in apps/admin and apps/api
 
 -- claude cli
 
-  i want to integrate my apps/web with actual api from apps/api right now it is a static page but want to integrate , do not integrate any login 
-  module to web
-
-
-  in apps/admin and apps/api in supplier module i want to integrate new supplier which has different authenticaiton method till what we implemented
-  curl --location 'https://api.uat-asicentral.com/v1/products/search.json?page=10&q=null' \
---header 'Authorization: AsiMemberAuth client_id=500151601&client_secret=00fa8ebd1cc08cda1e9bce27004fd139' \
---data ''
-and it has 2 api to get all the information of product the first one list of product with pagination and then get produt details of individual prodct
-curl --location 'https://api.uat-asicentral.com/v1/products/552411743.json' \
---header 'Authorization: AsiMemberAuth client_id=500151601&client_secret=00fa8ebd1cc08cda1e9bce27004fd139' \
---data ''
-
 i want to plan and implemented this in our current supplier module
 
 what about 
 
 
 claude --resume 3215c082-4f4a-444f-b771-d8bd81ae2e1d
+
+
+--- PENDING
+  From Amit Side: 
+    - images for home page slider
+
+  From client
+    - Hosting
+    - about us page
+    - contact us page
+    - Prod Api
+    - Payment gateway
+
+  From my end
+    - Implementing Search functionality of page in 
+    - E-Mail implemantaion

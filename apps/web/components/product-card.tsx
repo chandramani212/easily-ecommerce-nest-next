@@ -19,7 +19,7 @@ export function ProductCard({
   href,
   image,
 }: ProductCardProps) {
-  const slug = href || `/product/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const slug = href || `/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   return (
     <Link

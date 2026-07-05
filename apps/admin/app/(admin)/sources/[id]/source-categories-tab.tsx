@@ -18,6 +18,43 @@ interface SourceCategoryRow {
 
 type Filter = "all" | "unmapped" | "mapped";
 
+/**
+ * Flatten source categories into a depth-annotated, parent-first order so the
+ * table can render the source hierarchy with indentation. Keyed on
+ * `externalId`/`parentExternalId` (the source's own ids). Rows whose parent is
+ * absent from the current (filtered/searched) set surface at depth 0, and their
+ * own descendants are walked from there so partial views still show structure.
+ */
+function buildSourceTree(
+  rows: SourceCategoryRow[],
+): { row: SourceCategoryRow; depth: number }[] {
+  const childrenOf = (parentExternalId: string | null) =>
+    rows.filter((r) => (r.parentExternalId ?? null) === parentExternalId);
+  const result: { row: SourceCategoryRow; depth: number }[] = [];
+  const visited = new Set<string>();
+
+  const walk = (parentExternalId: string | null, depth: number) => {
+    for (const node of childrenOf(parentExternalId)) {
+      if (visited.has(node.externalId)) continue;
+      visited.add(node.externalId);
+      result.push({ row: node, depth });
+      walk(node.externalId, depth + 1);
+    }
+  };
+
+  walk(null, 0);
+
+  // Orphans whose parent isn't in the current set — show them as roots and walk
+  // any of their descendants that are present.
+  for (const r of rows) {
+    if (visited.has(r.externalId)) continue;
+    visited.add(r.externalId);
+    result.push({ row: r, depth: 0 });
+    walk(r.externalId, 1);
+  }
+  return result;
+}
+
 export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
   const [rows, setRows] = useState<SourceCategoryRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -162,12 +199,22 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
               </tr>
             )}
             {!loading &&
-              rows.map((r) => (
+              buildSourceTree(rows).map(({ row: r, depth }) => (
                 <tr
                   key={r.id}
                   className="border-t border-[var(--admin-border)] hover:bg-[var(--admin-muted)]/40"
                 >
-                  <td className="px-3 py-2 font-medium">{r.name}</td>
+                  <td className="px-3 py-2 font-medium">
+                    <div
+                      className="flex items-center gap-1.5"
+                      style={{ paddingLeft: `${depth * 1.25}rem` }}
+                    >
+                      {depth > 0 && (
+                        <span className="text-[var(--admin-fg)]/30">↳</span>
+                      )}
+                      {r.name}
+                    </div>
+                  </td>
                   <td className="px-3 py-2 text-[var(--admin-fg)]/70">
                     {r.parentName ?? "—"}
                   </td>

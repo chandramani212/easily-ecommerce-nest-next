@@ -3,21 +3,14 @@ import Link from "next/link";
 const QUICK_LINKS = [
   { label: "Shop", href: "/#shop" },
   { label: "Categories", href: "/#categories" },
-  { label: "Deals", href: "/#shop" },
-  { label: "New Arrivals", href: "/#shop" },
 ];
 
 const COMPANY = [
   { label: "About Us", href: "/about" },
-  { label: "Careers", href: "/about" },
-  { label: "Blog", href: "/about" },
-  { label: "Press", href: "/about" },
 ];
 
 const SUPPORT = [
   { label: "Help Center", href: "/contact" },
-  { label: "Shipping Info", href: "/contact" },
-  { label: "Returns", href: "/contact" },
   { label: "Contact Us", href: "/contact" },
 ];
 
@@ -67,17 +60,31 @@ export function Footer() {
               ))}
             </ul>
             <div className="mt-5">
-              <p className="text-sm font-medium text-[var(--foreground)]">hello@easilybranded.com</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">info@easilybranded.com</p>
               <p className="text-xs text-[var(--foreground)]/50">Mon-Fri 9AM - 6PM</p>
             </div>
           </div>
         </div>
       </div>
       <div className="border-t border-[var(--border)]">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs text-[var(--foreground)]/40">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 py-4 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
+          <p className="text-xs text-[var(--foreground)]/40">
             &copy; {new Date().getFullYear()} Easily Branded. All rights reserved.
           </p>
+          <div className="flex items-center gap-4 text-xs">
+            <Link
+              href="/privacy"
+              className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
+            >
+              Terms &amp; Conditions
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -64,9 +64,21 @@ export class CreateProductDto {
   @IsString()
   slug!: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+    description: 'Website SKU. Auto-generated (EB-000123) when omitted.',
+  })
+  @IsOptional()
   @IsString()
-  sku!: string;
+  sku?: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Supplier/API SKU. Set by imports; optional for manual products.',
+  })
+  @IsOptional()
+  @IsString()
+  externalSku?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -159,6 +171,11 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   sku?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  externalSku?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

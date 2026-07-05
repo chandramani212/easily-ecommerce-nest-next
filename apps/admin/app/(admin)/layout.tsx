@@ -8,7 +8,7 @@ interface MeResponse {
   id: string;
   email: string;
   name: string;
-  role: "ADMIN" | "MANAGER" | "STAFF";
+  role: "ADMIN" | "MANAGER" | "STAFF" | "SUPER_ADMIN";
 }
 
 export default async function AdminLayout({

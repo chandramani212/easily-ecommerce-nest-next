@@ -32,6 +32,7 @@ interface SimpleField {
   template?: string;
   transforms?: FieldTransform[];
   splitSeparator?: string;
+  prefix?: string;
 }
 
 interface AttributeMapItem {
@@ -82,7 +83,8 @@ interface VendorMap {
 interface MappingSpec {
   externalId: SimpleField;
   name: SimpleField;
-  sku: SimpleField;
+  sku?: SimpleField;
+  externalSku?: SimpleField;
   shortDescription?: SimpleField;
   description?: SimpleField;
   basePrice?: SimpleField;
@@ -113,7 +115,10 @@ interface ProductField {
 const PRODUCT_FIELDS: ProductField[] = [
   { key: "externalId", label: "External ID *", required: true, group: "identity" },
   { key: "name", label: "Product name *", required: true, group: "identity" },
-  { key: "sku", label: "SKU *", required: true, group: "identity" },
+  // Website SKU — optional. Use a template (under "More") like EB-{{Id}} to
+  // combine a prefix with a feed key; blank auto-generates a sequential EB-….
+  { key: "sku", label: "Website SKU (auto if blank)", group: "identity" },
+  { key: "externalSku", label: "Supplier / API SKU", group: "identity" },
   { key: "shortDescription", label: "Short description", group: "content" },
   { key: "description", label: "Long description", group: "content" },
   { key: "basePrice", label: "Base price (MSRP)", group: "pricing" },
@@ -167,7 +172,8 @@ export function ImportWizard({
     return {
       externalId: m?.externalId ?? { path: "" },
       name: m?.name ?? { path: "" },
-      sku: m?.sku ?? { path: "" },
+      sku: m?.sku,
+      externalSku: m?.externalSku,
       shortDescription: m?.shortDescription,
       description: m?.description,
       basePrice: m?.basePrice,
@@ -447,23 +453,34 @@ export function ImportWizard({
 
         <div className="grid gap-4 lg:grid-cols-[1fr_240px]">
           <div className="space-y-3">
-            {PRODUCT_FIELDS.map((f) => (
-              <FieldRow
-                key={f.key as string}
-                field={f}
-                value={
-                  (mapping as unknown as Record<string, SimpleField | undefined>)[
-                    f.key as string
-                  ]
-                }
-                onChange={(next) =>
-                  setMapping({
-                    ...mapping,
-                    [f.key]: next,
-                  } as MappingSpec)
-                }
-              />
-            ))}
+            {PRODUCT_FIELDS.map((f) => {
+              const value = (
+                mapping as unknown as Record<string, SimpleField | undefined>
+              )[f.key as string];
+              const onChange = (next: SimpleField | undefined) =>
+                setMapping({ ...mapping, [f.key]: next } as MappingSpec);
+
+              // Website SKU gets a dedicated prefix + key editor so admins can
+              // compose values like EB-{{Id}} without digging into "More".
+              if (f.key === "sku") {
+                return (
+                  <WebsiteSkuRow
+                    key={f.key as string}
+                    value={value}
+                    onChange={onChange}
+                  />
+                );
+              }
+
+              return (
+                <FieldRow
+                  key={f.key as string}
+                  field={f}
+                  value={value}
+                  onChange={onChange}
+                />
+              );
+            })}
 
             <SubMapper
               title="Images"
@@ -1282,6 +1299,52 @@ function SubMapper({
         </label>
       </div>
       {enabled && <div className="space-y-2">{children}</div>}
+    </div>
+  );
+}
+
+function WebsiteSkuRow({
+  value,
+  onChange,
+}: {
+  value?: SimpleField;
+  onChange: (next: SimpleField | undefined) => void;
+}) {
+  const v = value ?? {};
+  const update = (patch: Partial<SimpleField>) => {
+    const next = { ...v, ...patch };
+    // Collapse to "unset" when nothing is configured, so the SKU auto-generates.
+    if (!next.prefix && !next.path && !next.template && !next.literal) {
+      onChange(undefined);
+    } else {
+      onChange(next);
+    }
+  };
+  return (
+    <div className="grid items-start gap-3 sm:grid-cols-[180px_1fr]">
+      <span className="pt-2 text-sm font-medium text-[var(--admin-fg)]/80">
+        Website SKU
+      </span>
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <input
+            value={v.prefix ?? ""}
+            onChange={(e) => update({ prefix: e.target.value || undefined })}
+            placeholder="Prefix e.g. EB-"
+            className={`${inputCls} w-32 text-xs`}
+          />
+          <input
+            value={v.path ?? ""}
+            onChange={(e) => update({ path: e.target.value || undefined })}
+            placeholder="Key path e.g. $.Id"
+            className={`${inputCls} font-mono text-xs`}
+          />
+        </div>
+        <p className="text-[11px] text-[var(--admin-fg)]/50">
+          Prefix + a key from the feed (e.g. EB- + $.Id → EB-123). Leave both
+          blank to auto-generate a sequential EB-000123.
+        </p>
+      </div>
     </div>
   );
 }

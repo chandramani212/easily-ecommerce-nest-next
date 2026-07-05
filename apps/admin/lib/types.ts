@@ -12,6 +12,9 @@ export interface Category {
   slug: string;
   description?: string | null;
   image?: string | null;
+  bannerImage?: string | null;
+  content?: string | null;
+  active?: boolean;
   parentId?: string | null;
   parent?: { id: string; name: string } | null;
   _count?: { products: number };
@@ -50,6 +53,8 @@ export interface Product {
   name: string;
   slug: string;
   sku: string;
+  /** Supplier/API SKU. Set by imports; null for products created in the admin. */
+  externalSku?: string | null;
   shortDescription: string;
   description: string;
   basePrice: string | number;
@@ -179,7 +184,7 @@ export interface ContactMessage {
   createdAt: string;
 }
 
-export type UserRole = "ADMIN" | "MANAGER" | "STAFF";
+export type UserRole = "ADMIN" | "MANAGER" | "STAFF" | "SUPER_ADMIN";
 
 export interface AdminUser {
   id: string;
@@ -347,6 +352,12 @@ export interface HeroSlide {
 
 export interface HomeContent {
   hero: { autoPlayMs: number; slides: HeroSlide[] };
+  content?: { heading: string; body: string };
+}
+
+/** Privacy Policy / Terms & Conditions — a single rich-text body. */
+export interface LegalContent {
+  body: string;
 }
 
 export interface AboutContent {

@@ -397,8 +397,16 @@ export class ImportRunnerService {
 
       const productData = {
         name: mapped.name,
-        sku: mapped.sku,
-        slug: slugify(mapped.name) || slugify(mapped.sku),
+        // Website SKU: use the mapped value when present, else omit so the DB
+        // default (EB-000123) generates one on create. `undefined` on update
+        // leaves an existing sku untouched, so re-syncs never clobber it.
+        sku: mapped.sku || undefined,
+        // Supplier/API SKU kept for reconciliation; omit when the feed has none.
+        externalSku: mapped.externalSku || undefined,
+        slug:
+          slugify(mapped.name) ||
+          slugify(mapped.externalSku) ||
+          slugify(mapped.externalId),
         shortDescription: mapped.shortDescription,
         description: mapped.description,
         basePrice: new Prisma.Decimal(mapped.basePrice),
@@ -430,11 +438,14 @@ export class ImportRunnerService {
         productId = updated.id;
         action = 'updated';
       } else {
-        // SKU may already exist (e.g. seeded manually) — link rather than
-        // duplicate when so. Match is exact + case-sensitive on SKU.
-        const bySku = await tx.product.findUnique({
-          where: { sku: mapped.sku },
-        });
+        // The supplier SKU may already exist (e.g. seeded manually) — link rather
+        // than duplicate when so. Match is exact + case-sensitive on externalSku.
+        // Skipped when the feed carries no supplier SKU.
+        const bySku = mapped.externalSku
+          ? await tx.product.findUnique({
+              where: { externalSku: mapped.externalSku },
+            })
+          : null;
         if (bySku) {
           const updated = await tx.product.update({
             where: { id: bySku.id },

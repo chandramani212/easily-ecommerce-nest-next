@@ -162,7 +162,7 @@ export function adaptProductForCard(p: ApiProduct): CardProduct {
     brand: findAttribute(attrs, "brand") ?? "",
     colors,
     rating: 4,
-    href: `/product/${p.slug}`,
+    href: `/${p.slug}`,
     image: firstImage
       ? sizedImage(normalizeImageUrl(firstImage), "normal")
       : undefined,
@@ -199,6 +199,8 @@ export interface DetailProduct {
   additionalInfo: string;
   quantityPricing: QuantityPrice[];
   colorVariations?: string;
+  /** Individual color names offered for this product. Empty when none. */
+  colors: string[];
 }
 
 function tierToQuantity(t: ApiTierPrice, selling: number): QuantityPrice {
@@ -262,9 +264,8 @@ export function adaptProductForDetail(p: ApiProduct): DetailProduct {
 
   const categoryBreadcrumb: { label: string; href?: string }[] = [
     { label: "Home", href: "/" },
-    { label: "Shop", href: "/#shop" },
     ...(p.categories[0]
-      ? [{ label: p.categories[0].name, href: `/category/${p.categories[0].slug}` }]
+      ? [{ label: p.categories[0].name, href: `/${p.categories[0].slug}` }]
       : []),
     { label: p.name },
   ];
@@ -284,6 +285,11 @@ export function adaptProductForDetail(p: ApiProduct): DetailProduct {
     additionalInfo,
     quantityPricing,
     colorVariations: findAttribute(attrs, "color variations"),
+    colors: splitColors(
+      findAttribute(attrs, "color") ??
+        findAttribute(attrs, "colour") ??
+        findAttribute(attrs, "color variations"),
+    ),
   };
 }
 
@@ -292,6 +298,8 @@ export interface AdaptedCategory {
   name: string;
   slug: string;
   count: number;
+  /** Absolute URL of the category image uploaded in the admin, if any. */
+  image?: string;
 }
 
 export function adaptCategory(c: ApiCategory): AdaptedCategory {
@@ -300,6 +308,7 @@ export function adaptCategory(c: ApiCategory): AdaptedCategory {
     name: c.name,
     slug: c.slug,
     count: c._count?.products ?? 0,
+    image: c.image ? normalizeImageUrl(c.image) : undefined,
   };
 }
 

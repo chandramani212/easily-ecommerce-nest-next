@@ -24,6 +24,10 @@ export class RolesGuard implements CanActivate {
     }
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtUser | undefined;
+    // SUPER_ADMIN is a superset of every other role — it can reach any endpoint.
+    if (user?.role === 'SUPER_ADMIN') {
+      return true;
+    }
     if (!user || !required.includes(user.role)) {
       throw new ForbiddenException('Insufficient permissions');
     }

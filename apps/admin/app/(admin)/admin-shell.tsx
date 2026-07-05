@@ -17,7 +17,11 @@ export function AdminShell({ children, user }: AdminShellProps) {
 
   return (
     <ThemeProvider>
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        role={user.role}
+      />
       <div className="lg:pl-[280px]">
         <TopBar user={user} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
         {IS_DEMO && <DemoBanner />}

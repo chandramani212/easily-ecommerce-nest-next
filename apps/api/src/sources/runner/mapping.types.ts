@@ -37,6 +37,12 @@ export interface SimpleField {
   transforms?: FieldTransform[];
   /** Used by `split` transform; defaults to `,`. */
   splitSeparator?: string;
+  /**
+   * Static string prepended to the resolved value, e.g. `"EB-"` so a feed `Id`
+   * of `123` becomes `EB-123`. Only applied when the value resolves non-empty,
+   * so a prefix alone never blocks SKU auto-generation.
+   */
+  prefix?: string;
 }
 
 export interface AttributeMapItem {
@@ -160,9 +166,16 @@ export interface VendorMap {
 export interface MappingSpec {
   /** Required: how to identify a record across runs. */
   externalId: SimpleField;
-  /** Required: at minimum we need a name and SKU to upsert a Product. */
+  /** Required: at minimum we need a name to upsert a Product. */
   name: SimpleField;
-  sku: SimpleField;
+  /**
+   * Optional website SKU → stored on `Product.sku`. Typically a template that
+   * combines a prefix with a feed key, e.g. `{ template: "EB-{{Id}}" }`. When it
+   * resolves empty, the DB auto-generates a sequential `EB-000123` instead.
+   */
+  sku?: SimpleField;
+  /** Supplier/API SKU → stored on `Product.externalSku`. Used for reconciliation. */
+  externalSku?: SimpleField;
 
   shortDescription?: SimpleField;
   description?: SimpleField;
@@ -231,7 +244,10 @@ export interface MappedVendor {
 export interface MappedProduct {
   externalId: string;
   name: string;
+  /** Website SKU → Product.sku. Empty string means "let the DB auto-generate". */
   sku: string;
+  /** Supplier/API SKU → Product.externalSku. */
+  externalSku: string;
   shortDescription: string;
   description: string;
   basePrice: number;

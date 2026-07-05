@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCart } from "../context/cart-context";
 
 const NAV_LINKS = [
@@ -14,12 +15,25 @@ const NAV_LINKS = [
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const { totalItems } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
   }, [searchOpen]);
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const term = query.trim();
+    if (!term) {
+      searchRef.current?.focus();
+      return;
+    }
+    router.push(`/search?q=${encodeURIComponent(term)}`);
+    setSearchOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-white backdrop-blur-md">
@@ -41,7 +55,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1">
-          <div className="relative flex items-center">
+          <form onSubmit={submitSearch} className="relative flex items-center">
             <div
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
                 searchOpen ? "w-48 opacity-100 sm:w-64" : "w-0 opacity-0"
@@ -50,15 +64,19 @@ export function Header() {
               <input
                 ref={searchRef}
                 type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products..."
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] py-2 pl-3 pr-8 text-sm outline-none transition-colors placeholder:text-[var(--foreground)]/40 focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
-                onBlur={() => setSearchOpen(false)}
                 onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
               />
             </div>
             <button
+              type={searchOpen ? "submit" : "button"}
               aria-label="Search"
-              onClick={() => setSearchOpen(!searchOpen)}
+              onClick={() => {
+                if (!searchOpen) setSearchOpen(true);
+              }}
               className={`rounded-lg p-2 transition-colors ${
                 searchOpen
                   ? "absolute right-0 text-[var(--accent)]"
@@ -70,7 +88,7 @@ export function Header() {
                 <path d="m21 21-4.35-4.35" />
               </svg>
             </button>
-          </div>
+          </form>
 
           <Link
             href="/cart"

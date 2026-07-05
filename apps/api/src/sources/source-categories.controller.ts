@@ -41,7 +41,7 @@ class SetSourceCategoryMappingDto {
 @ApiTags('source-categories')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.STAFF)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('sources/:sourceId/source-categories')
 export class SourceCategoriesController {
   constructor(private readonly service: SourceCategoriesService) {}
@@ -55,7 +55,7 @@ export class SourceCategoriesController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   setMapping(
     @Param('sourceId') sourceId: string,
     @Param('id') id: string,

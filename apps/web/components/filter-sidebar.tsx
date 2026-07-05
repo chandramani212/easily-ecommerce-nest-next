@@ -10,6 +10,8 @@ interface FilterOption {
 
 interface Filters {
   priceRange: [number, number];
+  /** Min/max bounds for the price slider, derived from the products. */
+  priceBounds: [number, number];
   brands: FilterOption[];
   colors: { name: string; hex: string; checked: boolean }[];
   ratings: FilterOption[];
@@ -54,13 +56,18 @@ export function FilterSidebar({
       </div>
 
       {/* Price Range */}
-      <FilterSection title="Price Range">
-        <PriceRangeSlider
-          min={0}
-          max={200}
-          onChange={onPriceChange}
-        />
-      </FilterSection>
+      {filters.priceBounds[1] > filters.priceBounds[0] && (
+        <FilterSection title="Price Range">
+          <PriceRangeSlider
+            // Remount when the bounds change (e.g. switching pages) so the
+            // thumbs re-seed to the new min/max.
+            key={`${filters.priceBounds[0]}-${filters.priceBounds[1]}`}
+            min={filters.priceBounds[0]}
+            max={filters.priceBounds[1]}
+            onChange={onPriceChange}
+          />
+        </FilterSection>
+      )}
 
       {/* Brands */}
       {filters.brands.length > 0 && (

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface MenuItem {
   label: string;
   icon: React.ReactNode;
   href?: string;
   children?: { label: string; href: string }[];
+  /** When true, only visible to SUPER_ADMIN users. */
+  superAdminOnly?: boolean;
 }
 
 const MENU: MenuItem[] = [
@@ -63,6 +65,7 @@ const MENU: MenuItem[] = [
   },
   {
     label: "Sources",
+    superAdminOnly: true,
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
         <path d="M3 7l9-4 9 4M3 7v10l9 4 9-4V7M3 7l9 4m0 0l9-4m-9 4v10" />
@@ -93,6 +96,8 @@ const MENU: MenuItem[] = [
       { label: "Home page", href: "/content/home" },
       { label: "About page", href: "/content/about" },
       { label: "Contact page", href: "/content/contact" },
+      { label: "Privacy Policy", href: "/content/privacy" },
+      { label: "Terms & Conditions", href: "/content/terms" },
     ],
   },
   {
@@ -140,18 +145,26 @@ const PAGES: MenuItem[] = [
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  role?: string;
 }
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar({ open, onClose, role }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  // Hide SUPER_ADMIN-only items (e.g. Sources) from everyone else.
+  const isSuperAdmin = role === "SUPER_ADMIN";
+  const menu = useMemo(
+    () => MENU.filter((item) => !item.superAdminOnly || isSuperAdmin),
+    [isSuperAdmin],
+  );
+
   useEffect(() => {
-    const match = MENU.find((item) =>
+    const match = menu.find((item) =>
       item.children?.some((c) => pathname.startsWith(c.href)),
     );
     if (match) setExpanded(match.label);
-  }, [pathname]);
+  }, [pathname, menu]);
 
   const toggle = (label: string) =>
     setExpanded(expanded === label ? null : label);
@@ -184,7 +197,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-widest text-[var(--admin-sidebar-fg)]/40">
             Menu
           </p>
-          {MENU.map((item) => (
+          {menu.map((item) => (
             <SidebarItem
               key={item.label}
               item={item}

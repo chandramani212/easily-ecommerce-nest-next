@@ -38,7 +38,7 @@ function uploadToSample(file?: Express.Multer.File): {
 @ApiTags('source-imports')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.STAFF)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('sources/:sourceId/imports')
 export class SourceImportsController {
   constructor(private readonly imports: SourceImportsService) {}
@@ -57,7 +57,7 @@ export class SourceImportsController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   create(
     @Param('sourceId') sourceId: string,
     @Body() dto: CreateImportDto,
@@ -66,7 +66,7 @@ export class SourceImportsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   update(
     @Param('sourceId') sourceId: string,
     @Param('id') id: string,
@@ -76,7 +76,7 @@ export class SourceImportsController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   remove(
     @Param('sourceId') sourceId: string,
     @Param('id') id: string,

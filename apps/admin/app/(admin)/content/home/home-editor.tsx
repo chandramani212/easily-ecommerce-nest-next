@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { clientApi, DemoReadOnlyError } from "../../../../lib/client-api";
 import { ImageField } from "../../../../components/image-field";
+import { RichTextEditor } from "../../../../components/rich-text-editor";
 import { SeoFields, type SeoValue } from "../../../../components/seo-fields";
 import {
   EditorSection,
@@ -36,6 +37,12 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
   const [autoPlayMs, setAutoPlayMs] = useState(
     page.content?.hero?.autoPlayMs ?? 5000,
   );
+  const [contentHeading, setContentHeading] = useState(
+    page.content?.content?.heading ?? "",
+  );
+  const [contentBody, setContentBody] = useState(
+    page.content?.content?.body ?? "",
+  );
   const [seo, setSeo] = useState<SeoValue>({
     metaTitle: page.metaTitle,
     metaDescription: page.metaDescription,
@@ -60,7 +67,10 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
       await clientApi(`/pages/home`, {
         method: "PUT",
         body: JSON.stringify({
-          content: { hero: { autoPlayMs: Number(autoPlayMs) || 5000, slides } },
+          content: {
+            hero: { autoPlayMs: Number(autoPlayMs) || 5000, slides },
+            content: { heading: contentHeading, body: contentBody },
+          },
           metaTitle: seo.metaTitle,
           metaDescription: seo.metaDescription,
           ogImage: seo.ogImage || undefined,
@@ -213,6 +223,25 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
           >
             + Add slide
           </button>
+        </div>
+      </EditorSection>
+
+      <EditorSection title="Content block (bottom of page)">
+        <div className="space-y-3">
+          <TextInput
+            label="Heading"
+            value={contentHeading}
+            onChange={setContentHeading}
+          />
+          <RichTextEditor
+            label="Body"
+            value={contentBody}
+            onChange={setContentBody}
+          />
+          <p className="text-xs text-[var(--admin-fg)]/50">
+            Shown as the last section on the home page. Leave both fields empty
+            to hide it.
+          </p>
         </div>
       </EditorSection>
 

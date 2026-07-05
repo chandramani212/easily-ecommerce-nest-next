@@ -65,6 +65,8 @@ export interface ApiCategory {
   slug: string;
   description: string | null;
   image: string | null;
+  bannerImage?: string | null;
+  content?: string | null;
   parentId: string | null;
   parent?: { id: string; name: string } | null;
   _count?: { products: number };

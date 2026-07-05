@@ -31,7 +31,7 @@ import { SuppliersService } from './suppliers.service';
 @ApiTags('sources')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.STAFF)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('sources')
 export class SourcesController {
   constructor(
@@ -53,7 +53,7 @@ export class SourcesController {
 
   /** Create-or-update this source's manual supplier contact details. */
   @Put(':id/supplier')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   upsertManualSupplier(
     @Param('id') id: string,
     @Body() dto: UpsertManualSupplierDto,
@@ -81,25 +81,25 @@ export class SourcesController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   create(@Body() dto: CreateSourceDto) {
     return this.sources.create(dto);
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   update(@Param('id') id: string, @Body() dto: UpdateSourceDto) {
     return this.sources.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   remove(@Param('id') id: string) {
     return this.sources.remove(id);
   }
 
   @Post(':id/test-connection')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   testConnection(@Param('id') id: string, @Body() dto: TestConnectionDto) {
     return this.sources.testConnection(id, dto);
   }

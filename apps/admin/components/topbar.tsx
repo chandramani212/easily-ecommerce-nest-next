@@ -38,6 +38,7 @@ export function TopBar({ onMenuToggle, user }: TopBarProps) {
         </svg>
       </button>
 
+      {/* Global search hidden for now — non-functional placeholder.
       <div className="relative hidden flex-1 sm:block sm:max-w-md">
         <svg
           width="16"
@@ -60,7 +61,9 @@ export function TopBar({ onMenuToggle, user }: TopBarProps) {
           ⌘K
         </kbd>
       </div>
-      <div className="flex-1 sm:hidden" />
+      */}
+      {/* Spacer pushes the action buttons to the right now that search is hidden. */}
+      <div className="flex-1" />
 
       <div className="flex items-center gap-2">
         <button

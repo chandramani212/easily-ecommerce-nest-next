@@ -6,12 +6,17 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { Public } from '../auth/decorators/public.decorator';
 import { CategoriesService } from './categories.service';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
+import {
+  CreateCategoryDto,
+  ReorderCategoriesDto,
+  UpdateCategoryDto,
+} from './dto/category.dto';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -20,8 +25,9 @@ export class CategoriesController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.categories.findAll();
+  findAll(@Query('active') active?: string) {
+    // `?active=true` restricts to active categories (storefront); admin omits it.
+    return this.categories.findAll(active === 'true');
   }
 
   @Public()
@@ -34,6 +40,13 @@ export class CategoriesController {
   @Post()
   create(@Body() dto: CreateCategoryDto) {
     return this.categories.create(dto);
+  }
+
+  // Must be declared before the `:id` route so "reorder" isn't captured as an id.
+  @ApiBearerAuth()
+  @Patch('reorder')
+  reorder(@Body() dto: ReorderCategoriesDto) {
+    return this.categories.reorder(dto.ids);
   }
 
   @ApiBearerAuth()

@@ -40,7 +40,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`/category/${cat.slug}`}
+              href={`/${cat.slug}`}
               onMouseEnter={() =>
                 setActiveId(cat.children.length > 0 ? cat.id : null)
               }
@@ -66,7 +66,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
               {activeCat.children.map((sub) => (
                 <div key={sub.id}>
                   <Link
-                    href={`/category/${sub.slug}`}
+                    href={`/${sub.slug}`}
                     className="mb-2 block text-sm font-semibold text-[var(--accent)] hover:underline"
                   >
                     {sub.name}
@@ -76,7 +76,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
                       {sub.children.map((item) => (
                         <li key={item.id}>
                           <Link
-                            href={`/category/${item.slug}`}
+                            href={`/${item.slug}`}
                             className="block text-sm text-[var(--foreground)]/70 transition-colors hover:text-[var(--accent)]"
                           >
                             {item.name}
@@ -166,7 +166,7 @@ function MobileCategoryRow({
     <div className="border-b border-[var(--border)] last:border-0">
       <div className="flex items-center">
         <Link
-          href={`/category/${node.slug}`}
+          href={`/${node.slug}`}
           onClick={onNavigate}
           className="flex-1 py-3 pr-3 text-sm font-medium text-[var(--foreground)]"
           style={{ paddingLeft }}

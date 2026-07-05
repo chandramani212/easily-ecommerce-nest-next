@@ -93,11 +93,12 @@ function categoryIcon(slug: string) {
 
 export default async function Page() {
   const [categoriesRaw, popularRaw, homePage] = await Promise.all([
-    apiFetchSafe<ApiCategory[]>("/categories"),
+    apiFetchSafe<ApiCategory[]>("/categories?active=true"),
     apiFetchSafe<ProductsResponse>("/products?active=true&pageSize=8"),
     getPage<HomeContent>("home"),
   ]);
   const hero = homePage?.content?.hero;
+  const contentBlock = homePage?.content?.content;
 
   const rootCategories = (categoriesRaw ?? [])
     .filter((c) => !c.parentId)
@@ -182,6 +183,25 @@ export default async function Page() {
         />
         <TestimonialCarousel items={TESTIMONIALS} />
       </section>
+
+      {/* Backend-editable content block — only rendered when data is present. */}
+      {contentBlock && (contentBlock.heading || contentBlock.body) && (
+        <section className="bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            {contentBlock.heading && (
+              <h2 className="text-center text-2xl font-bold sm:text-3xl">
+                {contentBlock.heading}
+              </h2>
+            )}
+            {contentBlock.body && (
+              <div
+                className="mt-8 rounded-2xl border border-[var(--border)] bg-white p-6 text-[15px] leading-relaxed text-[var(--foreground)]/75 shadow-sm sm:p-8 [&_a]:text-[var(--accent)] [&_a]:underline [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-[var(--foreground)] [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[var(--foreground)] [&_li]:mt-1 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mt-3 [&_strong]:font-semibold [&_strong]:text-[var(--foreground)] [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-6 [&_*:first-child]:mt-0"
+                dangerouslySetInnerHTML={{ __html: contentBlock.body }}
+              />
+            )}
+          </div>
+        </section>
+      )}
 
       <Footer />
     </>

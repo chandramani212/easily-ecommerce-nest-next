@@ -3,44 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { Category } from "../lib/types";
-
-/**
- * Flatten a list of categories into a depth-annotated, parent-first order so
- * a flat <ul> can render visual indentation by depth.
- *
- * `excludeId` removes one node from the pool (used in the categories manager
- * when editing a category — you can't make a node its own ancestor).
- */
-export function buildCategoryTree(
-  categories: Category[],
-  excludeId?: string,
-): { category: Category; depth: number }[] {
-  const pool = excludeId ? categories.filter((c) => c.id !== excludeId) : categories;
-  const childrenOf = (parentId: string | null) =>
-    pool.filter((c) => (c.parentId ?? null) === parentId);
-  const result: { category: Category; depth: number }[] = [];
-  const visited = new Set<string>();
-
-  const walk = (parentId: string | null, depth: number) => {
-    for (const node of childrenOf(parentId)) {
-      if (visited.has(node.id)) continue;
-      visited.add(node.id);
-      result.push({ category: node, depth });
-      walk(node.id, depth + 1);
-    }
-  };
-
-  walk(null, 0);
-
-  // Orphans whose parent was excluded or missing — surface them at root depth.
-  for (const c of pool) {
-    if (!visited.has(c.id)) {
-      visited.add(c.id);
-      result.push({ category: c, depth: 0 });
-    }
-  }
-  return result;
-}
+import { buildCategoryTree } from "../lib/category-tree";
 
 /**
  * Build a name→count map across the pool so the renderer can decide which

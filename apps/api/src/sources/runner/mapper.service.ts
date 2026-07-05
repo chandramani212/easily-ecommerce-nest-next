@@ -33,7 +33,9 @@ export class MapperService {
   ): MappedProduct {
     const externalId = asRequiredString(this.value(record, spec.externalId), 'externalId');
     const name = asRequiredString(this.value(record, spec.name), 'name');
-    const sku = asRequiredString(this.value(record, spec.sku), 'sku');
+    // Website SKU is optional — empty falls back to the DB auto-generated value.
+    const sku = asString(this.value(record, spec.sku)).trim();
+    const externalSku = asString(this.value(record, spec.externalSku)).trim();
     const shortDescription = asString(this.value(record, spec.shortDescription));
     const description = asString(this.value(record, spec.description));
 
@@ -65,6 +67,7 @@ export class MapperService {
       externalId,
       name,
       sku,
+      externalSku,
       shortDescription,
       description,
       basePrice: round2(basePrice),
@@ -251,6 +254,13 @@ export class MapperService {
 
     for (const t of field.transforms ?? []) {
       v = applyTransform(v, t, field.splitSeparator);
+    }
+
+    // Prepend the prefix only to a non-empty scalar, so a configured prefix with
+    // no resolved key still yields "" (and the SKU auto-generates downstream).
+    if (field.prefix && (typeof v === 'string' || typeof v === 'number')) {
+      const s = String(v);
+      v = s ? field.prefix + s : s;
     }
     return v;
   }

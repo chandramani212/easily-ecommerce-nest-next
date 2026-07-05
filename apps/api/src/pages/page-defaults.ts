@@ -14,7 +14,13 @@ export interface PageSeed {
   keywords: string;
 }
 
-export const PAGE_SLUGS = ['home', 'about', 'contact'] as const;
+export const PAGE_SLUGS = [
+  'home',
+  'about',
+  'contact',
+  'privacy',
+  'terms',
+] as const;
 export type PageSlug = (typeof PAGE_SLUGS)[number];
 
 export const PAGE_DEFAULTS: Record<PageSlug, PageSeed> = {
@@ -68,6 +74,10 @@ export const PAGE_DEFAULTS: Record<PageSlug, PageSeed> = {
             image: '/hero/slide-3.svg',
           },
         ],
+      },
+      content: {
+        heading: 'Why Choose Easily Branded',
+        body: '<p>From single prototypes to bulk corporate orders, we make custom branding effortless — premium materials, fast turnaround, and a team that sweats the details so you don\'t have to.</p><h3>What you get</h3><ul><li><strong>Premium materials</strong> tested for durability and a clean finish.</li><li><strong>Fast turnaround</strong> with rush options when you\'re on a deadline.</li><li><strong>Bulk pricing</strong> that rewards bigger orders.</li><li><strong>Dedicated support</strong> from first proof to final delivery.</li></ul><p>Ready to get started? <a href="/#shop">Browse the catalog</a> or <a href="/contact">talk to our team</a>.</p>',
       },
     },
   },
@@ -182,6 +192,28 @@ export const PAGE_DEFAULTS: Record<PageSlug, PageSeed> = {
         { question: 'How can I track my order?', answer: "Once your order ships, you'll receive a confirmation email with a tracking number. You can also track your order status in your account dashboard." },
         { question: 'Do you ship internationally?', answer: 'Yes! We ship to over 30 countries worldwide. International shipping rates and delivery times vary by destination.' },
       ],
+    },
+  },
+
+  privacy: {
+    title: 'Privacy Policy',
+    metaTitle: 'Privacy Policy — Easily Branded',
+    metaDescription:
+      'How Easily Branded collects, uses, and protects your personal information.',
+    keywords: 'privacy, privacy policy, data protection',
+    content: {
+      body: '<p><em>Last updated: [Effective date]</em></p><p>This Privacy Policy describes how [Legal entity name] (&ldquo;Easily Branded&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) collects, uses, and protects your information when you visit our website or purchase our products. By using our site, you consent to the practices described in this policy.</p><h2>1. Who We Are</h2><p>Easily Branded is operated by [Legal entity name], located at [Registered address]. For any privacy-related questions, contact us at <a href="mailto:info@easilybranded.com">info@easilybranded.com</a>.</p><h2>2. Information We Collect</h2><ul><li><strong>Information you provide:</strong> name, email address, phone number, billing and shipping address, company name, order details, custom artwork or logos, and any messages you send us.</li><li><strong>Payment information:</strong> processed securely by our payment providers; we do not store full payment card numbers on our servers.</li><li><strong>Information collected automatically:</strong> IP address, browser and device information, pages viewed, and referring URLs, gathered through cookies and similar technologies.</li></ul><h2>3. How We Use Your Information</h2><ul><li>To process, fulfil, and deliver your orders.</li><li>To produce custom-branded products according to the artwork and specifications you provide.</li><li>To provide customer support and respond to your enquiries.</li><li>To send order confirmations, service updates, and, where you have opted in, marketing communications.</li><li>To improve our website, products, and services.</li><li>To detect, prevent, and address fraud or security issues.</li></ul><h2>4. Cookies and Tracking</h2><p>We use cookies and similar technologies to operate the site, remember your preferences, analyse traffic, and measure marketing performance. You can control cookies through your browser settings; disabling them may affect site functionality.</p><h2>5. How We Share Information</h2><p>We do not sell your personal information. We share it only with:</p><ul><li><strong>Service providers</strong> who help us operate, such as payment processors, shipping carriers, hosting, email, and analytics providers, under confidentiality obligations.</li><li><strong>Legal and regulatory authorities</strong> where required by law or to protect our rights.</li><li><strong>Successors</strong> in connection with a merger, acquisition, or sale of assets.</li></ul><h2>6. Data Retention</h2><p>We retain personal information only for as long as necessary to fulfil the purposes described in this policy, including legal, accounting, and reporting obligations.</p><h2>7. Your Rights</h2><p>Depending on your location, you may have the right to access, correct, update, or delete your personal information, to object to or restrict certain processing, to withdraw consent, and to lodge a complaint with a data protection authority. To exercise these rights, contact us at <a href="mailto:info@easilybranded.com">info@easilybranded.com</a>.</p><h2>8. Data Security</h2><p>We use appropriate technical and organisational measures to protect your information. However, no method of transmission or storage is completely secure, and we cannot guarantee absolute security.</p><h2>9. International Transfers</h2><p>Your information may be processed in countries other than your own. Where required, we put appropriate safeguards in place for such transfers.</p><h2>10. Children&rsquo;s Privacy</h2><p>Our services are not directed to children under 16, and we do not knowingly collect their personal information.</p><h2>11. Third-Party Links</h2><p>Our site may link to third-party websites. We are not responsible for their privacy practices and encourage you to review their policies.</p><h2>12. Changes to This Policy</h2><p>We may update this Privacy Policy from time to time. Material changes will be posted on this page with an updated effective date.</p><h2>13. Contact Us</h2><p>If you have questions about this Privacy Policy, contact us at <a href="mailto:info@easilybranded.com">info@easilybranded.com</a> or via our <a href="/contact">contact page</a>.</p>',
+    },
+  },
+
+  terms: {
+    title: 'Terms & Conditions',
+    metaTitle: 'Terms & Conditions — Easily Branded',
+    metaDescription:
+      'The terms and conditions governing your use of Easily Branded.',
+    keywords: 'terms, conditions, terms of service',
+    content: {
+      body: '<p><em>Last updated: [Effective date]</em></p><p>These Terms and Conditions (&ldquo;Terms&rdquo;) govern your access to and use of the Easily Branded website and the purchase of our products and services. By accessing the site or placing an order, you agree to be bound by these Terms.</p><h2>1. Eligibility</h2><p>You must be at least 18 years old, or have the consent of a parent or guardian, to use this site or place an order.</p><h2>2. Accounts</h2><p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account.</p><h2>3. Orders and Acceptance</h2><p>All orders are offers to purchase and are subject to our acceptance. We may refuse or cancel an order at our discretion, including where there is an error in pricing or product information, or where we suspect fraud.</p><h2>4. Pricing and Payment</h2><ul><li>Prices are displayed in [Currency] and may change without notice.</li><li>Payment is due in full at the time of order unless otherwise agreed in writing.</li><li>You authorise us and our payment providers to charge your chosen payment method for the total order amount, including applicable taxes and shipping.</li></ul><h2>5. Custom Artwork, Proofs, and Intellectual Property</h2><ul><li>You are responsible for ensuring you have the right to use any logos, designs, or content you submit for customisation, and you grant us a licence to reproduce them solely to fulfil your order.</li><li>You warrant that your artwork does not infringe the intellectual property or other rights of any third party.</li><li>Where we provide a digital proof, production begins only after your approval; we are not liable for errors contained in an approved proof.</li></ul><h2>6. Shipping and Delivery</h2><p>Delivery times are estimates and are not guaranteed. Risk of loss passes to you upon delivery to the carrier. Any customs duties or import taxes are your responsibility.</p><h2>7. Returns and Refunds</h2><p>Custom-branded products are made to order and may not be eligible for return except where they are defective or differ materially from the approved proof. Please contact us for assistance with any issue.</p><h2>8. Acceptable Use</h2><p>You agree not to misuse the site, including by attempting unauthorised access, interfering with its operation, or using it for any unlawful purpose.</p><h2>9. Intellectual Property</h2><p>All content on this site, including text, graphics, logos, and images, is the property of Easily Branded or its licensors and may not be used without our prior written permission.</p><h2>10. Disclaimers</h2><p>The site and products are provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis without warranties of any kind, to the fullest extent permitted by law.</p><h2>11. Limitation of Liability</h2><p>To the maximum extent permitted by law, Easily Branded shall not be liable for any indirect, incidental, or consequential damages arising from your use of the site or products. Our total liability shall not exceed the amount you paid for the relevant order.</p><h2>12. Indemnification</h2><p>You agree to indemnify and hold Easily Branded harmless from any claims arising out of your breach of these Terms or the artwork you submit.</p><h2>13. Governing Law</h2><p>These Terms are governed by the laws of [Governing law / jurisdiction], and any disputes shall be subject to the exclusive jurisdiction of its courts.</p><h2>14. Changes to These Terms</h2><p>We may update these Terms from time to time. Your continued use of the site after changes take effect constitutes acceptance of the revised Terms.</p><h2>15. Contact Us</h2><p>Questions about these Terms? Contact [Legal entity name] at <a href="mailto:info@easilybranded.com">info@easilybranded.com</a> or via our <a href="/contact">contact page</a>.</p>',
     },
   },
 };

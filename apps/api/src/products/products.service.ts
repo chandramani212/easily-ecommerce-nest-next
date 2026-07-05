@@ -67,10 +67,31 @@ export class ProductsService {
     );
     const where: Prisma.ProductWhereInput = {};
     if (query.q) {
-      where.OR = [
-        { name: { contains: query.q, mode: 'insensitive' } },
-        { sku: { contains: query.q, mode: 'insensitive' } },
+      const q = query.q;
+      const or: Prisma.ProductWhereInput[] = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { sku: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { shortDescription: { contains: q, mode: 'insensitive' } },
+        { categories: { some: { name: { contains: q, mode: 'insensitive' } } } },
       ];
+
+      // `attributes` is a JSON array of { name, value }; match its contents via
+      // a parameterized jsonb scan and OR the matching ids into the search.
+      const attrMatches = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "Product"
+        WHERE jsonb_typeof("attributes"::jsonb) = 'array'
+          AND EXISTS (
+            SELECT 1 FROM jsonb_array_elements("attributes"::jsonb) AS elem
+            WHERE elem->>'value' ILIKE ${'%' + q + '%'}
+               OR elem->>'name' ILIKE ${'%' + q + '%'}
+          )
+      `;
+      if (attrMatches.length) {
+        or.push({ id: { in: attrMatches.map((r) => r.id) } });
+      }
+
+      where.OR = or;
     }
     if (query.categoryId) {
       where.categories = { some: { id: query.categoryId } };
@@ -122,7 +143,9 @@ export class ProductsService {
         data: {
           name: dto.name,
           slug: dto.slug,
-          sku: dto.sku,
+          // Omit blank sku so the DB default (EB-000123) generates the website SKU.
+          sku: dto.sku || undefined,
+          externalSku: dto.externalSku || undefined,
           shortDescription: dto.shortDescription ?? '',
           description: dto.description ?? '',
           basePrice: dto.basePrice,
@@ -187,7 +210,8 @@ export class ProductsService {
       const data: Prisma.ProductUpdateInput = {};
       if (dto.name !== undefined) data.name = dto.name;
       if (dto.slug !== undefined) data.slug = dto.slug;
-      if (dto.sku !== undefined) data.sku = dto.sku;
+      if (dto.sku) data.sku = dto.sku;
+      if (dto.externalSku !== undefined) data.externalSku = dto.externalSku;
       if (dto.shortDescription !== undefined)
         data.shortDescription = dto.shortDescription;
       if (dto.description !== undefined) data.description = dto.description;
@@ -240,6 +264,7 @@ export class ProductsService {
 
     const rows = products.map((p) => ({
       sku: p.sku,
+      externalSku: p.externalSku ?? '',
       name: p.name,
       slug: p.slug,
       shortDescription: p.shortDescription,
@@ -264,6 +289,7 @@ export class ProductsService {
       header: true,
       columns: [
         'sku',
+        'externalSku',
         'name',
         'slug',
         'shortDescription',
@@ -346,6 +372,7 @@ export class ProductsService {
         const data = {
           name: row.name,
           slug: row.slug || row.sku.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          ...(row.externalSku ? { externalSku: row.externalSku } : {}),
           shortDescription: row.shortDescription ?? '',
           description: row.description ?? '',
           basePrice,

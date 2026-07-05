@@ -5,6 +5,10 @@ import Link from "next/link";
 interface ErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
+  // Next.js 16.2: re-fetches from the server (router.refresh + reset in a
+  // transition). Preferred over reset() here since admin errors are almost
+  // always API data-fetch failures, which plain reset() cannot recover.
+  unstable_retry?: () => void;
 }
 
 interface ErrorInfo {
@@ -55,7 +59,8 @@ function classify(digest: string | undefined): ErrorInfo {
   }
 }
 
-export default function AdminError({ error, reset }: ErrorProps) {
+export default function AdminError({ error, reset, unstable_retry }: ErrorProps) {
+  const retry = unstable_retry ?? reset;
   const info = classify(error.digest);
   const isDev = process.env.NODE_ENV === "development";
 
@@ -85,7 +90,7 @@ export default function AdminError({ error, reset }: ErrorProps) {
         <p className="mt-2 text-sm text-[var(--admin-fg)]/70">{info.body}</p>
         <div className="mt-6 flex justify-center gap-3">
           <button
-            onClick={reset}
+            onClick={() => retry()}
             className="rounded-lg border border-[var(--admin-border)] px-4 py-2 text-sm font-medium hover:bg-[var(--admin-muted)]"
           >
             Try again

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds a fully static showcase of the admin UI into `apps/admin/out/`.
 //
-// Static export (`output: 'export'`) doesn't support middleware, route
+// Static export (`output: 'export'`) doesn't support proxy, route
 // handlers, or `next/headers`. This script temporarily moves those files
 // aside, runs `next build` with NEXT_PUBLIC_DEMO=1, then restores them.
 
@@ -15,7 +15,7 @@ const adminRoot = resolve(here, "..");
 const stash = resolve(adminRoot, ".demo-build-stash");
 
 const moves = [
-  { src: join(adminRoot, "middleware.ts"), dest: join(stash, "middleware.ts") },
+  { src: join(adminRoot, "proxy.ts"), dest: join(stash, "proxy.ts") },
   { src: join(adminRoot, "app/api"), dest: join(stash, "app-api") },
 ];
 
