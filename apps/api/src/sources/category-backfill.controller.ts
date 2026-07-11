@@ -25,4 +25,16 @@ export class CategoryBackfillController {
   status(@Param('sourceId') sourceId: string) {
     return this.service.getStatus(sourceId);
   }
+
+  /** Start the LOCAL re-sync (no ASI): re-derive curated categories from the
+   *  stored product↔source-category links + current mapping. */
+  @Post('resync')
+  startResync(@Param('sourceId') sourceId: string) {
+    return this.service.startResync(sourceId);
+  }
+
+  @Get('resync/status')
+  resyncStatus(@Param('sourceId') sourceId: string) {
+    return this.service.getResyncStatus(sourceId);
+  }
 }

@@ -43,6 +43,8 @@ const norm = (s: string | null | undefined): string =>
 export class CategoryBackfillService {
   private readonly logger = new Logger(CategoryBackfillService.name);
   private readonly status = new Map<string, BackfillStatus>();
+  /** Progress for the local (no-ASI) curated re-sync job, keyed by source. */
+  private readonly resyncStatus = new Map<string, BackfillStatus>();
   /** ASI tree node name (normalized) → exact ContextPath, for the 388 facet cats. */
   private readonly nameToCtx = this.loadTree();
 
@@ -137,7 +139,7 @@ export class CategoryBackfillService {
     // Mapped source categories that point at a leaf curated category.
     const rows = await this.prisma.sourceCategory.findMany({
       where: { sourceId, categoryId: { not: null } },
-      select: { externalId: true, name: true, parentExternalId: true, categoryId: true },
+      select: { id: true, externalId: true, name: true, parentExternalId: true, categoryId: true },
     });
     const byId = new Map(rows.map((r) => [r.externalId, r]));
     const targets = rows.filter((r) => r.categoryId && leafIds.has(r.categoryId));
@@ -160,10 +162,16 @@ export class CategoryBackfillService {
           const asiIds = await fetcher.collectCategoryProductIds(token);
           const productIds = matchProductIds(asiIds, productIdByAsiId);
           for (let i = 0; i < productIds.length; i += CONNECT_CHUNK) {
-            const chunk = productIds.slice(i, i + CONNECT_CHUNK);
+            const chunk = productIds.slice(i, i + CONNECT_CHUNK).map((id) => ({ id }));
+            // Store the durable product↔source-category link…
+            await this.prisma.sourceCategory.update({
+              where: { id: r.id },
+              data: { products: { connect: chunk } },
+            });
+            // …and attach the curated category now (skips a later resync).
             await this.prisma.category.update({
               where: { id: categoryId },
-              data: { products: { connect: chunk.map((id) => ({ id })) } },
+              data: { products: { connect: chunk } },
             });
           }
           status.productsConnected += productIds.length;
@@ -180,6 +188,84 @@ export class CategoryBackfillService {
     this.logger.log(
       `Backfill done for ${sourceId}: ${status.processed}/${status.total} categories, ` +
         `${status.productsConnected} product links.`,
+    );
+  }
+
+  // --- Local re-sync (no ASI) ------------------------------------------------
+
+  getResyncStatus(sourceId: string): BackfillStatus {
+    return this.resyncStatus.get(sourceId) ?? idle();
+  }
+
+  /**
+   * Re-derive every product's curated categories from its stored
+   * product↔source-category links + the current source→curated mapping.
+   * Pure DB — no ASI. Use after changing the mapping. Only affects products
+   * that already have source-category links (i.e. imported or ASI-backfilled).
+   */
+  startResync(sourceId: string): BackfillStatus {
+    const current = this.resyncStatus.get(sourceId);
+    if (current?.running) return current;
+    const fresh: BackfillStatus = { ...idle(), running: true, startedAt: new Date().toISOString() };
+    this.resyncStatus.set(sourceId, fresh);
+    void this.runResync(sourceId).catch((e) => {
+      const s = this.resyncStatus.get(sourceId);
+      if (s) {
+        s.running = false;
+        s.finishedAt = new Date().toISOString();
+        s.error = e instanceof Error ? e.message : String(e);
+      }
+      this.logger.error(`Resync failed for source ${sourceId}: ${String(e)}`);
+    });
+    return fresh;
+  }
+
+  private async runResync(sourceId: string): Promise<void> {
+    const status = this.resyncStatus.get(sourceId)!;
+    const PAGE = 500;
+
+    const total = await this.prisma.product.count({
+      where: { sourceCategories: { some: { sourceId } } },
+    });
+    status.total = total;
+
+    let cursor: string | undefined;
+    for (;;) {
+      const page = await this.prisma.product.findMany({
+        where: { sourceCategories: { some: { sourceId } } },
+        select: {
+          id: true,
+          sourceCategories: { where: { sourceId }, select: { categoryId: true } },
+        },
+        orderBy: { id: 'asc' },
+        take: PAGE,
+        ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      });
+      if (page.length === 0) break;
+
+      for (const prod of page) {
+        const catIds = [
+          ...new Set(
+            prod.sourceCategories
+              .map((sc) => sc.categoryId)
+              .filter((v): v is string => !!v),
+          ),
+        ];
+        await this.prisma.product.update({
+          where: { id: prod.id },
+          data: { categories: { set: catIds.map((id) => ({ id })) } },
+        });
+        status.processed += 1;
+        status.productsConnected += catIds.length > 0 ? 1 : 0;
+      }
+      cursor = page[page.length - 1].id;
+      if (page.length < PAGE) break;
+    }
+
+    status.running = false;
+    status.finishedAt = new Date().toISOString();
+    this.logger.log(
+      `Resync done for ${sourceId}: ${status.processed} products re-categorized locally.`,
     );
   }
 }

@@ -48,6 +48,26 @@ export interface RunResultRow {
   preview?: MappedProduct;
 }
 
+/**
+ * Mutable state threaded through a run's per-record processing. Built once by
+ * `createProcessContext`, fed records by `processBatch` (one call for a
+ * buffered run, many for a streaming one), and resolved by `finishProcessing`.
+ */
+interface ProcessContext {
+  spec: MappingSpec;
+  markup: MarkupSpec | undefined;
+  dryRun: boolean;
+  shouldDownloadImages: boolean;
+  imageAuthHeaders: Record<string, string> | null;
+  fallbackSupplierId: string | null;
+  totals: { created: number; updated: number; skipped: number; failed: number };
+  errors: { record: number; externalId?: string; error: string }[];
+  rows: RunResultRow[];
+  seenLinkIds: string[];
+  /** Records processed so far, across all batches — also the next record index. */
+  processed: number;
+}
+
 export interface RunResult {
   runId: string | null;
   status: SourceImportRunStatus;
@@ -73,6 +93,8 @@ export class ImportRunnerService {
   private readonly inFlight = new Set<string>();
   /** Max errors to keep on the run row to avoid bloating jsonb. */
   private static readonly MAX_LOGGED_ERRORS = 200;
+  /** Flush live progress counters to the run row every N processed records. */
+  private static readonly PROGRESS_FLUSH_EVERY = 100;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -86,72 +108,192 @@ export class ImportRunnerService {
    * full per-record preview is returned in `rows`.
    */
   async run(importId: string, opts: RunOptions = {}): Promise<RunResult> {
-    if (!opts.dryRun) {
-      if (this.inFlight.has(importId)) {
-        throw new Error(
-          `Import ${importId} is already running; concurrent run rejected.`,
-        );
-      }
-      this.inFlight.add(importId);
+    // Dry runs stay fully synchronous: no run row, no background work — the
+    // caller wants the per-record preview back in the response body.
+    if (opts.dryRun) {
+      const imp = await this.prisma.sourceImport.findUnique({
+        where: { id: importId },
+        include: { source: true },
+      });
+      if (!imp) throw new Error(`SourceImport ${importId} not found`);
+      const records = await this.fetchAndParse(imp, opts);
+      const limited = opts.limit ? records.slice(0, opts.limit) : records;
+      const result = await this.processRecords(imp, limited, true);
+      return { runId: null, ...result };
     }
 
+    // Real runs execute in the background so the HTTP caller returns instantly
+    // with a run id it can poll for live progress. A full-catalog ASI sync pulls
+    // one detail request per product and can run for a long time — blocking the
+    // request on it would time out the browser long before it finishes.
+    if (this.inFlight.has(importId)) {
+      throw new Error(
+        `Import ${importId} is already running; concurrent run rejected.`,
+      );
+    }
+    this.inFlight.add(importId);
+
+    let runRow: { id: string };
     try {
       const imp = await this.prisma.sourceImport.findUnique({
         where: { id: importId },
         include: { source: true },
       });
       if (!imp) throw new Error(`SourceImport ${importId} not found`);
-
-      // Persist a fresh run row up front so we always have something to update,
-      // even if fetching/parsing throws below. Skipped for dry runs.
-      const runRow = opts.dryRun
-        ? null
-        : await this.prisma.sourceImportRun.create({
-            data: {
-              importId,
-              status: 'RUNNING',
-              triggeredBy: opts.trigger ?? 'MANUAL',
-            },
-          });
-
-      try {
-        const records = await this.fetchAndParse(imp, opts);
-        const limited = opts.limit ? records.slice(0, opts.limit) : records;
-        const result = await this.processRecords(imp, limited, !!opts.dryRun);
-
-        if (runRow) {
-          await this.finalizeRun(runRow.id, importId, result);
-        }
-        return { runId: runRow?.id ?? null, ...result };
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        this.logger.error(`Import ${importId} failed: ${errorMsg}`);
-        const status: SourceImportRunStatus = 'FAILED';
-        const errors = [{ record: -1, error: errorMsg }];
-        if (runRow) {
-          await this.prisma.sourceImportRun.update({
-            where: { id: runRow.id },
-            data: {
-              status,
-              finishedAt: new Date(),
-              errors: errors as unknown as Prisma.InputJsonValue,
-            },
-          });
-          await this.prisma.sourceImport.update({
-            where: { id: importId },
-            data: { lastRunAt: new Date(), lastStatus: status, lastRunId: runRow.id },
-          });
-        }
-        return {
-          runId: runRow?.id ?? null,
-          status,
-          totals: { created: 0, updated: 0, skipped: 0, failed: 0 },
-          errors,
-        };
-      }
-    } finally {
-      if (!opts.dryRun) this.inFlight.delete(importId);
+      // Persist a fresh run row up front so pollers have something to read
+      // immediately, even before the fetch phase reports a total.
+      runRow = await this.prisma.sourceImportRun.create({
+        data: {
+          importId,
+          status: 'RUNNING',
+          triggeredBy: opts.trigger ?? 'MANUAL',
+        },
+      });
+      // Fire-and-forget: the background task owns the concurrency guard from
+      // here and always releases it, success or failure.
+      const runId = runRow.id;
+      void this.executeRun(imp, runId, opts).finally(() =>
+        this.inFlight.delete(importId),
+      );
+    } catch (err) {
+      // We failed before the background task took ownership of the guard.
+      this.inFlight.delete(importId);
+      throw err;
     }
+
+    return {
+      runId: runRow.id,
+      status: 'RUNNING',
+      totals: { created: 0, updated: 0, skipped: 0, failed: 0 },
+      errors: [],
+    };
+  }
+
+  /**
+   * Background body of a real (non-dry) run: fetch → process → finalize. Handles
+   * its own errors by marking the run FAILED — it is never awaited by the caller,
+   * so a rejection here must not escape as an unhandled promise.
+   */
+  private async executeRun(
+    imp: SourceImport & { source: Source },
+    runId: string,
+    opts: RunOptions,
+  ): Promise<void> {
+    try {
+      // ASI Central pulls the full catalog one detail request at a time — a long,
+      // rate-limited job. Stream it: map + upsert each batch as it downloads so
+      // products appear during the run and a mid-run crash keeps what was already
+      // written, instead of buffering everything for a single write at the end.
+      if (imp.source.kind === 'ASI_CENTRAL' && !opts.sample) {
+        await this.executeStreamingRun(imp, runId, opts);
+        return;
+      }
+
+      // Surface download progress during the (longest) fetch phase. Best-effort,
+      // fire-and-forget: a failed progress write must never abort the import.
+      const onFetchProgress = (fetched: number, total: number): void => {
+        void this.prisma.sourceImportRun
+          .update({ where: { id: runId }, data: { fetched, total } })
+          .catch(() => undefined);
+      };
+      const records = await this.fetchAndParse(imp, opts, onFetchProgress);
+      const limited = opts.limit ? records.slice(0, opts.limit) : records;
+      // Publish the denominator now that fetching is done, so a poller can draw
+      // a real progress bar over the processing phase.
+      await this.prisma.sourceImportRun.update({
+        where: { id: runId },
+        data: { total: limited.length, fetched: limited.length },
+      });
+      const result = await this.processRecords(imp, limited, false, runId);
+      await this.finalizeRun(runId, imp.id, result);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Import ${imp.id} failed: ${errorMsg}`);
+      const errors = [{ record: -1, error: errorMsg }];
+      const finishedAt = new Date();
+      await this.prisma.sourceImportRun.update({
+        where: { id: runId },
+        data: {
+          status: 'FAILED',
+          finishedAt,
+          errors: errors as unknown as Prisma.InputJsonValue,
+        },
+      });
+      await this.prisma.sourceImport.update({
+        where: { id: imp.id },
+        data: { lastRunAt: finishedAt, lastStatus: 'FAILED', lastRunId: runId },
+      });
+    }
+  }
+
+  /**
+   * Streaming variant used for ASI Central: the fetcher hands us detail records
+   * in batches as it downloads them, and we map + upsert each batch immediately,
+   * flushing live counters to the run row. Products are therefore written
+   * throughout the run (visible in the admin as they land) and survive a mid-run
+   * failure — the enclosing `executeRun` still marks the run FAILED, but the rows
+   * committed before the failure stay put.
+   */
+  private async executeStreamingRun(
+    imp: SourceImport & { source: Source },
+    runId: string,
+    opts: RunOptions,
+  ): Promise<void> {
+    const ctx = await this.createProcessContext(imp, false);
+
+    // Skip-existing (default on): load the ids we already have for this source so
+    // a re-run pulls only the catalog it's missing — fast, additive "resume".
+    // Disable per-import with `{"skipExisting": false}` to force-refresh details.
+    const asiCfg = parseAsiConfig(imp.body);
+    const skipDetailIds =
+      asiCfg.skipExisting === false
+        ? undefined
+        : await this.loadExistingExternalIds(imp.source.id);
+    if (skipDetailIds) {
+      this.logger.log(
+        `Import ${imp.id}: skip-existing on — ${skipDetailIds.size} known ids will not be re-fetched`,
+      );
+    }
+
+    const onFetchProgress = (fetched: number, total: number): void => {
+      void this.prisma.sourceImportRun
+        .update({ where: { id: runId }, data: { fetched, total } })
+        .catch(() => undefined);
+    };
+    const onBatch = async (records: unknown[]): Promise<void> => {
+      await this.processBatch(imp, records, ctx);
+      // Flush counters after each batch so the admin poller sees rows accrue.
+      await this.prisma.sourceImportRun
+        .update({
+          where: { id: runId },
+          data: {
+            created: ctx.totals.created,
+            updated: ctx.totals.updated,
+            skipped: ctx.totals.skipped,
+            failed: ctx.totals.failed,
+          },
+        })
+        .catch(() => undefined);
+    };
+
+    const fetcher = await this.buildFetcher(
+      imp, opts, onFetchProgress, onBatch, skipDetailIds,
+    );
+    await fetcher.fetch();
+
+    const result = await this.finishProcessing(imp, ctx);
+    await this.finalizeRun(runId, imp.id, result);
+  }
+
+  /** Ids already linked for a source — the skip set for additive re-runs. */
+  private async loadExistingExternalIds(
+    sourceId: string,
+  ): Promise<Set<string>> {
+    const links = await this.prisma.sourceProductLink.findMany({
+      where: { sourceId },
+      select: { externalId: true },
+    });
+    return new Set(links.map((l) => l.externalId));
   }
 
   /* ---- Internals. ------------------------------------------------------ */
@@ -159,8 +301,9 @@ export class ImportRunnerService {
   private async fetchAndParse(
     imp: SourceImport & { source: Source },
     opts: RunOptions,
+    onFetchProgress?: (fetched: number, total: number) => void,
   ): Promise<unknown[]> {
-    const fetcher = await this.buildFetcher(imp, opts);
+    const fetcher = await this.buildFetcher(imp, opts, onFetchProgress);
     const payload = await fetcher.fetch();
     // ASI_CENTRAL fetcher emits a synthetic JSON envelope of shape
     // `{ records: [...] }`; force-pin the parser config so user mis-settings
@@ -178,6 +321,9 @@ export class ImportRunnerService {
   private async buildFetcher(
     imp: SourceImport & { source: Source },
     opts: RunOptions,
+    onFetchProgress?: (fetched: number, total: number) => void,
+    onBatch?: (records: unknown[]) => Promise<void>,
+    skipDetailIds?: ReadonlySet<string>,
   ): Promise<Fetcher> {
     if (opts.sample) {
       return new FileFetcher(opts.sample.body, opts.sample.contentType);
@@ -200,6 +346,9 @@ export class ImportRunnerService {
           searchQuery: asiCfg.searchQuery ?? null,
           maxPages: asiCfg.maxPages,
           maxRecords: asiCfg.maxRecords,
+          onFetchProgress,
+          onBatch,
+          skipDetailIds,
         },
         auth,
       );
@@ -224,18 +373,35 @@ export class ImportRunnerService {
     );
   }
 
+  /**
+   * Process a whole record set in one shot: build context → process → finish.
+   * Used by dry-run previews and buffered (non-streaming) real runs. Streaming
+   * runs call `createProcessContext`/`processBatch`/`finishProcessing` directly.
+   */
   private async processRecords(
     imp: SourceImport & { source: Source },
     records: unknown[],
     dryRun: boolean,
+    runId?: string,
   ): Promise<Omit<RunResult, 'runId'>> {
+    const ctx = await this.createProcessContext(imp, dryRun);
+    await this.processBatch(imp, records, ctx, runId);
+    return this.finishProcessing(imp, ctx);
+  }
+
+  // (createProcessContext / processBatch / finishProcessing follow.)
+
+  /**
+   * Build the once-per-run processing state: mapping spec, image auth headers,
+   * and the fallback supplier, plus zeroed counters. Resolved up front so a
+   * streaming run doesn't repeat this work per batch.
+   */
+  private async createProcessContext(
+    imp: SourceImport & { source: Source },
+    dryRun: boolean,
+  ): Promise<ProcessContext> {
     const spec = (imp.mapping ?? {}) as unknown as MappingSpec;
     const markup = imp.markup as unknown as MarkupSpec | undefined;
-    const totals = { created: 0, updated: 0, skipped: 0, failed: 0 };
-    const errors: { record: number; externalId?: string; error: string }[] = [];
-    const rows: RunResultRow[] = [];
-    const seenLinkIds: string[] = [];
-
     const shouldDownloadImages = !!spec.images?.download;
     // Build auth headers up front so we don't decrypt/build per image. The
     // header set is identical across all images in a run because credentials
@@ -243,7 +409,6 @@ export class ImportRunnerService {
     const imageAuthHeaders = shouldDownloadImages
       ? await this.buildAuthHeaders(imp.source)
       : null;
-
     // Direct sources carry one manually-entered Supplier; when the feed has no
     // per-record vendor mapping, every imported product is linked to it. Resolved
     // once per run. (Aggregator feeds override this per-record via mapped.vendor.)
@@ -257,29 +422,57 @@ export class ImportRunnerService {
           })
         )?.id ?? null;
 
-    for (let i = 0; i < records.length; i += 1) {
-      const record = records[i];
+    return {
+      spec,
+      markup,
+      dryRun,
+      shouldDownloadImages,
+      imageAuthHeaders,
+      fallbackSupplierId,
+      totals: { created: 0, updated: 0, skipped: 0, failed: 0 },
+      errors: [],
+      rows: [],
+      seenLinkIds: [],
+      processed: 0,
+    };
+  }
+
+  /**
+   * Map + upsert one batch of records into the shared context, advancing counters
+   * and the processed cursor. Called once for a buffered run, repeatedly (one per
+   * streamed batch) for an ASI run. When `runId` is set, running counters are
+   * flushed every `PROGRESS_FLUSH_EVERY` records for live admin progress.
+   */
+  private async processBatch(
+    imp: SourceImport & { source: Source },
+    records: unknown[],
+    ctx: ProcessContext,
+    runId?: string,
+  ): Promise<void> {
+    for (const record of records) {
+      const i = ctx.processed;
       try {
-        const mapped = this.mapper.mapRecord(record, spec, markup);
-        if (dryRun) {
-          rows.push({
+        const mapped = this.mapper.mapRecord(record, ctx.spec, ctx.markup);
+        if (ctx.dryRun) {
+          ctx.rows.push({
             index: i,
             externalId: mapped.externalId,
             action: 'updated',
             preview: mapped,
           });
-          totals.updated += 1;
+          ctx.totals.updated += 1;
+          ctx.processed += 1;
           continue;
         }
-        if (shouldDownloadImages && mapped.images.length) {
+        if (ctx.shouldDownloadImages && mapped.images.length) {
           const { urls, failures } = await this.localizeImages(
             mapped.images,
-            imageAuthHeaders ?? undefined,
+            ctx.imageAuthHeaders ?? undefined,
           );
           mapped.images = urls;
           for (const f of failures) {
-            if (errors.length < ImportRunnerService.MAX_LOGGED_ERRORS) {
-              errors.push({
+            if (ctx.errors.length < ImportRunnerService.MAX_LOGGED_ERRORS) {
+              ctx.errors.push({
                 record: i,
                 externalId: mapped.externalId,
                 error: `image download failed: ${f.url} — ${f.error}`,
@@ -287,56 +480,102 @@ export class ImportRunnerService {
             }
           }
         }
-        const result = await this.upsertOne(imp.source.id, mapped, fallbackSupplierId);
-        if (result.action === 'created') totals.created += 1;
-        else if (result.action === 'updated') totals.updated += 1;
-        else totals.skipped += 1;
-        if (result.linkId) seenLinkIds.push(result.linkId);
-        rows.push({
+        const result = await this.upsertOne(
+          imp.source.id,
+          mapped,
+          ctx.fallbackSupplierId,
+        );
+        if (result.action === 'created') ctx.totals.created += 1;
+        else if (result.action === 'updated') ctx.totals.updated += 1;
+        else ctx.totals.skipped += 1;
+        if (result.linkId) ctx.seenLinkIds.push(result.linkId);
+        ctx.rows.push({
           index: i,
           externalId: mapped.externalId,
           action: result.action,
           productId: result.productId,
         });
       } catch (err) {
-        totals.failed += 1;
+        ctx.totals.failed += 1;
         const error = err instanceof Error ? err.message : String(err);
-        if (errors.length < ImportRunnerService.MAX_LOGGED_ERRORS) {
-          errors.push({ record: i, error });
+        if (ctx.errors.length < ImportRunnerService.MAX_LOGGED_ERRORS) {
+          ctx.errors.push({ record: i, error });
         }
-        rows.push({ index: i, action: 'failed', error });
+        ctx.rows.push({ index: i, action: 'failed', error });
+      }
+
+      ctx.processed += 1;
+      // Flush running counters periodically so the admin's poller can render
+      // live progress. Best-effort: a failed flush must not abort the import.
+      if (
+        runId &&
+        ctx.processed % ImportRunnerService.PROGRESS_FLUSH_EVERY === 0
+      ) {
+        await this.prisma.sourceImportRun
+          .update({
+            where: { id: runId },
+            data: {
+              created: ctx.totals.created,
+              updated: ctx.totals.updated,
+              skipped: ctx.totals.skipped,
+              failed: ctx.totals.failed,
+            },
+          })
+          .catch(() => undefined);
       }
     }
+  }
 
-    if (!dryRun && imp.autoDeactivateMissing && totals.failed === 0) {
-      await this.deactivateMissing(imp.source.id, seenLinkIds);
-    }
+  /**
+   * Resolve a finished (or streamed-to-completion) context into a run result:
+   * apply auto-deactivation, guard the empty-fetch case, and pick a status.
+   */
+  private async finishProcessing(
+    imp: SourceImport & { source: Source },
+    ctx: ProcessContext,
+  ): Promise<Omit<RunResult, 'runId'>> {
+    await this.maybeDeactivateMissing(imp, ctx);
 
     // A 0-record fetch used to be reported as SUCCESS (totals.failed === 0,
     // trivially). For ASI Central that masked a real bug — the search response
     // key wasn't recognized, so nothing was ever imported.
-    if (records.length === 0) {
-      errors.push({
+    if (ctx.processed === 0) {
+      ctx.errors.push({
         record: -1,
         error:
           'Fetcher returned 0 records. Check source endpoint, credentials, and search query.',
       });
       return {
         status: 'FAILED',
-        totals,
-        errors,
-        rows: dryRun ? rows : undefined,
+        totals: ctx.totals,
+        errors: ctx.errors,
+        rows: ctx.dryRun ? ctx.rows : undefined,
       };
     }
 
     const status: SourceImportRunStatus =
-      totals.failed === 0
+      ctx.totals.failed === 0
         ? 'SUCCESS'
-        : totals.failed < records.length
+        : ctx.totals.failed < ctx.processed
           ? 'PARTIAL'
           : 'FAILED';
 
-    return { status, totals, errors, rows: dryRun ? rows : undefined };
+    return {
+      status,
+      totals: ctx.totals,
+      errors: ctx.errors,
+      rows: ctx.dryRun ? ctx.rows : undefined,
+    };
+  }
+
+  /** Deactivate products no longer present in the feed (opt-in per import). */
+  private async maybeDeactivateMissing(
+    imp: SourceImport & { source: Source },
+    ctx: ProcessContext,
+  ): Promise<void> {
+    if (!ctx.dryRun && imp.autoDeactivateMissing && ctx.totals.failed === 0) {
+      await this.deactivateMissing(imp.source.id, ctx.seenLinkIds);
+    }
   }
 
   /**
@@ -393,7 +632,11 @@ export class ImportRunnerService {
           ).id
         : fallbackSupplierId;
 
-      const categoryIds = await this.resolveCategoryIds(tx, sourceId, mapped.categories);
+      const { categoryIds, sourceCategoryIds } = await this.resolveCategoryIds(
+        tx,
+        sourceId,
+        mapped.categories,
+      );
 
       const productData = {
         name: mapped.name,
@@ -425,6 +668,7 @@ export class ImportRunnerService {
           data: {
             ...productData,
             categories: { set: categoryIds.map((id) => ({ id })) },
+            sourceCategories: { set: sourceCategoryIds.map((id) => ({ id })) },
             tierPrices: {
               deleteMany: {},
               create: mapped.tiers.map((t) => ({
@@ -452,6 +696,7 @@ export class ImportRunnerService {
             data: {
               ...productData,
               categories: { set: categoryIds.map((id) => ({ id })) },
+            sourceCategories: { set: sourceCategoryIds.map((id) => ({ id })) },
               tierPrices: {
                 deleteMany: {},
                 create: mapped.tiers.map((t) => ({
@@ -473,6 +718,9 @@ export class ImportRunnerService {
               ...productData,
               slug,
               categories: { connect: categoryIds.map((id) => ({ id })) },
+              sourceCategories: {
+                connect: sourceCategoryIds.map((id) => ({ id })),
+              },
               tierPrices: {
                 create: mapped.tiers.map((t) => ({
                   minQuantity: t.minQuantity,
@@ -577,8 +825,8 @@ export class ImportRunnerService {
     tx: Prisma.TransactionClient,
     sourceId: string,
     categories: MappedCategory[],
-  ): Promise<string[]> {
-    if (!categories.length) return [];
+  ): Promise<{ categoryIds: string[]; sourceCategoryIds: string[] }> {
+    if (!categories.length) return { categoryIds: [], sourceCategoryIds: [] };
     const isStructured = categories.some((c) => c.externalId);
 
     if (isStructured) {
@@ -630,11 +878,15 @@ export class ImportRunnerService {
       const externalIds = [...seenExternal];
       const mapped = await tx.sourceCategory.findMany({
         where: { sourceId, externalId: { in: externalIds } },
-        select: { categoryId: true },
+        select: { id: true, categoryId: true },
       });
       const ids = new Set<string>();
-      for (const m of mapped) if (m.categoryId) ids.add(m.categoryId);
-      return [...ids];
+      const sourceCategoryIds: string[] = [];
+      for (const m of mapped) {
+        sourceCategoryIds.push(m.id);
+        if (m.categoryId) ids.add(m.categoryId);
+      }
+      return { categoryIds: [...ids], sourceCategoryIds };
     }
 
     const ids = new Set<string>();
@@ -656,7 +908,7 @@ export class ImportRunnerService {
         ids.add(created.id);
       }
     }
-    return [...ids];
+    return { categoryIds: [...ids], sourceCategoryIds: [] };
   }
 
   private async deactivateMissing(
@@ -708,6 +960,7 @@ function parseAsiConfig(raw: string | null | undefined): {
   searchQuery?: string | null;
   maxPages?: number;
   maxRecords?: number;
+  skipExisting?: boolean;
 } {
   if (!raw) return {};
   try {
@@ -723,6 +976,10 @@ function parseAsiConfig(raw: string | null | undefined): {
         typeof parsed.maxPages === 'number' ? parsed.maxPages : undefined,
       maxRecords:
         typeof parsed.maxRecords === 'number' ? parsed.maxRecords : undefined,
+      skipExisting:
+        typeof parsed.skipExisting === 'boolean'
+          ? parsed.skipExisting
+          : undefined,
     };
   } catch {
     return {};

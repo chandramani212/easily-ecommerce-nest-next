@@ -76,11 +76,16 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [backfill, setBackfill] = useState<BackfillStatus | null>(null);
   const [starting, setStarting] = useState(false);
+  const [resync, setResync] = useState<BackfillStatus | null>(null);
+  const [startingResync, setStartingResync] = useState(false);
 
-  // Load current backfill status once (a job may already be running).
+  // Load current job statuses once (a job may already be running).
   useEffect(() => {
     clientApi<BackfillStatus>(`/sources/${sourceId}/categorize-products/status`)
       .then(setBackfill)
+      .catch(() => {});
+    clientApi<BackfillStatus>(`/sources/${sourceId}/categorize-products/resync/status`)
+      .then(setResync)
       .catch(() => {});
   }, [sourceId]);
 
@@ -101,6 +106,30 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
     return () => clearTimeout(t);
   }, [backfill, sourceId]);
 
+  useEffect(() => {
+    if (!resync?.running) return;
+    const t = setTimeout(async () => {
+      try {
+        setResync(
+          await clientApi<BackfillStatus>(
+            `/sources/${sourceId}/categorize-products/resync/status`,
+          ),
+        );
+      } catch {
+        /* keep last known status */
+      }
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [resync, sourceId]);
+
+  function jobError(e: unknown): string {
+    return e instanceof DemoReadOnlyError
+      ? e.message
+      : e instanceof Error
+        ? e.message
+        : String(e);
+  }
+
   async function startBackfill() {
     setStarting(true);
     setErr(null);
@@ -112,15 +141,26 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
         ),
       );
     } catch (e) {
-      setErr(
-        e instanceof DemoReadOnlyError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : String(e),
-      );
+      setErr(jobError(e));
     } finally {
       setStarting(false);
+    }
+  }
+
+  async function startResync() {
+    setStartingResync(true);
+    setErr(null);
+    try {
+      setResync(
+        await clientApi<BackfillStatus>(
+          `/sources/${sourceId}/categorize-products/resync`,
+          { method: "POST" },
+        ),
+      );
+    } catch (e) {
+      setErr(jobError(e));
+    } finally {
+      setStartingResync(false);
     }
   }
 
@@ -219,16 +259,37 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
         </span>
 
         <button
+          onClick={startResync}
+          disabled={startingResync || resync?.running}
+          title="Re-apply the current mapping to products locally (no ASI). Use after changing the mapping."
+          className="ml-auto rounded-lg border border-[var(--admin-border)] px-3 py-1.5 text-xs font-medium text-[var(--admin-fg)] hover:bg-[var(--admin-muted)] disabled:opacity-60"
+        >
+          {resync?.running || startingResync ? "Updating…" : "Update product categories"}
+        </button>
+        <button
           onClick={startBackfill}
           disabled={starting || backfill?.running}
-          title="Match products to their curated category from ASI (runs in the background)"
-          className="ml-auto rounded-lg bg-[var(--admin-accent)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-60"
+          title="Fetch product↔category links from ASI (one-time, for products imported before mapping). Runs in the background."
+          className="rounded-lg bg-[var(--admin-accent)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-60"
         >
-          {backfill?.running || starting
-            ? "Categorizing…"
-            : "Categorize products"}
+          {backfill?.running || starting ? "Categorizing…" : "Categorize from ASI"}
         </button>
       </div>
+
+      {resync?.running && (
+        <div className="rounded-md border border-[var(--admin-border)] bg-[var(--admin-muted)] px-3 py-2 text-xs text-[var(--admin-fg)]/80">
+          Updating product categories locally —{" "}
+          <strong>{resync.processed.toLocaleString()}</strong>/
+          {resync.total.toLocaleString()} products.
+        </div>
+      )}
+      {resync && !resync.running && resync.finishedAt && (
+        <div className="rounded-md border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-700">
+          {resync.error
+            ? `Update stopped: ${resync.error}`
+            : `Updated ${resync.processed.toLocaleString()} products from the current mapping.`}
+        </div>
+      )}
 
       {backfill?.running && (
         <div className="rounded-md border border-[var(--admin-border)] bg-[var(--admin-muted)] px-3 py-2 text-xs text-[var(--admin-fg)]/80">

@@ -148,6 +148,9 @@ model Product {
   keywords        String  @default("")
 
   categories Category[] @relation("ProductCategories")
+  // Source categories this product was imported under (durable link; curated
+  // categories are derived from these + the source→curated mapping).
+  sourceCategories SourceCategory[] @relation("ProductSourceCategories")
 
   relatedTo Product[] @relation("RelatedProducts")
   relatedBy Product[] @relation("RelatedProducts")
@@ -362,6 +365,12 @@ model SourceImportRun {
   triggeredBy SourceImportTrigger   @default(MANUAL)
   startedAt   DateTime              @default(now())
   finishedAt  DateTime?
+  // Total records for this run — the denominator for progress. Set as soon as
+  // the id list is known (before details finish downloading); 0 before that.
+  total       Int                   @default(0)
+  // Detail records downloaded so far during the fetch phase. Lets the UI show
+  // download progress before processing begins.
+  fetched     Int                   @default(0)
   // Aggregate counters incremented as records are processed.
   created     Int                   @default(0)
   updated     Int                   @default(0)
@@ -444,6 +453,12 @@ model SourceCategory {
   parentExternalId String?
   categoryId       String?
   category         Category? @relation("SourceCategoryToCategory", fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Products that belong to this source category (stored during import/backfill).
+  // The durable "which product is in which source category" link — lets curated
+  // categories be re-derived locally when the source→curated mapping changes,
+  // with no ASI calls. See [[project_category_mapping]].
+  products Product[] @relation("ProductSourceCategories")
 
   lastSeenAt DateTime @default(now())
   createdAt  DateTime @default(now())
