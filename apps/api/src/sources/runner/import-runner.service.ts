@@ -246,20 +246,8 @@ export class ImportRunnerService {
   ): Promise<void> {
     const ctx = await this.createProcessContext(imp, false);
 
-    // Skip-existing (default on): load the ids we already have for this source so
-    // a re-run pulls only the catalog it's missing — fast, additive "resume".
-    // Disable per-import with `{"skipExisting": false}` to force-refresh details.
-    const asiCfg = parseAsiConfig(imp.body);
-    const skipDetailIds =
-      asiCfg.skipExisting === false
-        ? undefined
-        : await this.loadExistingExternalIds(imp.source.id);
-    if (skipDetailIds) {
-      this.logger.log(
-        `Import ${imp.id}: skip-existing on — ${skipDetailIds.size} known ids will not be re-fetched`,
-      );
-    }
-
+    // Full sync: every run re-fetches and upserts the whole catalog — existing
+    // products are updated, missing ones created. (No skip-existing.)
     const onFetchProgress = (fetched: number, total: number): void => {
       void this.prisma.sourceImportRun
         .update({ where: { id: runId }, data: { fetched, total } })
@@ -281,24 +269,11 @@ export class ImportRunnerService {
         .catch(() => undefined);
     };
 
-    const fetcher = await this.buildFetcher(
-      imp, opts, onFetchProgress, onBatch, skipDetailIds,
-    );
+    const fetcher = await this.buildFetcher(imp, opts, onFetchProgress, onBatch);
     await fetcher.fetch();
 
     const result = await this.finishProcessing(imp, ctx);
     await this.finalizeRun(runId, imp.id, result);
-  }
-
-  /** Ids already linked for a source — the skip set for additive re-runs. */
-  private async loadExistingExternalIds(
-    sourceId: string,
-  ): Promise<Set<string>> {
-    const links = await this.prisma.sourceProductLink.findMany({
-      where: { sourceId },
-      select: { externalId: true },
-    });
-    return new Set(links.map((l) => l.externalId));
   }
 
   /* ---- Internals. ------------------------------------------------------ */
@@ -328,7 +303,6 @@ export class ImportRunnerService {
     opts: RunOptions,
     onFetchProgress?: (fetched: number, total: number) => void,
     onBatch?: (records: unknown[]) => Promise<void>,
-    skipDetailIds?: ReadonlySet<string>,
   ): Promise<Fetcher> {
     if (opts.sample) {
       return new FileFetcher(opts.sample.body, opts.sample.contentType);
@@ -354,7 +328,6 @@ export class ImportRunnerService {
           supplierScope: opts.supplierExternalIds,
           onFetchProgress,
           onBatch,
-          skipDetailIds,
         },
         auth,
       );
@@ -966,7 +939,6 @@ function parseAsiConfig(raw: string | null | undefined): {
   searchQuery?: string | null;
   maxPages?: number;
   maxRecords?: number;
-  skipExisting?: boolean;
 } {
   if (!raw) return {};
   try {
@@ -982,10 +954,6 @@ function parseAsiConfig(raw: string | null | undefined): {
         typeof parsed.maxPages === 'number' ? parsed.maxPages : undefined,
       maxRecords:
         typeof parsed.maxRecords === 'number' ? parsed.maxRecords : undefined,
-      skipExisting:
-        typeof parsed.skipExisting === 'boolean'
-          ? parsed.skipExisting
-          : undefined,
     };
   } catch {
     return {};
