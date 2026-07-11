@@ -330,6 +330,57 @@ export class AsiCentralFetcher implements Fetcher {
   }
 
   /**
+   * Collect every ASI product id in one category — ids only, no detail fetches.
+   * `categoryValue` is the ASI ContextPath (e.g. "T-SHIRTS", "T-Shirts-Mens").
+   * Bounded price-bisection scoped to the category; NEVER falls back to facet
+   * partitioning, so a band over the cap but too narrow to split is just walked
+   * (first ≤1000 taken). Used by the product category backfill.
+   */
+  async collectCategoryProductIds(categoryValue: string): Promise<string[]> {
+    const baseUrl = (this.cfg.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+    const maxPages = this.cfg.maxPages ?? 5000;
+    const maxRecords = this.cfg.maxRecords ?? 200_000;
+    const timeoutMs = this.cfg.timeoutMs ?? 60_000;
+    const backoffMs = this.cfg.retryBackoffMs ?? 500;
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    const CAP = AsiCentralFetcher.SLICE_CAP;
+
+    const collect = async (lo: number, hi: number): Promise<void> => {
+      if (ordered.length >= maxRecords) return;
+      const priceSel =
+        lo === 0 && hi === MAX_PRICE
+          ? ''
+          : ` price:[${round2(lo)} to ${round2(hi)}]`;
+      const q = `category:${categoryValue}${priceSel}`;
+      const width = hi - lo;
+      const mid = round2(lo + width / 2);
+      const splittable = width > MIN_PRICE_WIDTH && mid > lo && mid < hi;
+
+      const count = await this.getCount(baseUrl, q, timeoutMs);
+      if (count > CAP && splittable) {
+        await collect(lo, mid);
+        await collect(mid, hi);
+        return;
+      }
+      const before = ordered.length;
+      await this.walkFilter(
+        baseUrl, q, maxPages, maxRecords, timeoutMs, backoffMs, seen, ordered,
+      );
+      if (ordered.length - before >= CAP && splittable) {
+        await collect(lo, mid);
+        await collect(mid, hi);
+      }
+    };
+
+    await collect(0, MAX_PRICE);
+    this.logger.log(
+      `ASI collectCategoryProductIds(${categoryValue}): ${ordered.length} ids`,
+    );
+    return ordered;
+  }
+
+  /**
    * Collect the ordered list of unique product ids.
    *
    * ASI's search endpoint hard-caps any single query at 1000 results (10 pages ×

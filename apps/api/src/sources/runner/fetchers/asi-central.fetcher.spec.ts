@@ -377,4 +377,52 @@ describe('AsiCentralFetcher pagination', () => {
     expect(detailCalls(fetchMock, 1)).toBe(0);
     expect(detailCalls(fetchMock, 6)).toBe(1);
   });
+
+  it('collectCategoryProductIds lists all ids in a category past the 1000-cap, no detail fetch', async () => {
+    const CAP = 1000;
+    const N = 1500;
+    fetchMock = jest.fn(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes('/products/search.json')) {
+        const sp = new URL(u).searchParams;
+        const q = sp.get('q') ?? '';
+        if (!/category:PENS/.test(q)) {
+          return jsonResponse({ Results: [], ResultsTotal: 0, ResultsPerPage: 1 });
+        }
+        const m = q.match(/price:\[(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)\]/);
+        const lo = m ? Math.ceil(Number(m[1])) : 0;
+        const hi = m ? Math.floor(Number(m[2])) : N;
+        const all = range(Math.max(1, lo), Math.min(N, hi));
+        if (sp.get('rpp') === '1') {
+          return jsonResponse({ Results: [], ResultsTotal: all.length, ResultsPerPage: 1 });
+        }
+        const page = Number(sp.get('page'));
+        const capped = all.slice(0, CAP);
+        const start = (page - 1) * 100;
+        return jsonResponse({
+          Results: capped.slice(start, start + 100),
+          ResultsTotal: all.length,
+          ResultsPerPage: 100,
+          Page: page,
+        });
+      }
+      const m = u.match(/products\/(\d+)\.json/);
+      return jsonResponse({ Id: Number(m![1]), Name: `P${m![1]}` });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const fetcher = new AsiCentralFetcher(
+      { baseUrl: BASE, retryBackoffMs: 1, transientRetryBaseMs: 1 },
+      noopAuth,
+    );
+    const ids = (await fetcher.collectCategoryProductIds('PENS'))
+      .map((s) => Number(s))
+      .sort((a, b) => a - b);
+
+    expect(ids).toEqual(range(1, N).map((r) => r.Id));
+    const detailHits = fetchMock.mock.calls.filter((c) =>
+      /\/products\/\d+\.json/.test(String(c[0])),
+    ).length;
+    expect(detailHits).toBe(0);
+  });
 });

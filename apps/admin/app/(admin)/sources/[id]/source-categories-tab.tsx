@@ -18,6 +18,16 @@ interface SourceCategoryRow {
 
 type Filter = "all" | "unmapped" | "mapped";
 
+interface BackfillStatus {
+  running: boolean;
+  total: number;
+  processed: number;
+  productsConnected: number;
+  startedAt: string | null;
+  finishedAt: string | null;
+  error: string | null;
+}
+
 /**
  * Flatten source categories into a depth-annotated, parent-first order so the
  * table can render the source hierarchy with indentation. Keyed on
@@ -64,6 +74,55 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
   const [err, setErr] = useState<string | null>(null);
   const [options, setOptions] = useState<Category[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [backfill, setBackfill] = useState<BackfillStatus | null>(null);
+  const [starting, setStarting] = useState(false);
+
+  // Load current backfill status once (a job may already be running).
+  useEffect(() => {
+    clientApi<BackfillStatus>(`/sources/${sourceId}/categorize-products/status`)
+      .then(setBackfill)
+      .catch(() => {});
+  }, [sourceId]);
+
+  // Poll progress while a job is running.
+  useEffect(() => {
+    if (!backfill?.running) return;
+    const t = setTimeout(async () => {
+      try {
+        setBackfill(
+          await clientApi<BackfillStatus>(
+            `/sources/${sourceId}/categorize-products/status`,
+          ),
+        );
+      } catch {
+        /* keep last known status */
+      }
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [backfill, sourceId]);
+
+  async function startBackfill() {
+    setStarting(true);
+    setErr(null);
+    try {
+      setBackfill(
+        await clientApi<BackfillStatus>(
+          `/sources/${sourceId}/categorize-products`,
+          { method: "POST" },
+        ),
+      );
+    } catch (e) {
+      setErr(
+        e instanceof DemoReadOnlyError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : String(e),
+      );
+    } finally {
+      setStarting(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -158,7 +217,34 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
         <span className="text-xs text-[var(--admin-fg)]/60">
           {total} total
         </span>
+
+        <button
+          onClick={startBackfill}
+          disabled={starting || backfill?.running}
+          title="Match products to their curated category from ASI (runs in the background)"
+          className="ml-auto rounded-lg bg-[var(--admin-accent)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-60"
+        >
+          {backfill?.running || starting
+            ? "Categorizing…"
+            : "Categorize products"}
+        </button>
       </div>
+
+      {backfill?.running && (
+        <div className="rounded-md border border-[var(--admin-border)] bg-[var(--admin-muted)] px-3 py-2 text-xs text-[var(--admin-fg)]/80">
+          Categorizing products in the background —{" "}
+          <strong>{backfill.processed}</strong>/{backfill.total} categories,{" "}
+          <strong>{backfill.productsConnected.toLocaleString()}</strong> products
+          linked. Safe to leave this page.
+        </div>
+      )}
+      {backfill && !backfill.running && backfill.finishedAt && (
+        <div className="rounded-md border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-700">
+          {backfill.error
+            ? `Backfill stopped: ${backfill.error}`
+            : `Done — ${backfill.productsConnected.toLocaleString()} products categorized across ${backfill.processed} categories.`}
+        </div>
+      )}
 
       {err && (
         <p className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">

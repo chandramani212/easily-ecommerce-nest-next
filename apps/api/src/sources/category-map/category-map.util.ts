@@ -77,3 +77,20 @@ export function usedSlugsToCreate(
   for (const slug of alwaysCreate) if (parentOf.has(slug)) addWithAncestors(slug);
   return out;
 }
+
+/** Local product ids for the ASI product ids present in the link map, deduped. */
+export function matchProductIds(
+  asiIds: string[],
+  productIdByAsiId: Map<string, string>,
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const id of asiIds) {
+    const pid = productIdByAsiId.get(id);
+    if (pid && !seen.has(pid)) {
+      seen.add(pid);
+      out.push(pid);
+    }
+  }
+  return out;
+}
