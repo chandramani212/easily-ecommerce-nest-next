@@ -330,40 +330,6 @@ export class AsiCentralFetcher implements Fetcher {
   }
 
   /**
-   * Collect every ASI product id in one category — ids only, no detail fetches.
-   * Seeds the price-bisection collector with a `category:<value>` selection so
-   * a category over ASI's 1000-result cap is still fully covered. `categoryValue`
-   * is the ASI ContextPath (e.g. "T-SHIRTS", "T-Shirts-Mens") — the token ASI
-   * search accepts — NOT the SourceCategory.externalId. Used by the category
-   * backfill to attach existing products to their curated category.
-   */
-  async collectCategoryProductIds(categoryValue: string): Promise<string[]> {
-    const baseUrl = (this.cfg.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
-    const maxPages = this.cfg.maxPages ?? 5000;
-    const maxRecords = this.cfg.maxRecords ?? 200_000;
-    const timeoutMs = this.cfg.timeoutMs ?? 60_000;
-    const backoffMs = this.cfg.retryBackoffMs ?? 500;
-    const seen = new Set<string>();
-    const ordered: string[] = [];
-    await this.partitionByPrice(
-      0,
-      MAX_PRICE,
-      [{ dim: 'category', value: categoryValue }],
-      baseUrl,
-      maxPages,
-      maxRecords,
-      timeoutMs,
-      backoffMs,
-      seen,
-      ordered,
-    );
-    this.logger.log(
-      `ASI collectCategoryProductIds(${categoryValue}): ${ordered.length} ids`,
-    );
-    return ordered;
-  }
-
-  /**
    * Collect the ordered list of unique product ids.
    *
    * ASI's search endpoint hard-caps any single query at 1000 results (10 pages ×

@@ -6,7 +6,6 @@ import {
   leafSlugs,
   validateSourceMap,
   usedSlugsToCreate,
-  matchProductIds,
 } from './category-map.util';
 
 const tree: CuratedNode[] = [
@@ -52,13 +51,5 @@ describe('category-map util', () => {
     const used = usedSlugsToCreate(tree, map, ['bestsellers']);
     expect(used).toEqual(new Set(['t-shirts-mens', 't-shirts', 'apparel', 'bestsellers']));
     expect(used.has('polos')).toBe(false); // unused → pruned
-  });
-
-  it('matches asi ids to product ids, deduped, order preserved', () => {
-    const link = new Map([
-      ['a1', 'pA'],
-      ['a2', 'pB'],
-    ]);
-    expect(matchProductIds(['a1', 'a2', 'a1', 'a9'], link)).toEqual(['pA', 'pB']);
   });
 });
