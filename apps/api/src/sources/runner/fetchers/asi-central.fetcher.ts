@@ -13,12 +13,13 @@ export interface AsiCentralFetcherConfig {
   searchQuery?: string | null;
   /**
    * When set, scope the import to these suppliers instead of the full catalog:
-   * collection runs a per-supplier `asi/<externalId>` price-bisection and merges
-   * the ids. Values are ASI supplier `externalId`s (the asi company numbers) —
-   * `asi/<n>` is ASI's universal supplier filter (works for every supplier,
-   * unlike the facet ContextPath which only covers the top suppliers).
+   * each supplier's ASI search token (the facet ContextPath, e.g.
+   * `"Aakron Line (asi/30270)"`) is resolved by NAME from the `dl=supplier_all`
+   * facet, then collection price-bisects `supplier:<ContextPath>` per supplier
+   * and merges the ids. `externalId` is our stored supplier id (NOT the ASI
+   * company number) — kept only for logging; matching is by `name`.
    */
-  supplierScope?: string[];
+  supplierScope?: { externalId: string; name: string }[];
   /** Hard cap on how many list pages to walk. Defaults to 5000. */
   maxPages?: number;
   /** Cap on total detail records pulled. Defaults to 200000. */
@@ -388,20 +389,23 @@ export class AsiCentralFetcher implements Fetcher {
     const seen = new Set<string>();
     const ordered: string[] = [];
 
-    // Supplier-scoped import: price-bisect within each selected supplier
-    // (`asi/<externalId>`) and merge the ids (deduped across suppliers).
+    // Supplier-scoped import: resolve each supplier to its ASI ContextPath
+    // (by name, via the supplier facet), then price-bisect
+    // `supplier:<ContextPath>` per supplier and merge the ids (deduped).
     // Everything downstream (detail fetch, streaming, report) is identical to a
     // full-catalog run.
     const scope = this.cfg.supplierScope;
     if (scope?.length) {
-      for (const externalId of scope) {
+      const tokens = await this.resolveSupplierTokens(baseUrl, timeoutMs, scope);
+      for (const ctx of tokens) {
         await this.priceBisectCollect(
-          baseUrl, `asi/${externalId}`,
+          baseUrl, `supplier:${ctx}`,
           maxPages, maxRecords, timeoutMs, backoffMs, seen, ordered, onIds,
         );
       }
       this.logger.log(
-        `ASI collectIds (supplier-scoped): ${ordered.length} ids across ${scope.length} suppliers`,
+        `ASI collectIds (supplier-scoped): ${ordered.length} ids across ` +
+          `${tokens.length}/${scope.length} resolved suppliers`,
       );
       return ordered;
     }
@@ -430,8 +434,36 @@ export class AsiCentralFetcher implements Fetcher {
   }
 
   /**
+   * Resolve each scoped supplier to its ASI ContextPath by matching NAME to the
+   * `dl=supplier_all` facet (the facet carries the real asi company number, e.g.
+   * `"Aakron Line (asi/30270)"` — our stored supplier externalId is a different
+   * id and does NOT work as `asi/<n>`). Suppliers absent from the facet are
+   * dropped (logged), since there's no reliable token for them.
+   */
+  private async resolveSupplierTokens(
+    baseUrl: string,
+    timeoutMs: number,
+    scope: { externalId: string; name: string }[],
+  ): Promise<string[]> {
+    const buckets = await this.getBuckets(baseUrl, [], 'supplier', timeoutMs);
+    const norm = (s: string): string =>
+      s.toLowerCase().replace(/\s*\(asi\/\d+\)\s*$/, '').replace(/[^a-z0-9]/g, '');
+    const ctxByName = new Map<string, string>();
+    for (const b of buckets) ctxByName.set(norm(b.value), b.value);
+
+    const tokens: string[] = [];
+    for (const s of scope) {
+      const ctx = ctxByName.get(norm(s.name));
+      if (ctx) tokens.push(ctx);
+      else this.logger.warn(`Supplier "${s.name}" not found in ASI supplier facet — skipped`);
+    }
+    return tokens;
+  }
+
+  /**
    * Bounded price-bisection collection for a raw query `prefix` (e.g.
-   * `category:T-SHIRTS` or `asi/143`): recursively splits the price axis until
+   * `category:T-SHIRTS` or `supplier:Aakron Line (asi/30270)`): splits the price
+   * axis until
    * each band is under ASI's 1000-result cap, then walks it. Never falls back to
    * facet partitioning — a band over the cap but too narrow to split is walked
    * (first ≤1000 taken), keeping per-scope cost predictable. Ids accumulate in

@@ -319,13 +319,25 @@ export class ImportRunnerService {
 
     if (imp.source.kind === 'ASI_CENTRAL') {
       const asiCfg = parseAsiConfig(imp.body);
+      let supplierScope: { externalId: string; name: string }[] | undefined;
+      if (opts.supplierExternalIds?.length) {
+        // The fetcher matches suppliers to ASI by NAME (our externalId is not
+        // the asi company number), so pass name alongside externalId.
+        supplierScope = await this.prisma.supplier.findMany({
+          where: {
+            sourceId: imp.source.id,
+            externalId: { in: opts.supplierExternalIds },
+          },
+          select: { externalId: true, name: true },
+        });
+      }
       return new AsiCentralFetcher(
         {
           baseUrl: imp.source.baseUrl,
           searchQuery: asiCfg.searchQuery ?? null,
           maxPages: asiCfg.maxPages,
           maxRecords: asiCfg.maxRecords,
-          supplierScope: opts.supplierExternalIds,
+          supplierScope,
           onFetchProgress,
           onBatch,
         },

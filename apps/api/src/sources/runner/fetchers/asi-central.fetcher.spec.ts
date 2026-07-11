@@ -426,15 +426,27 @@ describe('AsiCentralFetcher pagination', () => {
     expect(detailHits).toBe(0);
   });
 
-  it('scopes the import to selected suppliers via asi/<externalId>', async () => {
-    // Only supplier 143 has products; 999 has none. The full-catalog price
-    // path is never taken — collection is driven by the asi/<id> prefix.
+  it('scopes to selected suppliers via the facet ContextPath (matched by name)', async () => {
+    // The supplier token is resolved by NAME from the dl=supplier_all facet
+    // (our stored externalId is not the asi number). "Aakron Line" resolves to
+    // "Aakron Line (asi/30270)" and imports its 30 products; "Ghost Supplier"
+    // is absent from the facet and is skipped.
     fetchMock = jest.fn(async (url: unknown) => {
       const u = String(url);
       if (u.includes('/products/search.json')) {
         const sp = new URL(u).searchParams;
+        if (sp.get('dl') === 'supplier_all') {
+          return jsonResponse({
+            Dimensions: {
+              Suppliers: [
+                { ContextPath: 'Aakron Line (asi/30270)', Products: 30 },
+                { ContextPath: 'Other Co (asi/999)', Products: 5 },
+              ],
+            },
+          });
+        }
         const q = sp.get('q') ?? '';
-        const all = /asi\/143/.test(q) ? range(1, 30) : [];
+        const all = /supplier:Aakron Line \(asi\/30270\)/.test(q) ? range(1, 30) : [];
         if (sp.get('rpp') === '1') {
           return jsonResponse({ Results: [], ResultsTotal: all.length, ResultsPerPage: 1 });
         }
@@ -454,7 +466,10 @@ describe('AsiCentralFetcher pagination', () => {
     const fetcher = new AsiCentralFetcher(
       {
         baseUrl: BASE,
-        supplierScope: ['143', '999'],
+        supplierScope: [
+          { externalId: '143', name: 'Aakron Line' },
+          { externalId: '999', name: 'Ghost Supplier' },
+        ],
         retryBackoffMs: 1,
         transientRetryBaseMs: 1,
       },
