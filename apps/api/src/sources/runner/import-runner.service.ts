@@ -37,6 +37,11 @@ export interface RunOptions {
   limit?: number;
   /** Why this run was triggered. Defaults to MANUAL. */
   trigger?: SourceImportTrigger;
+  /**
+   * ASI only: when set, scope the run to these supplier `externalId`s (asi
+   * numbers) instead of the full catalog. Same background run + report.
+   */
+  supplierExternalIds?: string[];
 }
 
 export interface RunResultRow {
@@ -346,6 +351,7 @@ export class ImportRunnerService {
           searchQuery: asiCfg.searchQuery ?? null,
           maxPages: asiCfg.maxPages,
           maxRecords: asiCfg.maxRecords,
+          supplierScope: opts.supplierExternalIds,
           onFetchProgress,
           onBatch,
           skipDetailIds,

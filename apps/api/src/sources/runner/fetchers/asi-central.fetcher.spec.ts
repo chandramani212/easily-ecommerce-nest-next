@@ -425,4 +425,46 @@ describe('AsiCentralFetcher pagination', () => {
     ).length;
     expect(detailHits).toBe(0);
   });
+
+  it('scopes the import to selected suppliers via asi/<externalId>', async () => {
+    // Only supplier 143 has products; 999 has none. The full-catalog price
+    // path is never taken — collection is driven by the asi/<id> prefix.
+    fetchMock = jest.fn(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes('/products/search.json')) {
+        const sp = new URL(u).searchParams;
+        const q = sp.get('q') ?? '';
+        const all = /asi\/143/.test(q) ? range(1, 30) : [];
+        if (sp.get('rpp') === '1') {
+          return jsonResponse({ Results: [], ResultsTotal: all.length, ResultsPerPage: 1 });
+        }
+        const page = Number(sp.get('page'));
+        return jsonResponse({
+          Results: all.slice((page - 1) * 100, page * 100),
+          ResultsTotal: all.length,
+          ResultsPerPage: 100,
+          Page: page,
+        });
+      }
+      const m = u.match(/products\/(\d+)\.json/);
+      return jsonResponse({ Id: Number(m![1]), Name: `P${m![1]}` });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const fetcher = new AsiCentralFetcher(
+      {
+        baseUrl: BASE,
+        supplierScope: ['143', '999'],
+        retryBackoffMs: 1,
+        transientRetryBaseMs: 1,
+      },
+      noopAuth,
+    );
+    const payload = await fetcher.fetch();
+    const ids = (JSON.parse(payload.body.toString('utf8')) as { records: { Id: number }[] }).records
+      .map((r) => r.Id)
+      .sort((a, b) => a - b);
+
+    expect(ids).toEqual(range(1, 30).map((r) => r.Id));
+  });
 });

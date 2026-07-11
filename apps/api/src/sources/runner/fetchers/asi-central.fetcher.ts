@@ -11,6 +11,14 @@ export interface AsiCentralFetcherConfig {
    * ASI returns the full catalog rather than filtering on the literal term "null".
    */
   searchQuery?: string | null;
+  /**
+   * When set, scope the import to these suppliers instead of the full catalog:
+   * collection runs a per-supplier `asi/<externalId>` price-bisection and merges
+   * the ids. Values are ASI supplier `externalId`s (the asi company numbers) —
+   * `asi/<n>` is ASI's universal supplier filter (works for every supplier,
+   * unlike the facet ContextPath which only covers the top suppliers).
+   */
+  supplierScope?: string[];
   /** Hard cap on how many list pages to walk. Defaults to 5000. */
   maxPages?: number;
   /** Cap on total detail records pulled. Defaults to 200000. */
@@ -344,36 +352,10 @@ export class AsiCentralFetcher implements Fetcher {
     const backoffMs = this.cfg.retryBackoffMs ?? 500;
     const seen = new Set<string>();
     const ordered: string[] = [];
-    const CAP = AsiCentralFetcher.SLICE_CAP;
-
-    const collect = async (lo: number, hi: number): Promise<void> => {
-      if (ordered.length >= maxRecords) return;
-      const priceSel =
-        lo === 0 && hi === MAX_PRICE
-          ? ''
-          : ` price:[${round2(lo)} to ${round2(hi)}]`;
-      const q = `category:${categoryValue}${priceSel}`;
-      const width = hi - lo;
-      const mid = round2(lo + width / 2);
-      const splittable = width > MIN_PRICE_WIDTH && mid > lo && mid < hi;
-
-      const count = await this.getCount(baseUrl, q, timeoutMs);
-      if (count > CAP && splittable) {
-        await collect(lo, mid);
-        await collect(mid, hi);
-        return;
-      }
-      const before = ordered.length;
-      await this.walkFilter(
-        baseUrl, q, maxPages, maxRecords, timeoutMs, backoffMs, seen, ordered,
-      );
-      if (ordered.length - before >= CAP && splittable) {
-        await collect(lo, mid);
-        await collect(mid, hi);
-      }
-    };
-
-    await collect(0, MAX_PRICE);
+    await this.priceBisectCollect(
+      baseUrl, `category:${categoryValue}`,
+      maxPages, maxRecords, timeoutMs, backoffMs, seen, ordered,
+    );
     this.logger.log(
       `ASI collectCategoryProductIds(${categoryValue}): ${ordered.length} ids`,
     );
@@ -406,6 +388,24 @@ export class AsiCentralFetcher implements Fetcher {
     const seen = new Set<string>();
     const ordered: string[] = [];
 
+    // Supplier-scoped import: price-bisect within each selected supplier
+    // (`asi/<externalId>`) and merge the ids (deduped across suppliers).
+    // Everything downstream (detail fetch, streaming, report) is identical to a
+    // full-catalog run.
+    const scope = this.cfg.supplierScope;
+    if (scope?.length) {
+      for (const externalId of scope) {
+        await this.priceBisectCollect(
+          baseUrl, `asi/${externalId}`,
+          maxPages, maxRecords, timeoutMs, backoffMs, seen, ordered, onIds,
+        );
+      }
+      this.logger.log(
+        `ASI collectIds (supplier-scoped): ${ordered.length} ids across ${scope.length} suppliers`,
+      );
+      return ordered;
+    }
+
     const userQuery = (q ?? '').trim();
     if (userQuery) {
       await this.walkFilter(
@@ -427,6 +427,53 @@ export class AsiCentralFetcher implements Fetcher {
       `ASI collectIds: ${ordered.length} unique ids after price partitioning`,
     );
     return ordered;
+  }
+
+  /**
+   * Bounded price-bisection collection for a raw query `prefix` (e.g.
+   * `category:T-SHIRTS` or `asi/143`): recursively splits the price axis until
+   * each band is under ASI's 1000-result cap, then walks it. Never falls back to
+   * facet partitioning — a band over the cap but too narrow to split is walked
+   * (first ≤1000 taken), keeping per-scope cost predictable. Ids accumulate in
+   * the shared `seen`/`ordered`; `onIds` streams each page's new ids when set.
+   */
+  private async priceBisectCollect(
+    baseUrl: string,
+    prefix: string,
+    maxPages: number,
+    maxRecords: number,
+    timeoutMs: number,
+    backoffMs: number,
+    seen: Set<string>,
+    ordered: string[],
+    onIds?: (newIds: string[]) => Promise<void>,
+  ): Promise<void> {
+    const CAP = AsiCentralFetcher.SLICE_CAP;
+    const collect = async (lo: number, hi: number): Promise<void> => {
+      if (ordered.length >= maxRecords) return;
+      const priceSel =
+        lo === 0 && hi === MAX_PRICE ? '' : ` price:[${round2(lo)} to ${round2(hi)}]`;
+      const q = `${prefix}${priceSel}`;
+      const width = hi - lo;
+      const mid = round2(lo + width / 2);
+      const splittable = width > MIN_PRICE_WIDTH && mid > lo && mid < hi;
+
+      const count = await this.getCount(baseUrl, q, timeoutMs);
+      if (count > CAP && splittable) {
+        await collect(lo, mid);
+        await collect(mid, hi);
+        return;
+      }
+      const before = ordered.length;
+      await this.walkFilter(
+        baseUrl, q, maxPages, maxRecords, timeoutMs, backoffMs, seen, ordered, onIds,
+      );
+      if (ordered.length - before >= CAP && splittable) {
+        await collect(lo, mid);
+        await collect(mid, hi);
+      }
+    };
+    await collect(0, MAX_PRICE);
   }
 
   /**

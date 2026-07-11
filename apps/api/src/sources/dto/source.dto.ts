@@ -4,6 +4,7 @@ import {
   SourceKind,
 } from '@prisma/client';
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsInt,
@@ -174,6 +175,10 @@ export class DryRunOptionsDto {
 export class RunNowOptionsDto {
   @IsOptional() @IsInt() @Min(1)
   limit?: number;
+
+  /** ASI only: scope the run to these supplier externalIds (asi numbers). */
+  @IsOptional() @IsArray() @IsString({ each: true })
+  supplierExternalIds?: string[];
 }
 
 /* ---- Test connection --------------------------------------------------- */

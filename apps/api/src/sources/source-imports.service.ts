@@ -87,6 +87,7 @@ export class SourceImportsService {
       trigger: 'MANUAL',
       limit: opts.limit,
       sample,
+      supplierExternalIds: opts.supplierExternalIds,
     });
   }
 
