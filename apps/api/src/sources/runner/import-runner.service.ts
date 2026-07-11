@@ -637,10 +637,9 @@ export class ImportRunnerService {
         sku: mapped.sku || undefined,
         // Supplier/API SKU kept for reconciliation; omit when the feed has none.
         externalSku: mapped.externalSku || undefined,
-        slug:
-          slugify(mapped.name) ||
-          slugify(mapped.externalSku) ||
-          slugify(mapped.externalId),
+        // NOTE: `slug` is intentionally NOT in the shared data — it's set once on
+        // create (deduped below). Rewriting it on every update collides with
+        // other products that slugify to the same name, and would churn URLs.
         shortDescription: mapped.shortDescription,
         description: mapped.description,
         basePrice: new Prisma.Decimal(mapped.basePrice),
@@ -702,7 +701,10 @@ export class ImportRunnerService {
           action = 'updated';
         } else {
           // Slug collisions get a `-${externalId}` suffix to stay unique.
-          const baseSlug = productData.slug;
+          const baseSlug =
+            slugify(mapped.name) ||
+            slugify(mapped.externalSku) ||
+            slugify(mapped.externalId);
           const slug = await uniqueSlug(tx, baseSlug, mapped.externalId);
           const created = await tx.product.create({
             data: {
