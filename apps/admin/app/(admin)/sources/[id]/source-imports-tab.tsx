@@ -271,7 +271,7 @@ export function SourceImportsTab({
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-2 py-2">
+            <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
               {supLoading ? (
                 <p className="px-2 py-4 text-sm text-[var(--admin-fg)]/60">Loading…</p>
               ) : (
