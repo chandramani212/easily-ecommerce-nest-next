@@ -45,7 +45,7 @@ export const PAGE_DEFAULTS: Record<PageSlug, PageSeed> = {
             ctaSecondaryLabel: 'View Categories',
             ctaSecondaryHref: '/#categories',
             gradient: 'from-teal-700 via-emerald-700 to-green-800',
-            image: '/hero/slide-1.svg',
+            image: '/hero/slide-1.png',
           },
           {
             tag: 'Bulk Discount',

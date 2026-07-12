@@ -1139,6 +1139,16 @@ const seedRun = (
   finishedAt: new Date(
     new Date(daysAgo(daysOld)).getTime() + 4500,
   ).toISOString(),
+  total:
+    (totals.created ?? 0) +
+    (totals.updated ?? 0) +
+    (totals.skipped ?? 0) +
+    (totals.failed ?? 0),
+  fetched:
+    (totals.created ?? 0) +
+    (totals.updated ?? 0) +
+    (totals.skipped ?? 0) +
+    (totals.failed ?? 0),
   created: totals.created ?? 0,
   updated: totals.updated ?? 0,
   skipped: totals.skipped ?? 0,

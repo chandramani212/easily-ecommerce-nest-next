@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { CategoryNode } from "../lib/adapt";
+
+// useLayoutEffect warns during SSR; fall back to useEffect on the server.
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 interface CategoryBarClientProps {
   categories: CategoryNode[];
@@ -16,7 +20,35 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
   );
 
   const activeCat = categories.find((c) => c.id === activeId);
-  const showDropdown = !!activeCat && activeCat.children.length > 0;
+
+  // Anchor the dropdown under the hovered item, but clamp it so a wide
+  // mega-menu never overflows the right edge of the viewport.
+  const navRef = useRef<HTMLElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
+  const [dropdownLeft, setDropdownLeft] = useState<number | null>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    if (!activeCat || activeCat.children.length === 0) {
+      setDropdownLeft(null);
+      return;
+    }
+    const nav = navRef.current;
+    const dropdown = dropdownRef.current;
+    const item = itemRefs.current.get(activeCat.id);
+    if (!nav || !dropdown || !item) return;
+
+    const navRect = nav.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+    const gutter = 8;
+    const maxLeft = navRect.width - dropdown.offsetWidth - gutter;
+    // Align to the item's left, then pull back if it would run off-screen.
+    let left = itemRect.left - navRect.left;
+    left = Math.min(left, Math.max(gutter, maxLeft));
+    left = Math.max(gutter, left);
+    setDropdownLeft(left);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
 
   if (categories.length === 0) return null;
 
@@ -33,13 +65,18 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
     <div className="relative z-40">
       {/* Desktop category bar */}
       <nav
-        className="hidden border-b border-slate-700 bg-slate-800 md:block"
+        ref={navRef}
+        className="relative hidden border-b border-slate-700 bg-slate-800 md:block"
         onMouseLeave={() => setActiveId(null)}
       >
         <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           {categories.map((cat) => (
             <Link
               key={cat.id}
+              ref={(el) => {
+                if (el) itemRefs.current.set(cat.id, el);
+                else itemRefs.current.delete(cat.id);
+              }}
               href={`/${cat.slug}`}
               onMouseEnter={() =>
                 setActiveId(cat.children.length > 0 ? cat.id : null)
@@ -55,16 +92,20 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
           ))}
         </div>
 
-        {/* Mega-menu dropdown */}
-        {showDropdown && activeCat && (
+        {/* Dropdown anchored under the hovered item, clamped to the viewport */}
+        {activeCat && activeCat.children.length > 0 && (
           <div
-            className="absolute left-0 right-0 border-b border-[var(--border)] bg-[var(--background)] shadow-lg"
+            ref={dropdownRef}
+            style={{ left: dropdownLeft ?? 0 }}
+            className={`absolute top-full z-50 rounded-b-md border border-[var(--border)] bg-[var(--background)] shadow-lg ${
+              dropdownLeft === null ? "invisible" : ""
+            }`}
             onMouseEnter={() => setActiveId(activeCat.id)}
             onMouseLeave={() => setActiveId(null)}
           >
-            <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 lg:px-8 xl:grid-cols-4">
+            <div className="flex w-max max-w-[min(56rem,90vw)] flex-wrap justify-center gap-5 p-5">
               {activeCat.children.map((sub) => (
-                <div key={sub.id}>
+                <div key={sub.id} className="w-44">
                   <Link
                     href={`/${sub.slug}`}
                     className="mb-2 block text-sm font-semibold text-[var(--accent)] hover:underline"

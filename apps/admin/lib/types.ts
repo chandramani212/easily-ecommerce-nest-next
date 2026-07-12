@@ -269,6 +269,8 @@ export interface SourceImportRun {
   triggeredBy: SourceImportTrigger;
   startedAt: string;
   finishedAt?: string | null;
+  total: number;
+  fetched: number;
   created: number;
   updated: number;
   skipped: number;

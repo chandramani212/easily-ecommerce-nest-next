@@ -3,15 +3,16 @@ import { HeroBanner } from "../components/hero-banner";
 import { TrustBadges } from "../components/trust-badges";
 import { CategoryBar } from "../components/category-bar";
 import { SectionHeading } from "../components/section-heading";
-import { CategoryCard } from "../components/category-card";
+import { CategoryShowcaseCard } from "../components/category-showcase-card";
 import { BestSellersTabs } from "../components/best-sellers-tabs";
 import { TestimonialCarousel } from "../components/testimonial-carousel";
 import { Footer } from "../components/footer";
 import { apiFetchSafe } from "../lib/api";
 import {
-  adaptCategory,
   adaptProductForCard,
   categoryIconPath,
+  normalizeImageUrl,
+  sizedImage,
 } from "../lib/adapt";
 import type { ApiCategory, ProductsResponse } from "../lib/types";
 import { getPage, pageMetadata, type HomeContent } from "../lib/pages";
@@ -91,6 +92,32 @@ function categoryIcon(slug: string) {
   );
 }
 
+/**
+ * Resolve a representative image for a category. Root categories have no direct
+ * products, so fall back to the first product image found in their most-stocked
+ * children. Returns undefined when nothing usable is found.
+ */
+async function representativeImage(
+  category: ApiCategory,
+  children: ApiCategory[],
+): Promise<string | undefined> {
+  if (category.image) return sizedImage(normalizeImageUrl(category.image), "normal");
+  const candidates = children
+    .filter((k) => (k._count?.products ?? 0) > 0)
+    .sort((a, b) => (b._count?.products ?? 0) - (a._count?.products ?? 0))
+    .slice(0, 3);
+  for (const child of candidates) {
+    const res = await apiFetchSafe<ProductsResponse>(
+      `/products?active=true&pageSize=3&categoryId=${encodeURIComponent(child.id)}`,
+    );
+    const img = res?.items
+      ?.map((p) => p.images?.[0])
+      .find((u): u is string => !!u);
+    if (img) return sizedImage(normalizeImageUrl(img), "normal");
+  }
+  return undefined;
+}
+
 export default async function Page() {
   const [categoriesRaw, popularRaw, homePage] = await Promise.all([
     apiFetchSafe<ApiCategory[]>("/categories?active=true"),
@@ -100,10 +127,29 @@ export default async function Page() {
   const hero = homePage?.content?.hero;
   const contentBlock = homePage?.content?.content;
 
-  const rootCategories = (categoriesRaw ?? [])
+  // "Shop by Category" image-led cards. For each root category, use its
+  // admin-assigned image when present, otherwise a representative product image
+  // from its children, plus an aggregate product count (roots have no direct
+  // products of their own).
+  const rootCategoriesRaw = (categoriesRaw ?? [])
     .filter((c) => !c.parentId)
-    .slice(0, 6)
-    .map(adaptCategory);
+    .slice(0, 6);
+  const showcaseCategories = await Promise.all(
+    rootCategoriesRaw.map(async (c) => {
+      const children = (categoriesRaw ?? []).filter((k) => k.parentId === c.id);
+      const count = children.reduce(
+        (n, k) => n + (k._count?.products ?? 0),
+        c._count?.products ?? 0,
+      );
+      return {
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        count,
+        image: await representativeImage(c, children),
+      };
+    }),
+  );
 
   const topCategoriesForTabs = (categoriesRaw ?? [])
     .filter((c) => !c.parentId)
@@ -146,18 +192,19 @@ export default async function Page() {
             title="Shop by Category"
             subtitle="Find what you need across our wide range of categories"
           />
-          {rootCategories.length === 0 ? (
+          {showcaseCategories.length === 0 ? (
             <p className="text-center text-sm text-[var(--foreground)]/50">
               Categories are not available right now.
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-              {rootCategories.map((cat) => (
-                <CategoryCard
+              {showcaseCategories.map((cat) => (
+                <CategoryShowcaseCard
                   key={cat.id}
                   name={cat.name}
                   slug={cat.slug}
                   count={cat.count}
+                  image={cat.image}
                   icon={categoryIcon(cat.slug)}
                 />
               ))}

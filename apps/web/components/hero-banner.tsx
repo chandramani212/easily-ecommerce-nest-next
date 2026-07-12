@@ -27,7 +27,7 @@ const SLIDES: Slide[] = [
     ctaLabel: "Shop Now",
     ctaSecondaryLabel: "View Categories",
     gradient: "from-teal-700 via-emerald-700 to-green-800",
-    image: "/hero/slide-1.svg",
+    image: "/hero/slide-1.png",
   },
   {
     tag: "Bulk Discount",
@@ -101,7 +101,19 @@ export function HeroBanner({
       <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
 
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12 lg:px-8 lg:pb-24 lg:pt-16">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
+        <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        {/* Mobile image — stacked on top of the content */}
+        <div className="lg:hidden">
+          <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={`img-mobile-${current}`}
+              src={slide.image}
+              alt=""
+              className="h-full w-full animate-[fadeSlideIn_0.5s_ease-out_0.2s_both] object-cover"
+            />
+          </div>
+        </div>
         <div className="max-w-2xl">
           <span
             key={`tag-${current}`}
@@ -150,13 +162,13 @@ export function HeroBanner({
 
           {/* Right-side image */}
           <div className="hidden lg:flex lg:justify-end">
-            <div className="relative aspect-square w-full max-w-[520px] rounded-3xl bg-white/5 p-6 ring-1 ring-white/15 backdrop-blur-sm">
+            <div className="relative aspect-[3/2] w-full overflow-hidden rounded-3xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 key={`img-${current}`}
                 src={slide.image}
                 alt=""
-                className="h-full w-full animate-[fadeSlideIn_0.5s_ease-out_0.2s_both] object-contain drop-shadow-2xl"
+                className="h-full w-full animate-[fadeSlideIn_0.5s_ease-out_0.2s_both] object-cover"
               />
             </div>
           </div>

@@ -112,7 +112,10 @@ function splitColors(value: string | undefined): string[] {
   if (!value) return [];
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const part of value.split(/[,/|]/)) {
+  // ASI joins multi-color values with commas, slashes, pipes, or hyphens
+  // ("White-Red", "White-Green-Black"). Hyphens are split only between word
+  // chars so spaced/leading/trailing dashes aren't treated as separators.
+  for (const part of value.split(/[,/|]|(?<=\w)-(?=\w)/)) {
     const c = canonicalColor(part);
     if (c && !seen.has(c)) {
       seen.add(c);

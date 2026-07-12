@@ -13,7 +13,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   return (
     <nav className="flex items-center gap-1.5 text-sm">
       {items.map((item, i) => (
-        <span key={item.label} className="flex items-center gap-1.5">
+        <span key={`${i}-${item.label}`} className="flex items-center gap-1.5">
           {i > 0 && (
             <svg
               width="14"

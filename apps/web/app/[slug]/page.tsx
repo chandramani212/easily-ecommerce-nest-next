@@ -14,6 +14,7 @@ import {
   adaptProductForDetail,
   categoryIconPath,
   normalizeImageUrl,
+  sizedImage,
 } from "../../lib/adapt";
 import type { ApiCategory, ApiProduct, ProductsResponse } from "../../lib/types";
 
@@ -119,6 +120,27 @@ export default async function SlugPage({ params }: PageProps) {
       .filter((c) => c.parentId === category.id)
       .map(adaptCategory);
 
+    // For subcategory tiles with no admin-assigned image, fall back to the
+    // first available product image in that subcategory so cards aren't blank.
+    // Fetches run in parallel and only for subcategories actually missing an
+    // image (uses the existing /products endpoint — no new API route).
+    const subcategoryCards = await Promise.all(
+      subcategories.map(async (sub) => {
+        if (sub.image) return sub;
+        const res = await apiFetchSafe<ProductsResponse>(
+          `/products?active=true&pageSize=3&categoryId=${encodeURIComponent(
+            sub.id,
+          )}`,
+        );
+        const firstImage = res?.items
+          ?.map((p) => p.images?.[0])
+          .find((u): u is string => !!u);
+        return firstImage
+          ? { ...sub, image: sizedImage(normalizeImageUrl(firstImage), "normal") }
+          : sub;
+      }),
+    );
+
     // Walk the full ancestor chain (root → immediate parent), not just one level,
     // so deep categories show every parent in the breadcrumb.
     const ancestors = categoryChain(categories, category.parentId ?? undefined);
@@ -156,7 +178,7 @@ export default async function SlugPage({ params }: PageProps) {
               Browse subcategories
             </p>
             <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {subcategories.map((sub) => (
+              {subcategoryCards.map((sub) => (
                 <CategoryCard
                   key={sub.id}
                   name={sub.name}

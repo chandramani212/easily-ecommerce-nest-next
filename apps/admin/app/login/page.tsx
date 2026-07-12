@@ -29,10 +29,6 @@ export default function LoginPage() {
             <LoginForm />
           </Suspense>
         </div>
-
-        <p className="mt-6 text-center text-xs text-[var(--admin-fg)]/50">
-          Default: admin@shopease.local / admin123
-        </p>
       </div>
     </div>
   );

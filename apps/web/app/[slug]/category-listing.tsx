@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ProductCard } from "../../components/product-card";
 import { FilterSidebar } from "../../components/filter-sidebar";
 import { Pagination } from "../../components/pagination";
+import { resolveColor } from "../../lib/color";
 
 interface Product {
   id: string;
@@ -36,31 +37,15 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 
 const PER_PAGE = 8;
 
-const COLOR_MAP: Record<string, string> = {
-  Black: "#1e293b",
-  White: "#e2e8f0",
-  Red: "#f87171",
-  Blue: "#60a5fa",
-  Green: "#34d399",
-  Purple: "#a78bfa",
-  Orange: "#fb923c",
-  Yellow: "#fbbf24",
-  Pink: "#f472b6",
-  Teal: "#2dd4bf",
-  Gray: "#94a3b8",
-  Grey: "#94a3b8",
-  Silver: "#cbd5e1",
-  Navy: "#1e3a8a",
-  Maroon: "#7f1d1d",
-  Brown: "#92400e",
-  Beige: "#e7d8b1",
-  Gold: "#d4af37",
-  Natural: "#e7d8b1",
-};
-
 function deriveFilters(products: Product[]) {
   const brandCounts: Record<string, number> = {};
-  const colorSet = new Set<string>();
+  // Aggregate color chips by resolved swatch hex so distinct real colors get
+  // distinct swatches and identical-looking colors never repeat. A known base
+  // color's label wins over an unmapped name that lands on the same hex.
+  const colorByHex = new Map<
+    string,
+    { name: string; hex: string; known: boolean }
+  >();
   const ratingCounts: Record<number, number> = {};
 
   for (const p of products) {
@@ -69,7 +54,13 @@ function deriveFilters(products: Product[]) {
     if (p.brand) brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
     // Products with no color contribute no chip — so the filter never shows a
     // misleading "Default" swatch for unassigned colors.
-    for (const c of p.colors) colorSet.add(c);
+    for (const raw of p.colors) {
+      const { label, hex, known } = resolveColor(raw);
+      const existing = colorByHex.get(hex);
+      if (!existing || (known && !existing.known)) {
+        colorByHex.set(hex, { name: label, hex, known });
+      }
+    }
     for (let r = p.rating; r >= 1; r--) {
       ratingCounts[r] = (ratingCounts[r] || 0) + 1;
     }
@@ -79,9 +70,9 @@ function deriveFilters(products: Product[]) {
     brands: Object.entries(brandCounts)
       .sort((a, b) => b[1] - a[1])
       .map(([label, count]) => ({ label, count, checked: false })),
-    colors: Array.from(colorSet)
-      .sort()
-      .map((name) => ({ name, hex: COLOR_MAP[name] || "#94a3b8", checked: false })),
+    colors: Array.from(colorByHex.values())
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(({ name, hex }) => ({ name, hex, checked: false })),
     ratings: [5, 4, 3]
       .filter((r) => ratingCounts[r])
       .map((r) => ({ label: String(r), count: ratingCounts[r]!, checked: false })),
@@ -131,6 +122,17 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
     setRatings((prev) => prev.map((r) => ({ ...r, checked: false })));
   };
 
+  // Resolve each product's raw colors to base-family labels once, so the color
+  // filter matches by family (the same normalization used to build the chips)
+  // instead of exact raw names.
+  const productColorLabels = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const p of products) {
+      map.set(p.id, new Set(p.colors.map((c) => resolveColor(c).label)));
+    }
+    return map;
+  }, [products]);
+
   const filtered = useMemo(() => {
     const activeBrands = brands.filter((b) => b.checked).map((b) => b.label);
     const activeColors = colors.filter((c) => c.checked).map((c) => c.name);
@@ -144,7 +146,8 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
         p.price >= priceRange[0] &&
         p.price <= priceRange[1] &&
         (!activeBrands.length || activeBrands.includes(p.brand)) &&
-        (!activeColors.length || p.colors.some((c) => activeColors.includes(c))) &&
+        (!activeColors.length ||
+          activeColors.some((c) => productColorLabels.get(p.id)?.has(c))) &&
         p.rating >= minRating,
     );
 
@@ -163,7 +166,7 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
     }
 
     return result;
-  }, [products, priceRange, brands, colors, ratings, sort]);
+  }, [products, productColorLabels, priceRange, brands, colors, ratings, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const safePage = Math.min(page, totalPages);
