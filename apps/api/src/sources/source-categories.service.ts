@@ -11,6 +11,60 @@ export interface SourceCategoryListQuery {
   skip?: number;
 }
 
+/**
+ * Order source categories parent-first (depth-first pre-order) using each
+ * source's own `externalId`/`parentExternalId` links. Rows whose parent is not
+ * present in the set (filtered out, or a genuine top-level) become roots and
+ * their descendants are walked from there. Because a node always follows its
+ * ancestors, slicing this order for pagination never separates a child from
+ * its parent. `name`-sorted input keeps siblings alphabetical.
+ */
+function orderParentFirst<
+  T extends { externalId: string; parentExternalId: string | null },
+>(rows: T[]): T[] {
+  const childrenByParent = new Map<string | null, T[]>();
+  for (const r of rows) {
+    const key = r.parentExternalId ?? null;
+    const bucket = childrenByParent.get(key);
+    if (bucket) bucket.push(r);
+    else childrenByParent.set(key, [r]);
+  }
+
+  const present = new Set(rows.map((r) => r.externalId));
+  const result: T[] = [];
+  const visited = new Set<string>();
+
+  const walk = (parentExternalId: string | null) => {
+    for (const node of childrenByParent.get(parentExternalId) ?? []) {
+      if (visited.has(node.externalId)) continue;
+      visited.add(node.externalId);
+      result.push(node);
+      walk(node.externalId);
+    }
+  };
+
+  // Roots: no parent, or a parent that isn't in the current set.
+  for (const r of rows) {
+    const parent = r.parentExternalId ?? null;
+    if (parent === null || !present.has(parent)) {
+      if (visited.has(r.externalId)) continue;
+      visited.add(r.externalId);
+      result.push(r);
+      walk(r.externalId);
+    }
+  }
+
+  // Safety net for any cyclic/self-referential links the walk didn't reach.
+  for (const r of rows) {
+    if (!visited.has(r.externalId)) {
+      visited.add(r.externalId);
+      result.push(r);
+    }
+  }
+
+  return result;
+}
+
 @Injectable()
 export class SourceCategoriesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -35,18 +89,21 @@ export class SourceCategoriesService {
     const take = Math.min(Math.max(1, query.take ?? 50), 200);
     const skip = Math.max(0, query.skip ?? 0);
 
-    const [items, total] = await Promise.all([
-      this.prisma.sourceCategory.findMany({
-        where,
-        orderBy: [{ categoryId: 'asc' }, { name: 'asc' }],
-        take,
-        skip,
-        include: {
-          category: { select: { id: true, name: true, slug: true } },
-        },
-      }),
-      this.prisma.sourceCategory.count({ where }),
-    ]);
+    // Fetch the full matching set and order it parent-first (DFS pre-order) so
+    // pagination never splits a child from its parent. With a plain
+    // `orderBy: categoryId` + `take` window, a child can land inside the window
+    // while its parent falls outside it, surfacing the child as an orphan. In
+    // pre-order a node always follows its ancestors, so any row within the
+    // sliced window is guaranteed to have its ancestors in the window too.
+    const matched = await this.prisma.sourceCategory.findMany({
+      where,
+      orderBy: [{ name: 'asc' }],
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+      },
+    });
+    const total = matched.length;
+    const items = orderParentFirst(matched).slice(skip, skip + take);
 
     // Enrich each row with its parent's name (lookup by externalId on the
     // same source) so the admin UI can show "Bags → Tote Bags" at a glance.

@@ -9,7 +9,7 @@ import { CategoryBackfillService } from './category-backfill.service';
 @ApiTags('category-backfill')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(UserRole.SUPER_ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 @Controller('sources/:sourceId/categorize-products')
 export class CategoryBackfillController {
   constructor(private readonly service: CategoryBackfillService) {}

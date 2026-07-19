@@ -55,10 +55,23 @@ export function CategorySelect({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const selectedRef = useRef<HTMLLIElement>(null);
   const tree = buildCategoryTree(categories, excludeId);
   const collisions = nameCollisions(categories);
   const selected = categories.find((c) => c.id === value);
+
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? tree.filter((t) =>
+        categoryLabel(t.category, categories, collisions)
+          .toLowerCase()
+          .includes(q),
+      )
+    : tree;
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -72,6 +85,26 @@ export function CategorySelect({
   useEffect(() => {
     if (disabled) setOpen(false);
   }, [disabled]);
+
+  // On open: reset the search, focus it, and scroll the list so the currently
+  // mapped category is centered (rather than always starting at the top). We
+  // adjust the list's own scrollTop so the page never scrolls.
+  useEffect(() => {
+    if (!open) return;
+    setQuery("");
+    const raf = requestAnimationFrame(() => {
+      const li = selectedRef.current;
+      const list = listRef.current;
+      if (li && list) {
+        const liRect = li.getBoundingClientRect();
+        const listRect = list.getBoundingClientRect();
+        list.scrollTop +=
+          liRect.top - listRect.top - (listRect.height - liRect.height) / 2;
+      }
+      searchRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [open]);
 
   return (
     <div ref={ref} className="relative">
@@ -90,18 +123,36 @@ export function CategorySelect({
       </button>
       {open && (
         <div className="absolute z-20 mt-1 w-full rounded-lg border border-[var(--admin-border)] bg-[var(--admin-card)] shadow-lg">
-          <ul className="max-h-56 overflow-y-auto divide-y divide-[var(--admin-border)]">
-            <li>
-              <button
-                type="button"
-                onClick={() => { onChange(""); setOpen(false); }}
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-[var(--admin-muted)] ${!value ? "bg-[var(--admin-accent)]/5 font-medium" : "text-[var(--admin-fg)]/50"}`}
-              >
-                {placeholder}
-              </button>
-            </li>
-            {tree.map(({ category: c, depth }) => (
-              <li key={c.id}>
+          <div className="border-b border-[var(--admin-border)] p-1.5">
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setOpen(false);
+                }
+              }}
+              placeholder="Search categories…"
+              className="w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--admin-accent)]"
+            />
+          </div>
+          <ul ref={listRef} className="max-h-56 overflow-y-auto divide-y divide-[var(--admin-border)]">
+            {!q && (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => { onChange(""); setOpen(false); }}
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-[var(--admin-muted)] ${!value ? "bg-[var(--admin-accent)]/5 font-medium" : "text-[var(--admin-fg)]/50"}`}
+                >
+                  {placeholder}
+                </button>
+              </li>
+            )}
+            {filtered.map(({ category: c, depth }) => (
+              <li key={c.id} ref={value === c.id ? selectedRef : undefined}>
                 <button
                   type="button"
                   onClick={() => { onChange(c.id); setOpen(false); }}
@@ -113,6 +164,11 @@ export function CategorySelect({
                 </button>
               </li>
             ))}
+            {filtered.length === 0 && (
+              <li className="px-3 py-3 text-center text-sm text-[var(--admin-fg)]/50">
+                No matching categories
+              </li>
+            )}
           </ul>
         </div>
       )}

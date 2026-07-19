@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ProductCard } from "./product-card";
 
 interface Product {
+  id: string;
   name: string;
   price: number;
   originalPrice?: number;
@@ -50,7 +51,7 @@ export function BestSellersTabs({ tabs }: { tabs: Tab[] }) {
             </p>
           ) : (
             current.products.map((product) => (
-              <ProductCard key={product.name} {...product} />
+              <ProductCard key={product.id} {...product} />
             ))
           )}
         </div>

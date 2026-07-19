@@ -69,7 +69,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
         className="relative hidden border-b border-slate-700 bg-slate-800 md:block"
         onMouseLeave={() => setActiveId(null)}
       >
-        <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center overflow-x-auto px-4 sm:px-6 lg:px-8">
           {categories.map((cat) => (
             <Link
               key={cat.id}
@@ -81,7 +81,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
               onMouseEnter={() =>
                 setActiveId(cat.children.length > 0 ? cat.id : null)
               }
-              className={`relative px-4 py-3 text-sm font-medium transition-colors ${
+              className={`relative shrink-0 whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors ${
                 activeId === cat.id
                   ? "bg-slate-700 text-white"
                   : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
@@ -103,7 +103,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
             onMouseEnter={() => setActiveId(activeCat.id)}
             onMouseLeave={() => setActiveId(null)}
           >
-            <div className="flex w-max max-w-[min(56rem,90vw)] flex-wrap justify-center gap-5 p-5">
+            <div className="flex w-max max-w-[min(63rem,92vw)] flex-wrap justify-start gap-5 p-5">
               {activeCat.children.map((sub) => (
                 <div key={sub.id} className="w-44">
                   <Link

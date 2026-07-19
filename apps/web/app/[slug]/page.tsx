@@ -116,28 +116,65 @@ export default async function SlugPage({ params }: PageProps) {
 
   if (category) {
     // Keep the admin-defined order (API returns categories by sortOrder).
-    const subcategories = categories
-      .filter((c) => c.parentId === category.id)
-      .map(adaptCategory);
+    const subcategoriesRaw = categories.filter(
+      (c) => c.parentId === category.id,
+    );
 
-    // For subcategory tiles with no admin-assigned image, fall back to the
-    // first available product image in that subcategory so cards aren't blank.
-    // Fetches run in parallel and only for subcategories actually missing an
-    // image (uses the existing /products endpoint — no new API route).
+    // Products live on leaf categories, so a mid-level subcategory's image and
+    // product count must be aggregated from its descendant leaves.
+    const childrenByParentId = new Map<string, ApiCategory[]>();
+    for (const c of categories) {
+      if (!c.parentId) continue;
+      const list = childrenByParentId.get(c.parentId) ?? [];
+      list.push(c);
+      childrenByParentId.set(c.parentId, list);
+    }
+    const descendantsOf = (id: string): ApiCategory[] => {
+      const kids = childrenByParentId.get(id) ?? [];
+      return kids.flatMap((k) => [k, ...descendantsOf(k.id)]);
+    };
+
+    // For subcategory tiles with no admin-assigned image, fall back to the first
+    // available product image in the subcategory or its descendant leaves so
+    // cards aren't blank. Fetches run in parallel and only for tiles actually
+    // missing an image (uses the existing /products endpoint — no new API route).
     const subcategoryCards = await Promise.all(
-      subcategories.map(async (sub) => {
-        if (sub.image) return sub;
-        const res = await apiFetchSafe<ProductsResponse>(
-          `/products?active=true&pageSize=3&categoryId=${encodeURIComponent(
-            sub.id,
-          )}`,
+      subcategoriesRaw.map(async (rawSub) => {
+        const sub = adaptCategory(rawSub);
+        // Aggregate the product count across the subcategory and its descendants.
+        const descendants = descendantsOf(rawSub.id);
+        const count = descendants.reduce(
+          (n, k) => n + (k._count?.products ?? 0),
+          rawSub._count?.products ?? 0,
         );
-        const firstImage = res?.items
-          ?.map((p) => p.images?.[0])
-          .find((u): u is string => !!u);
-        return firstImage
-          ? { ...sub, image: sizedImage(normalizeImageUrl(firstImage), "normal") }
-          : sub;
+        // Admin-assigned category image: fills the tile frame (cover).
+        if (sub.image) return { ...sub, count, imageFit: "cover" as const };
+        // Product-image fallback: try the most-stocked leaves (the subcategory
+        // itself if it's a leaf, otherwise its descendants).
+        const pool = [rawSub, ...descendants]
+          .filter((k) => (k._count?.products ?? 0) > 0)
+          .sort((a, b) => (b._count?.products ?? 0) - (a._count?.products ?? 0))
+          .slice(0, 3);
+        for (const c of pool) {
+          const res = await apiFetchSafe<ProductsResponse>(
+            `/products?active=true&pageSize=3&categoryId=${encodeURIComponent(
+              c.id,
+            )}`,
+          );
+          const firstImage = res?.items
+            ?.map((p) => p.images?.[0])
+            .find((u): u is string => !!u);
+          // Show the whole product (contain), so it isn't cropped like a banner.
+          if (firstImage) {
+            return {
+              ...sub,
+              count,
+              image: sizedImage(normalizeImageUrl(firstImage), "normal"),
+              imageFit: "contain" as const,
+            };
+          }
+        }
+        return { ...sub, count, imageFit: "cover" as const };
       }),
     );
 
@@ -170,7 +207,7 @@ export default async function SlugPage({ params }: PageProps) {
           <Breadcrumb items={breadcrumb} />
         </div>
 
-        {subcategories.length > 0 ? (
+        {subcategoryCards.length > 0 ? (
           // Parent category: show its subcategories as tiles instead of products.
           <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
             <h1 className="text-2xl font-bold">{category.name}</h1>
@@ -185,6 +222,7 @@ export default async function SlugPage({ params }: PageProps) {
                   slug={sub.slug}
                   count={sub.count}
                   image={sub.image}
+                  imageFit={sub.imageFit}
                   layout="tile"
                   icon={categoryIcon(sub.slug)}
                 />

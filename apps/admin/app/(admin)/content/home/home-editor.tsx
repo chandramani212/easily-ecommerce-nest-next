@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { clientApi, DemoReadOnlyError } from "../../../../lib/client-api";
 import { ImageField } from "../../../../components/image-field";
+import { ProductPicker } from "../../../../components/product-picker";
 import { RichTextEditor } from "../../../../components/rich-text-editor";
 import { SeoFields, type SeoValue } from "../../../../components/seo-fields";
 import {
@@ -14,7 +15,12 @@ import {
   TextInput,
   moveItem,
 } from "../page-editor-kit";
-import type { HeroSlide, HomeContent, Page } from "../../../../lib/types";
+import type {
+  HeroSlide,
+  HomeContent,
+  Page,
+  PopularProductRef,
+} from "../../../../lib/types";
 
 const EMPTY_SLIDE: HeroSlide = {
   tag: "",
@@ -43,6 +49,10 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
   const [contentBody, setContentBody] = useState(
     page.content?.content?.body ?? "",
   );
+  const [popularProducts, setPopularProducts] = useState<PopularProductRef[]>(
+    page.content?.popularProducts ?? [],
+  );
+  const [popularPickerOpen, setPopularPickerOpen] = useState(false);
   const [seo, setSeo] = useState<SeoValue>({
     metaTitle: page.metaTitle,
     metaDescription: page.metaDescription,
@@ -70,6 +80,7 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
           content: {
             hero: { autoPlayMs: Number(autoPlayMs) || 5000, slides },
             content: { heading: contentHeading, body: contentBody },
+            popularProducts,
           },
           metaTitle: seo.metaTitle,
           metaDescription: seo.metaDescription,
@@ -245,11 +256,120 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
         </div>
       </EditorSection>
 
+      <EditorSection
+        title={`"Most Popular" products`}
+        right={
+          <button
+            type="button"
+            onClick={() => setPopularPickerOpen(true)}
+            className="rounded-lg border border-[var(--admin-border)] px-3 py-1.5 text-xs font-medium hover:bg-[var(--admin-muted)]"
+          >
+            + Add products
+          </button>
+        }
+      >
+        <p className="mb-3 text-xs text-[var(--admin-fg)]/60">
+          Products shown in the home &ldquo;Best Sellers&rdquo; section&rsquo;s{" "}
+          &ldquo;Most Popular&rdquo; tab, in this order. Leave empty to fall back
+          to the newest active products automatically.
+        </p>
+        {popularProducts.length === 0 ? (
+          <p className="text-sm text-[var(--admin-fg)]/50">
+            No products selected — using the automatic newest-products fallback.
+          </p>
+        ) : (
+          <ul className="divide-y divide-[var(--admin-border)] rounded-lg border border-[var(--admin-border)]">
+            {popularProducts.map((p, i) => (
+              <li
+                key={p.id}
+                className="flex items-center gap-3 px-3 py-2 text-sm"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--admin-muted)]">
+                  {p.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.image}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-[var(--admin-fg)]/40">—</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{p.name}</p>
+                  <p className="truncate font-mono text-xs text-[var(--admin-fg)]/60">
+                    {p.sku}
+                  </p>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPopularProducts((prev) => moveItem(prev, i, -1))
+                    }
+                    disabled={i === 0}
+                    className="rounded border border-[var(--admin-border)] px-2 text-xs disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPopularProducts((prev) => moveItem(prev, i, 1))
+                    }
+                    disabled={i === popularProducts.length - 1}
+                    className="rounded border border-[var(--admin-border)] px-2 text-xs disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPopularProducts((prev) =>
+                        prev.filter((x) => x.id !== p.id),
+                      )
+                    }
+                    className="rounded-md border border-[var(--admin-border)] px-2 py-1 text-xs hover:bg-[var(--admin-muted)]"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </EditorSection>
+
       <EditorSection title="SEO">
         <SeoFields value={seo} onChange={setSeo} showCanonical />
       </EditorSection>
 
       <SaveBar saving={saving} saved={saved} onSave={save} />
+
+      <ProductPicker
+        open={popularPickerOpen}
+        onClose={() => setPopularPickerOpen(false)}
+        excludeIds={popularProducts.map((p) => p.id)}
+        initialSelected={popularProducts.map((p) => p.id)}
+        onSelect={(picks) => {
+          setPopularProducts((prev) => {
+            const map = new Map(prev.map((p) => [p.id, p]));
+            for (const p of picks) {
+              if (!map.has(p.id)) {
+                map.set(p.id, {
+                  id: p.id,
+                  slug: p.slug,
+                  name: p.name,
+                  sku: p.sku,
+                  image: p.images?.[0],
+                });
+              }
+            }
+            return Array.from(map.values());
+          });
+        }}
+      />
     </div>
   );
 }

@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Easily Admin",
   description: "Easily Admin \u2014 Ecommerce control panel",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 

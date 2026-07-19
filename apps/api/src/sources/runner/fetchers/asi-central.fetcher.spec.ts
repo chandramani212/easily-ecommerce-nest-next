@@ -227,6 +227,158 @@ describe('AsiCentralFetcher pagination', () => {
     expect(ids.sort((a, b) => a - b)).toEqual(range(1, 3).map((r) => r.Id));
   });
 
+  it('retries an ASI internal-error 400 (server .NET/SQL failure) then succeeds', async () => {
+    // ASI intermittently leaks an internal server failure as a 400 rather than a
+    // 5xx. It's transient, so the walk must retry it, not abort on first hit.
+    const internal400 = {
+      ok: false,
+      status: 400,
+      json: async () => ({}),
+      text: async () =>
+        JSON.stringify({
+          Id: 'd9213ea3',
+          Error:
+            'A .NET Framework error occurred ... spCLR_Helper_RetrievePreferences ... Failed to enter Commo',
+        }),
+      headers: new Map() as unknown as Headers,
+    } as Partial<Response>;
+
+    let searchCalls = 0;
+    fetchMock = jest.fn(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes('/products/search.json')) {
+        searchCalls += 1;
+        if (searchCalls === 1) return internal400;
+        const page = Number(new URL(u).searchParams.get('page'));
+        const results = page === 1 ? range(1, 4) : [];
+        return jsonResponse({ Results: results, ResultsTotal: 4, ResultsPerPage: 100, Page: page });
+      }
+      const m = u.match(/products\/(\d+)\.json/);
+      return jsonResponse({ Id: Number(m![1]), Name: `P${m![1]}` });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const ids = await runFetch();
+
+    expect(searchCalls).toBeGreaterThan(1); // it retried
+    expect(ids.sort((a, b) => a - b)).toEqual(range(1, 4).map((r) => r.Id));
+  });
+
+  it('abandons a persistently-failing slice and reports it instead of aborting the run', async () => {
+    const internal400 = {
+      ok: false,
+      status: 400,
+      json: async () => ({}),
+      text: async () =>
+        'Errors were encountered while retrieving ... System.Data.SqlClient.SqlException ... Failed to enter Commo',
+      headers: new Map() as unknown as Headers,
+    } as Partial<Response>;
+
+    let searchCalls = 0;
+    fetchMock = jest.fn(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes('/products/search.json')) {
+        searchCalls += 1;
+        return internal400; // this slice never recovers
+      }
+      const m = u.match(/products\/(\d+)\.json/);
+      return jsonResponse({ Id: Number(m![1]), Name: `P${m![1]}` });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const partitionErrors: { query: string; error: string }[] = [];
+    const fetcher = new AsiCentralFetcher(
+      {
+        baseUrl: BASE,
+        searchQuery: 'null',
+        retryBackoffMs: 1,
+        transientRetryBaseMs: 1,
+        onPartitionError: (info) => partitionErrors.push(info),
+      },
+      noopAuth,
+    );
+
+    // The poisoned slice must NOT abort the run — fetch resolves cleanly.
+    const payload = await fetcher.fetch();
+    const parsed = JSON.parse(payload.body.toString('utf8')) as { records: unknown[] };
+
+    expect(parsed.records).toEqual([]); // nothing recovered from this slice
+    expect(searchCalls).toBeGreaterThan(1); // retried before giving up
+    expect(partitionErrors).toHaveLength(1); // reported → run finishes PARTIAL
+    expect(partitionErrors[0].error).toContain('ASI fetch failed (400)');
+  });
+
+  it('one poisoned price slice is skipped while the rest of the catalog is collected', async () => {
+    // Full-catalog price bisection over 1500 products (price === id). Bisection
+    // deterministically walks the bands [0..976.56] and [976.56..1953.13]. We
+    // poison the upper band (round(lo) === 977) with a persistent ASI internal
+    // 400: it's abandoned (products 977..1500 lost), but the lower band still
+    // imports 1..976 — one bad slice no longer aborts the whole run.
+    const CAP = 1000;
+    const N = 1500;
+    const internal400 = {
+      ok: false,
+      status: 400,
+      json: async () => ({}),
+      text: async () => 'A .NET Framework error occurred: spBLL_PreferenceItemMatrixCell',
+      headers: new Map() as unknown as Headers,
+    } as Partial<Response>;
+
+    fetchMock = jest.fn(async (url: unknown) => {
+      const u = String(url);
+      if (u.includes('/products/search.json')) {
+        const sp = new URL(u).searchParams;
+        const q = sp.get('q') ?? '';
+        const m = q.match(/price:\[(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)\]/);
+        const lo = m ? Number(m[1]) : 0;
+        const hi = m ? Number(m[2]) : N;
+        // Poison the specific upper band the bisection walks.
+        if (m && Math.round(lo) === 977) return internal400;
+        const idLo = Math.max(1, Math.ceil(lo));
+        const idHi = Math.min(N, Math.floor(hi));
+        const all = idHi >= idLo ? range(idLo, idHi) : [];
+        if (sp.get('rpp') === '1') {
+          return jsonResponse({ Results: [], ResultsTotal: all.length, ResultsPerPage: 1 });
+        }
+        const page = Number(sp.get('page'));
+        const capped = all.slice(0, CAP);
+        const start = (page - 1) * 100;
+        return jsonResponse({
+          Results: capped.slice(start, start + 100),
+          ResultsTotal: all.length,
+          ResultsPerPage: 100,
+          Page: page,
+        });
+      }
+      const m = u.match(/products\/(\d+)\.json/);
+      return jsonResponse({ Id: Number(m![1]), Name: `P${m![1]}` });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const partitionErrors: { query: string; error: string }[] = [];
+    const fetcher = new AsiCentralFetcher(
+      {
+        baseUrl: BASE,
+        searchQuery: '',
+        retryBackoffMs: 1,
+        transientRetryBaseMs: 1,
+        onPartitionError: (info) => partitionErrors.push(info),
+      },
+      noopAuth,
+    );
+    const payload = await fetcher.fetch();
+    const ids = (JSON.parse(payload.body.toString('utf8')) as { records: { Id: number }[] }).records
+      .map((r) => r.Id)
+      .sort((a, b) => a - b);
+
+    // The poisoned upper band was reported and skipped…
+    expect(partitionErrors.length).toBeGreaterThanOrEqual(1);
+    expect(ids).not.toContain(1500); // upper-band product lost
+    // …but the lower band still imported the bulk of the catalog.
+    expect(ids).toContain(1);
+    expect(ids.length).toBeGreaterThanOrEqual(900);
+  });
+
   it('stops on an empty page when ResultsTotal is absent', async () => {
     fetchMock = jest.fn(async (url: unknown) => {
       const u = String(url);

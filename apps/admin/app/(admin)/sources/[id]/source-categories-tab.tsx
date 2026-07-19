@@ -65,6 +65,11 @@ function buildSourceTree(
   return result;
 }
 
+/** Quote a CSV cell when it contains a comma, quote, or newline. */
+function csvCell(value: string): string {
+  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
 export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
   const [rows, setRows] = useState<SourceCategoryRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -74,37 +79,16 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
   const [err, setErr] = useState<string | null>(null);
   const [options, setOptions] = useState<Category[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [backfill, setBackfill] = useState<BackfillStatus | null>(null);
-  const [starting, setStarting] = useState(false);
   const [resync, setResync] = useState<BackfillStatus | null>(null);
   const [startingResync, setStartingResync] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  // Load current job statuses once (a job may already be running).
+  // Load current resync job status once (a job may already be running).
   useEffect(() => {
-    clientApi<BackfillStatus>(`/sources/${sourceId}/categorize-products/status`)
-      .then(setBackfill)
-      .catch(() => {});
     clientApi<BackfillStatus>(`/sources/${sourceId}/categorize-products/resync/status`)
       .then(setResync)
       .catch(() => {});
   }, [sourceId]);
-
-  // Poll progress while a job is running.
-  useEffect(() => {
-    if (!backfill?.running) return;
-    const t = setTimeout(async () => {
-      try {
-        setBackfill(
-          await clientApi<BackfillStatus>(
-            `/sources/${sourceId}/categorize-products/status`,
-          ),
-        );
-      } catch {
-        /* keep last known status */
-      }
-    }, 3000);
-    return () => clearTimeout(t);
-  }, [backfill, sourceId]);
 
   useEffect(() => {
     if (!resync?.running) return;
@@ -130,20 +114,83 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
         : String(e);
   }
 
-  async function startBackfill() {
-    setStarting(true);
+  async function exportCsv() {
+    setExporting(true);
     setErr(null);
     try {
-      setBackfill(
-        await clientApi<BackfillStatus>(
-          `/sources/${sourceId}/categorize-products`,
-          { method: "POST" },
-        ),
-      );
+      // Page through the full set for this source (the list endpoint caps
+      // `take` at 200) so the export always covers every category, not just
+      // the current filtered/searched view.
+      const pageSize = 200;
+      const all: SourceCategoryRow[] = [];
+      let skip = 0;
+      for (;;) {
+        const page = await clientApi<{ total: number; items: SourceCategoryRow[] }>(
+          `/sources/${sourceId}/source-categories?take=${pageSize}&skip=${skip}`,
+        );
+        all.push(...page.items);
+        if (page.items.length === 0 || all.length >= page.total) break;
+        skip += pageSize;
+      }
+
+      // Resolve a mapped curated category to its root-first path (the curated
+      // tree is up to 3 levels) so the export shows the full hierarchy, not
+      // just the leaf. `options` holds the full flat category list with parents.
+      const catById = new Map(options.map((c) => [c.id, c]));
+      const mappedPath = (id?: string): string[] => {
+        const path: string[] = [];
+        const seen = new Set<string>();
+        let cur = id ? catById.get(id) : undefined;
+        while (cur && !seen.has(cur.id)) {
+          seen.add(cur.id);
+          path.unshift(cur.name);
+          cur = cur.parentId ? catById.get(cur.parentId) : undefined;
+        }
+        return path;
+      };
+
+      const header = [
+        "Level 1 source category",
+        "Level 2 source category",
+        "Mapped category L1",
+        "Mapped category L2",
+        "Mapped category L3",
+      ];
+      // Place each source row by its hierarchy level: a top-level (level 1)
+      // category goes in column 1 with column 2 blank; a child (level 2) keeps
+      // its level-1 parent in column 1 and its own name in column 2.
+      const lines = [
+        header,
+        ...all.map((r) => {
+          const isChild = !!r.parentExternalId;
+          const level1 = isChild ? r.parentName ?? "" : r.name;
+          const level2 = isChild ? r.name : "";
+          // Fall back to the leaf name if the full list didn't load.
+          const path = r.category
+            ? mappedPath(r.category.id).length
+              ? mappedPath(r.category.id)
+              : [r.category.name]
+            : [];
+          return [level1, level2, path[0] ?? "", path[1] ?? "", path[2] ?? ""];
+        }),
+      ];
+      // Prefix a BOM so Excel opens the UTF-8 file with the right encoding.
+      const csv =
+        "﻿" + lines.map((cols) => cols.map(csvCell).join(",")).join("\r\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `source-categories-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } catch (e) {
       setErr(jobError(e));
     } finally {
-      setStarting(false);
+      setExporting(false);
     }
   }
 
@@ -267,12 +314,12 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
           {resync?.running || startingResync ? "Updating…" : "Update product categories"}
         </button>
         <button
-          onClick={startBackfill}
-          disabled={starting || backfill?.running}
-          title="Fetch product↔category links from ASI (one-time, for products imported before mapping). Runs in the background."
+          onClick={exportCsv}
+          disabled={exporting}
+          title="Download all source categories for this source as CSV: parent source category, child source category, mapped category."
           className="rounded-lg bg-[var(--admin-accent)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-60"
         >
-          {backfill?.running || starting ? "Categorizing…" : "Categorize from ASI"}
+          {exporting ? "Exporting…" : "Export CSV"}
         </button>
       </div>
 
@@ -288,22 +335,6 @@ export function SourceCategoriesTab({ sourceId }: { sourceId: string }) {
           {resync.error
             ? `Update stopped: ${resync.error}`
             : `Updated ${resync.processed.toLocaleString()} products from the current mapping.`}
-        </div>
-      )}
-
-      {backfill?.running && (
-        <div className="rounded-md border border-[var(--admin-border)] bg-[var(--admin-muted)] px-3 py-2 text-xs text-[var(--admin-fg)]/80">
-          Categorizing products in the background —{" "}
-          <strong>{backfill.processed}</strong>/{backfill.total} categories,{" "}
-          <strong>{backfill.productsConnected.toLocaleString()}</strong> products
-          linked. Safe to leave this page.
-        </div>
-      )}
-      {backfill && !backfill.running && backfill.finishedAt && (
-        <div className="rounded-md border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-700">
-          {backfill.error
-            ? `Backfill stopped: ${backfill.error}`
-            : `Done — ${backfill.productsConnected.toLocaleString()} products categorized across ${backfill.processed} categories.`}
         </div>
       )}
 

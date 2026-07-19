@@ -40,7 +40,10 @@ export class SourcesController {
     private readonly suppliers: SuppliersService,
   ) {}
 
+  // Broadened to ADMIN so the "Source Categories" page (Products menu) can
+  // populate its source picker. Source management stays SUPER_ADMIN-only.
   @Get()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   findAll(@Query() query: SourceListQuery) {
     return this.sources.findAll(query);
   }

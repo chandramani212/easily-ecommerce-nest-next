@@ -22,8 +22,12 @@ function sanitize(name: string): string {
 }
 
 /**
- * Saves files under `apps/api/uploads/` and serves them at
- * `${PUBLIC_API_URL}/uploads/<filename>`.
+ * Saves files under `apps/api/uploads/` and returns a **host-relative** URL
+ * (`/uploads/<filename>`), matching the API's `serveRoot: '/uploads'` static
+ * mount. Storing the path without a scheme/host keeps stored image references
+ * portable across environments (dev/staging/prod, or a future CDN); the origin
+ * is resolved at render time by the frontends (see `normalizeImageUrl` on web
+ * and the `/uploads` rewrite on web + admin).
  *
  * Designed so it can be swapped with an S3/R2 adapter without touching
  * `MediaService` consumers.
@@ -32,18 +36,12 @@ function sanitize(name: string): string {
 export class LocalStorageAdapter implements StorageAdapter {
   private readonly logger = new Logger(LocalStorageAdapter.name);
   private readonly uploadDir: string;
-  private readonly publicBaseUrl: string;
 
   constructor(config: ConfigService) {
     this.uploadDir = config.get<string>(
       'UPLOAD_DIR',
       join(process.cwd(), 'uploads'),
     );
-    const publicUrl = (
-      config.get<string>('PUBLIC_API_URL') ??
-      `http://localhost:${config.get<string>('PORT', '3001')}`
-    ).replace(/\/$/, '');
-    this.publicBaseUrl = `${publicUrl}/uploads`;
   }
 
   async save(input: UploadInput): Promise<SavedFile> {
@@ -60,7 +58,7 @@ export class LocalStorageAdapter implements StorageAdapter {
 
     return {
       filename,
-      url: `${this.publicBaseUrl}/${filename}`,
+      url: `/uploads/${filename}`,
       size: input.size,
       mimeType: input.mimeType,
     };

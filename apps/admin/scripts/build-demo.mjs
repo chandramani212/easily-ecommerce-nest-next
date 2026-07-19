@@ -6,7 +6,14 @@
 // aside, runs `next build` with NEXT_PUBLIC_DEMO=1, then restores them.
 
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,6 +25,40 @@ const moves = [
   { src: join(adminRoot, "proxy.ts"), dest: join(stash, "proxy.ts") },
   { src: join(adminRoot, "app/api"), dest: join(stash, "app-api") },
 ];
+
+// The admin group forces dynamic rendering in the real (server) build so that
+// cookie-reading routes aren't prerendered as static. `output: "export"` can't
+// use force-dynamic, so we strip that export for the static demo build.
+const patches = [
+  {
+    file: join(adminRoot, "app/(admin)/layout.tsx"),
+    strip: /^export const dynamic = "force-dynamic";\n/m,
+  },
+];
+
+const patchBackup = (i) => join(stash, `patch-${i}.bak`);
+
+function patchFiles() {
+  patches.forEach(({ file, strip }, i) => {
+    if (!existsSync(file)) return;
+    const original = readFileSync(file, "utf8");
+    const patched = original.replace(strip, "");
+    if (patched === original) return;
+    writeFileSync(patchBackup(i), original);
+    writeFileSync(file, patched);
+    console.log(`  ↳ stripped force-dynamic from ${file}`);
+  });
+}
+
+function restoreFiles() {
+  patches.forEach(({ file }, i) => {
+    const backup = patchBackup(i);
+    if (!existsSync(backup)) return;
+    writeFileSync(file, readFileSync(backup, "utf8"));
+    rmSync(backup, { force: true });
+    console.log(`  ↳ restored ${file}`);
+  });
+}
 
 function stashPaths() {
   mkdirSync(stash, { recursive: true });
@@ -53,6 +94,7 @@ function restorePaths() {
 let exitCode = 0;
 console.log("▶ Sidelining server-only files for static export…");
 stashPaths();
+patchFiles();
 
 try {
   console.log("▶ Running next build (NEXT_PUBLIC_DEMO=1)…");
@@ -70,6 +112,7 @@ try {
   console.error("✗ Demo build failed");
 } finally {
   console.log("▶ Restoring sidelined files…");
+  restoreFiles();
   restorePaths();
 }
 

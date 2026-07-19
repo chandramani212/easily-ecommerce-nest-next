@@ -14,7 +14,7 @@ import {
   normalizeImageUrl,
   sizedImage,
 } from "../lib/adapt";
-import type { ApiCategory, ProductsResponse } from "../lib/types";
+import type { ApiCategory, ApiProduct, ProductsResponse } from "../lib/types";
 import { getPage, pageMetadata, type HomeContent } from "../lib/pages";
 
 export async function generateMetadata() {
@@ -93,16 +93,20 @@ function categoryIcon(slug: string) {
 }
 
 /**
- * Resolve a representative image for a category. Root categories have no direct
- * products, so fall back to the first product image found in their most-stocked
- * children. Returns undefined when nothing usable is found.
+ * Resolve a representative image for a category, plus how it should fill the
+ * tile. Admin-assigned category images are banner-style → "cover" (fill/crop).
+ * Root and mid-level categories have no direct products (products live on leaf
+ * categories), so fall back to the first product image found in the most-stocked
+ * descendant leaves → "contain" (whole product, no cropping). Returns no url
+ * when nothing usable is found.
  */
 async function representativeImage(
   category: ApiCategory,
-  children: ApiCategory[],
-): Promise<string | undefined> {
-  if (category.image) return sizedImage(normalizeImageUrl(category.image), "normal");
-  const candidates = children
+  descendants: ApiCategory[],
+): Promise<{ url?: string; fit: "cover" | "contain" }> {
+  if (category.image)
+    return { url: sizedImage(normalizeImageUrl(category.image), "normal"), fit: "cover" };
+  const candidates = descendants
     .filter((k) => (k._count?.products ?? 0) > 0)
     .sort((a, b) => (b._count?.products ?? 0) - (a._count?.products ?? 0))
     .slice(0, 3);
@@ -113,9 +117,9 @@ async function representativeImage(
     const img = res?.items
       ?.map((p) => p.images?.[0])
       .find((u): u is string => !!u);
-    if (img) return sizedImage(normalizeImageUrl(img), "normal");
+    if (img) return { url: sizedImage(normalizeImageUrl(img), "normal"), fit: "contain" };
   }
-  return undefined;
+  return { fit: "cover" };
 }
 
 export default async function Page() {
@@ -129,24 +133,36 @@ export default async function Page() {
 
   // "Shop by Category" image-led cards. For each root category, use its
   // admin-assigned image when present, otherwise a representative product image
-  // from its children, plus an aggregate product count (roots have no direct
-  // products of their own).
-  const rootCategoriesRaw = (categoriesRaw ?? [])
-    .filter((c) => !c.parentId)
-    .slice(0, 6);
+  // from its descendant leaves, plus an aggregate product count (roots and
+  // mid-level categories have no direct products — products live on leaves).
+  const allCategories = categoriesRaw ?? [];
+  const childrenByParentId = new Map<string, ApiCategory[]>();
+  for (const c of allCategories) {
+    if (!c.parentId) continue;
+    const list = childrenByParentId.get(c.parentId) ?? [];
+    list.push(c);
+    childrenByParentId.set(c.parentId, list);
+  }
+  const descendantsOf = (id: string): ApiCategory[] => {
+    const kids = childrenByParentId.get(id) ?? [];
+    return kids.flatMap((k) => [k, ...descendantsOf(k.id)]);
+  };
+  const rootCategoriesRaw = allCategories.filter((c) => !c.parentId).slice(0, 6);
   const showcaseCategories = await Promise.all(
     rootCategoriesRaw.map(async (c) => {
-      const children = (categoriesRaw ?? []).filter((k) => k.parentId === c.id);
-      const count = children.reduce(
+      const descendants = descendantsOf(c.id);
+      const count = descendants.reduce(
         (n, k) => n + (k._count?.products ?? 0),
         c._count?.products ?? 0,
       );
+      const rep = await representativeImage(c, descendants);
       return {
         id: c.id,
         name: c.name,
         slug: c.slug,
         count,
-        image: await representativeImage(c, children),
+        image: rep.url,
+        imageFit: rep.fit,
       };
     }),
   );
@@ -155,17 +171,51 @@ export default async function Page() {
     .filter((c) => !c.parentId)
     .slice(0, 2);
 
-  const popularProducts = (popularRaw?.items ?? []).map(adaptProductForCard);
+  // "Most Popular" tab: use the admin-curated product list (by slug, in order)
+  // when set; otherwise fall back to the newest active products.
+  const curatedPopular = homePage?.content?.popularProducts ?? [];
+  let popularProducts;
+  if (curatedPopular.length > 0) {
+    const fetched = await Promise.all(
+      curatedPopular.map((ref) =>
+        apiFetchSafe<ApiProduct>(
+          `/products/by-slug/${encodeURIComponent(ref.slug)}`,
+        ),
+      ),
+    );
+    popularProducts = fetched
+      .filter((p): p is ApiProduct => !!p && p.active !== false)
+      .map(adaptProductForCard);
+  } else {
+    popularProducts = (popularRaw?.items ?? []).map(adaptProductForCard);
+  }
 
+  // Products live on leaf categories, so a root-category tab must gather its
+  // products from descendant leaves (querying the root id directly returns
+  // none). Walk the most-stocked leaves and merge, deduped, up to 8 products.
   const categoryTabs = await Promise.all(
     topCategoriesForTabs.map(async (c) => {
-      const res = await apiFetchSafe<ProductsResponse>(
-        `/products?active=true&pageSize=8&categoryId=${encodeURIComponent(c.id)}`,
-      );
+      const leaves = descendantsOf(c.id)
+        .filter((k) => (k._count?.products ?? 0) > 0)
+        .sort((a, b) => (b._count?.products ?? 0) - (a._count?.products ?? 0));
+      const collected: ApiProduct[] = [];
+      const seen = new Set<string>();
+      for (const leaf of leaves) {
+        if (collected.length >= 8) break;
+        const res = await apiFetchSafe<ProductsResponse>(
+          `/products?active=true&pageSize=8&categoryId=${encodeURIComponent(leaf.id)}`,
+        );
+        for (const p of res?.items ?? []) {
+          if (seen.has(p.id)) continue;
+          seen.add(p.id);
+          collected.push(p);
+          if (collected.length >= 8) break;
+        }
+      }
       return {
         key: c.slug,
         label: c.name,
-        products: (res?.items ?? []).map(adaptProductForCard),
+        products: collected.map(adaptProductForCard),
       };
     }),
   );
@@ -205,6 +255,7 @@ export default async function Page() {
                   slug={cat.slug}
                   count={cat.count}
                   image={cat.image}
+                  imageFit={cat.imageFit}
                   icon={categoryIcon(cat.slug)}
                 />
               ))}

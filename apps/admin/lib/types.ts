@@ -352,9 +352,22 @@ export interface HeroSlide {
   image: string;
 }
 
+/** A product chosen for the home "Most Popular" tab. Stored in Home page
+ * content; the storefront re-fetches live product data by `slug`. */
+export interface PopularProductRef {
+  id: string;
+  slug: string;
+  name: string;
+  sku: string;
+  image?: string;
+}
+
 export interface HomeContent {
   hero: { autoPlayMs: number; slides: HeroSlide[] };
   content?: { heading: string; body: string };
+  /** Curated product list for the home "Most Popular" tab. When empty, the
+   * storefront falls back to the newest active products. */
+  popularProducts?: PopularProductRef[];
 }
 
 /** Privacy Policy / Terms & Conditions — a single rich-text body. */

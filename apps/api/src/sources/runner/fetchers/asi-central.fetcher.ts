@@ -49,6 +49,15 @@ export interface AsiCentralFetcherConfig {
    */
   onFetchProgress?: (fetched: number, total: number) => void;
   /**
+   * Called when a single search slice (one `q` partition) can't be walked even
+   * after retries — e.g. ASI returns an internal server error for that query.
+   * The slice is abandoned (ids gathered so far are kept) and the walk moves on
+   * to the remaining slices, so one poisoned partition no longer aborts the
+   * whole multi-hour catalog pull. The runner records these and finishes the run
+   * PARTIAL instead of FAILED. Best-effort; must not throw.
+   */
+  onPartitionError?: (info: { query: string; error: string }) => void;
+  /**
    * When set, the fetcher streams detail records to this callback in batches as
    * they are downloaded, instead of buffering the entire catalog and returning
    * it all at once. Lets the runner map + upsert products incrementally so rows
@@ -713,9 +722,24 @@ export class AsiCentralFetcher implements Fetcher {
 
     for (let walk = 1; walk <= maxWalks; walk += 1) {
       const before = ordered.length;
-      const walkTotal = await this.walkOnce(
-        baseUrl, q, maxPages, maxRecords, timeoutMs, seen, ordered, onIds,
-      );
+      let walkTotal: number | undefined;
+      try {
+        walkTotal = await this.walkOnce(
+          baseUrl, q, maxPages, maxRecords, timeoutMs, seen, ordered, onIds,
+        );
+      } catch (err) {
+        // The per-request retries in getJson (network/5xx/429, and ASI's
+        // internal-error 400s) are already exhausted by the time this throws.
+        // Rather than abort the entire run, abandon just this slice: keep the
+        // ids already collected, report it, and let sibling slices continue.
+        const msg = describeError(err);
+        this.logger.warn(
+          `ASI walk ${walk}/${maxWalks} q="${q || '(all)'}" failed: ${msg} — ` +
+            `recording partition error and skipping this slice`,
+        );
+        this.cfg.onPartitionError?.({ query: q || '(all)', error: msg });
+        return;
+      }
       if (walkTotal !== undefined) {
         reportedMax =
           reportedMax === undefined ? walkTotal : Math.max(reportedMax, walkTotal);
@@ -874,6 +898,26 @@ export class AsiCentralFetcher implements Fetcher {
 
       if (!res.ok) {
         const text = await safeText(res);
+        // ASI intermittently surfaces an internal server failure (a .NET/SQL
+        // error from its own backend) as a 400 rather than a 5xx. It's
+        // server-side and transient, so retry it on the transient budget like a
+        // 5xx instead of failing the slice on the first hit.
+        if (
+          res.status >= 400 &&
+          res.status < 500 &&
+          isTransientAsiBody(text) &&
+          transientRetries < TRANSIENT_MAX_RETRIES
+        ) {
+          transientRetries += 1;
+          const waitMs = transientBackoffMs(transientRetries, transientBase);
+          this.logger.warn(
+            `ASI internal error (${res.status}); retry ` +
+              `${transientRetries}/${TRANSIENT_MAX_RETRIES} in ` +
+              `${Math.round(waitMs / 1000)}s — ${url}`,
+          );
+          await delay(waitMs);
+          continue;
+        }
         throw new Error(`ASI fetch failed (${res.status}) for ${url}: ${text}`);
       }
       return (await res.json()) as unknown;
@@ -883,6 +927,18 @@ export class AsiCentralFetcher implements Fetcher {
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * True when a non-2xx ASI body is really an internal server failure (its
+ * backend leaks .NET/SQL errors under a 400). Such responses are transient and
+ * worth retrying, unlike a genuine client-side 400 (bad query syntax), which
+ * would just fail again.
+ */
+function isTransientAsiBody(body: string): boolean {
+  return /\.NET Framework error|SqlException|spCLR_|spBLL_|RetrievePreferences|Errors were encountered while retrieving|Failed to enter/i.test(
+    body,
+  );
 }
 
 /** Round to cents so price-band bounds stay clean across recursive bisection. */

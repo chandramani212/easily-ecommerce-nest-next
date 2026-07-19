@@ -8,7 +8,7 @@ interface MenuItem {
   label: string;
   icon: React.ReactNode;
   href?: string;
-  children?: { label: string; href: string }[];
+  children?: { label: string; href: string; roles?: string[] }[];
   /** When true, only visible to SUPER_ADMIN users. */
   superAdminOnly?: boolean;
 }
@@ -34,6 +34,11 @@ const MENU: MenuItem[] = [
       { label: "All Products", href: "/products" },
       { label: "Add Product", href: "/products/new" },
       { label: "Categories", href: "/categories" },
+      {
+        label: "Source Categories",
+        href: "/products/source-categories",
+        roles: ["SUPER_ADMIN", "ADMIN"],
+      },
     ],
   },
   {
@@ -152,11 +157,22 @@ export function Sidebar({ open, onClose, role }: SidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  // Hide SUPER_ADMIN-only items (e.g. Sources) from everyone else.
+  // Hide SUPER_ADMIN-only items (e.g. Sources) from everyone else, and hide
+  // role-gated children (e.g. Source Categories) from users outside their list.
   const isSuperAdmin = role === "SUPER_ADMIN";
   const menu = useMemo(
-    () => MENU.filter((item) => !item.superAdminOnly || isSuperAdmin),
-    [isSuperAdmin],
+    () =>
+      MENU.filter((item) => !item.superAdminOnly || isSuperAdmin).map((item) =>
+        item.children
+          ? {
+              ...item,
+              children: item.children.filter(
+                (c) => !c.roles || isSuperAdmin || c.roles.includes(role ?? ""),
+              ),
+            }
+          : item,
+      ),
+    [isSuperAdmin, role],
   );
 
   useEffect(() => {

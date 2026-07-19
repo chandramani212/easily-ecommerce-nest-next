@@ -12,8 +12,10 @@ export interface CuratedNode {
 }
 
 /**
- * ASI category ContextPath → curated LEAF slug. The ContextPath (e.g.
- * "T-SHIRTS", "T-Shirts-Mens") is the token ASI search accepts — NOT the
- * `SourceCategory.externalId` we stored. An omitted ContextPath = skipped.
+ * `SourceCategory.externalId` → curated LEAF slug. The externalId is the stable
+ * per-source ASI code we stored on each SourceCategory row (e.g. "A01010003"),
+ * so linking is an exact DB match. An omitted externalId = unmapped (e.g. a
+ * top-level source category that has children: its leaf children are mapped
+ * instead). Products render on leaf categories only.
  */
 export type SourceMap = Record<string, string>;

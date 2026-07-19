@@ -71,6 +71,13 @@ interface ProcessContext {
   seenLinkIds: string[];
   /** Records processed so far, across all batches — also the next record index. */
   processed: number;
+  /**
+   * Set when the fetch phase abandoned one or more search slices (e.g. an ASI
+   * internal-error partition that survived retries). Records still processed
+   * are kept, but the run finishes PARTIAL rather than SUCCESS so the gap is
+   * visible instead of silently swallowed.
+   */
+  hadFetchError: boolean;
 }
 
 export interface RunResult {
@@ -155,11 +162,21 @@ export class ImportRunnerService {
         },
       });
       // Fire-and-forget: the background task owns the concurrency guard from
-      // here and always releases it, success or failure.
+      // here and always releases it, success or failure. executeRun handles its
+      // own errors, but a `.catch()` here is a hard guarantee that a rejection
+      // can NEVER surface as an unhandled promise rejection — which, under
+      // Node's default policy, would crash the whole API process and take every
+      // route down with it.
       const runId = runRow.id;
-      void this.executeRun(imp, runId, opts).finally(() =>
-        this.inFlight.delete(importId),
-      );
+      void this.executeRun(imp, runId, opts)
+        .catch((err) =>
+          this.logger.error(
+            `Import ${importId} background run crashed: ${
+              err instanceof Error ? (err.stack ?? err.message) : String(err)
+            }`,
+          ),
+        )
+        .finally(() => this.inFlight.delete(importId));
     } catch (err) {
       // We failed before the background task took ownership of the guard.
       this.inFlight.delete(importId);
@@ -214,20 +231,35 @@ export class ImportRunnerService {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       this.logger.error(`Import ${imp.id} failed: ${errorMsg}`);
-      const errors = [{ record: -1, error: errorMsg }];
-      const finishedAt = new Date();
-      await this.prisma.sourceImportRun.update({
-        where: { id: runId },
-        data: {
-          status: 'FAILED',
-          finishedAt,
-          errors: errors as unknown as Prisma.InputJsonValue,
-        },
-      });
-      await this.prisma.sourceImport.update({
-        where: { id: imp.id },
-        data: { lastRunAt: finishedAt, lastStatus: 'FAILED', lastRunId: runId },
-      });
+      // Recording the failure is itself best-effort: if these writes throw (DB
+      // down, connection reset), swallow it. An error escaping here would reject
+      // the un-awaited background promise and could crash the process.
+      try {
+        const errors = [{ record: -1, error: errorMsg }];
+        const finishedAt = new Date();
+        await this.prisma.sourceImportRun.update({
+          where: { id: runId },
+          data: {
+            status: 'FAILED',
+            finishedAt,
+            errors: errors as unknown as Prisma.InputJsonValue,
+          },
+        });
+        await this.prisma.sourceImport.update({
+          where: { id: imp.id },
+          data: {
+            lastRunAt: finishedAt,
+            lastStatus: 'FAILED',
+            lastRunId: runId,
+          },
+        });
+      } catch (recordErr) {
+        this.logger.error(
+          `Failed to record FAILED status for run ${runId}: ${
+            recordErr instanceof Error ? recordErr.message : String(recordErr)
+          }`,
+        );
+      }
     }
   }
 
@@ -268,8 +300,26 @@ export class ImportRunnerService {
         })
         .catch(() => undefined);
     };
+    // A search slice that couldn't be walked (ASI internal error surviving
+    // retries) is recorded here and the run continues — finishing PARTIAL, not
+    // aborted. Capped like per-record errors so a storm can't bloat the jsonb.
+    const onPartitionError = (info: { query: string; error: string }): void => {
+      ctx.hadFetchError = true;
+      if (ctx.errors.length < ImportRunnerService.MAX_LOGGED_ERRORS) {
+        ctx.errors.push({
+          record: -1,
+          error: `search slice "${info.query}" skipped: ${info.error}`,
+        });
+      }
+    };
 
-    const fetcher = await this.buildFetcher(imp, opts, onFetchProgress, onBatch);
+    const fetcher = await this.buildFetcher(
+      imp,
+      opts,
+      onFetchProgress,
+      onBatch,
+      onPartitionError,
+    );
     await fetcher.fetch();
 
     const result = await this.finishProcessing(imp, ctx);
@@ -303,6 +353,7 @@ export class ImportRunnerService {
     opts: RunOptions,
     onFetchProgress?: (fetched: number, total: number) => void,
     onBatch?: (records: unknown[]) => Promise<void>,
+    onPartitionError?: (info: { query: string; error: string }) => void,
   ): Promise<Fetcher> {
     if (opts.sample) {
       return new FileFetcher(opts.sample.body, opts.sample.contentType);
@@ -340,6 +391,7 @@ export class ImportRunnerService {
           supplierScope,
           onFetchProgress,
           onBatch,
+          onPartitionError,
         },
         auth,
       );
@@ -425,6 +477,7 @@ export class ImportRunnerService {
       rows: [],
       seenLinkIds: [],
       processed: 0,
+      hadFetchError: false,
     };
   }
 
@@ -544,12 +597,16 @@ export class ImportRunnerService {
       };
     }
 
-    const status: SourceImportRunStatus =
+    let status: SourceImportRunStatus =
       ctx.totals.failed === 0
         ? 'SUCCESS'
         : ctx.totals.failed < ctx.processed
           ? 'PARTIAL'
           : 'FAILED';
+    // The fetch phase abandoned at least one search slice: records that WERE
+    // pulled are committed, but the catalog is incomplete — report PARTIAL so
+    // the gap is visible rather than a misleading all-green SUCCESS.
+    if (ctx.hadFetchError && status === 'SUCCESS') status = 'PARTIAL';
 
     return {
       status,

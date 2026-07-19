@@ -1,9 +1,11 @@
 /**
- * Applies the curated category map to the database (categories only).
+ * Applies the curated category map to the database.
  *
  * Phases:
  *   1. Validate every sourceMap target is a real leaf.
  *   2. Create the used curated categories (mapped leaves + ancestors + Bestsellers).
+ *   3. Link SourceCategory rows to their curated leaf (set SourceCategory.categoryId
+ *      by matching sourceMap keys — SourceCategory.externalId — on every ASI source).
  *
  * Product → category assignment (the backfill) is a separate, later step.
  *
@@ -60,6 +62,31 @@ async function main(): Promise<void> {
       idBySlug.set(n.slug, cat.id);
     }
     log.log(`Phase 2: upserted ${idBySlug.size} curated categories.`);
+
+    // ---- Phase 3: link SourceCategory rows to curated leaves ---------------
+    // sourceMap key = SourceCategory.externalId; value = leaf slug. Only ASI
+    // sources are touched; existing manual mappings on other rows are untouched.
+    const asiSources = await prisma.source.findMany({
+      where: { kind: 'ASI_CENTRAL' },
+      select: { id: true },
+    });
+    let linked = 0;
+    let missing = 0;
+    for (const { id: sourceId } of asiSources) {
+      for (const [externalId, slug] of Object.entries(sourceMap)) {
+        const categoryId = idBySlug.get(slug);
+        if (!categoryId) { missing++; continue; }
+        const res = await prisma.sourceCategory.updateMany({
+          where: { sourceId, externalId },
+          data: { categoryId },
+        });
+        linked += res.count;
+      }
+    }
+    log.log(
+      `Phase 3: linked ${linked} SourceCategory rows across ${asiSources.length} ASI source(s)` +
+        (missing ? ` (${missing} slugs missing from created set)` : '') + '.',
+    );
     log.log('Done. (Product → category backfill is a separate later step.)');
   } finally {
     await app.close();

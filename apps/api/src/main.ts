@@ -6,6 +6,26 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
+// Last-resort process guards. Background work (long-running catalog imports,
+// fire-and-forget progress writes) can produce a stray rejection or throw; under
+// Node's default policy an unhandled rejection/exception terminates the process,
+// which would take the whole API — and every admin route that depends on it —
+// down. Log loudly and keep serving instead of crashing. Per-run failures are
+// still recorded on their run row by the runner's own error handling.
+const processLogger = new Logger('Process');
+process.on('unhandledRejection', (reason) => {
+  processLogger.error(
+    `Unhandled promise rejection (kept process alive): ${
+      reason instanceof Error ? (reason.stack ?? reason.message) : String(reason)
+    }`,
+  );
+});
+process.on('uncaughtException', (err) => {
+  processLogger.error(
+    `Uncaught exception (kept process alive): ${err.stack ?? err.message}`,
+  );
+});
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');

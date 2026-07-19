@@ -30,6 +30,9 @@ export interface HomeContent {
   hero: { autoPlayMs: number; slides: HeroSlide[] };
   /** Optional free-form content block rendered at the bottom of the home page. */
   content?: { heading: string; body: string };
+  /** Admin-curated products for the "Most Popular" tab (by slug, in order).
+   * When empty/unset, the home page falls back to the newest active products. */
+  popularProducts?: { slug: string }[];
 }
 
 export interface AboutContent {
