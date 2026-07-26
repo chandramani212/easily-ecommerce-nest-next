@@ -20,7 +20,7 @@ const INFO_ICONS = [
 ];
 
 const DEFAULT_INFO: ContactContent["info"] = [
-  { title: "Email Us", description: "Our team typically responds within 24 hours.", detail: "support@shopease.com" },
+  { title: "Email Us", description: "Our team typically responds within 24 hours.", detail: "orders@easilybranded.com" },
   { title: "Call Us", description: "Mon-Fri from 9AM to 6PM EST.", detail: "+1 (555) 123-4567" },
   { title: "Visit Us", description: "Come say hello at our office.", detail: "123 Commerce St, San Francisco, CA 94102" },
 ];

@@ -74,8 +74,8 @@ export class MailService {
   async sendTest(to: string) {
     return this.send({
       to,
-      subject: 'ShopEase: SMTP test email',
-      html: `<p>This is a test email from your ShopEase admin panel.</p><p>If you received this, your SMTP configuration is working.</p>`,
+      subject: 'Easily Branded: SMTP test email',
+      html: `<p>This is a test email from your Easily Branded admin panel.</p><p>If you received this, your SMTP configuration is working.</p>`,
     });
   }
 }

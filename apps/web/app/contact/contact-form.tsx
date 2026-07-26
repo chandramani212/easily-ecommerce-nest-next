@@ -72,7 +72,7 @@ export function ContactForm() {
 
   if (submitted) {
     return (
-      <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center dark:border-emerald-800 dark:bg-emerald-900/20">
+      <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center">
         <svg
           width="48"
           height="48"
@@ -80,19 +80,19 @@ export function ContactForm() {
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth="1.5"
-          className="mx-auto text-emerald-600 dark:text-emerald-400"
+          className="mx-auto text-emerald-600"
         >
           <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <h3 className="mt-4 text-lg font-semibold text-emerald-800 dark:text-emerald-300">
+        <h3 className="mt-4 text-lg font-semibold text-emerald-800">
           Message Sent!
         </h3>
-        <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
+        <p className="mt-1 text-sm text-emerald-700">
           Thanks for reaching out. We&apos;ll get back to you within 24 hours.
         </p>
         <button
           onClick={reset}
-          className="mt-4 text-sm font-medium text-emerald-600 underline hover:text-emerald-700 dark:text-emerald-400"
+          className="mt-4 text-sm font-medium text-emerald-600 underline hover:text-emerald-700"
         >
           Send another message
         </button>
