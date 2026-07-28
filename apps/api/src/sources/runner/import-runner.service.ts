@@ -65,6 +65,14 @@ interface ProcessContext {
   shouldDownloadImages: boolean;
   imageAuthHeaders: Record<string, string> | null;
   fallbackSupplierId: string | null;
+  /**
+   * When false, an *existing* product keeps whatever curated categories it
+   * already has — the source mapping no longer overwrites them, so hand-set
+   * categories survive re-syncs. Newly created products are always categorized
+   * from the source (there's nothing manual to preserve yet), and the raw
+   * SourceCategory links are recorded either way so the mapping stays usable.
+   */
+  syncCategories: boolean;
   totals: { created: number; updated: number; skipped: number; failed: number };
   errors: { record: number; externalId?: string; error: string }[];
   rows: RunResultRow[];
@@ -472,6 +480,7 @@ export class ImportRunnerService {
       shouldDownloadImages,
       imageAuthHeaders,
       fallbackSupplierId,
+      syncCategories: imp.syncCategories,
       totals: { created: 0, updated: 0, skipped: 0, failed: 0 },
       errors: [],
       rows: [],
@@ -528,6 +537,7 @@ export class ImportRunnerService {
           imp.source.id,
           mapped,
           ctx.fallbackSupplierId,
+          ctx.syncCategories,
         );
         if (result.action === 'created') ctx.totals.created += 1;
         else if (result.action === 'updated') ctx.totals.updated += 1;
@@ -634,6 +644,7 @@ export class ImportRunnerService {
     sourceId: string,
     mapped: MappedProduct,
     fallbackSupplierId: string | null,
+    syncCategories: boolean,
   ): Promise<{
     action: 'created' | 'updated' | 'skipped';
     productId?: string;
@@ -706,6 +717,14 @@ export class ImportRunnerService {
         active: mapped.active,
       };
 
+      // Categories on an *existing* product are only rewritten when the import
+      // has category sync enabled; otherwise the admin's manual assignment
+      // stands. The raw source-category links are always refreshed so the
+      // mapping screens and the manual re-sync tool stay accurate.
+      const categoryUpdate = syncCategories
+        ? { categories: { set: categoryIds.map((id) => ({ id })) } }
+        : {};
+
       let productId: string;
       let action: 'created' | 'updated';
 
@@ -714,7 +733,7 @@ export class ImportRunnerService {
           where: { id: existingLink.productId },
           data: {
             ...productData,
-            categories: { set: categoryIds.map((id) => ({ id })) },
+            ...categoryUpdate,
             sourceCategories: { set: sourceCategoryIds.map((id) => ({ id })) },
             tierPrices: {
               deleteMany: {},
@@ -742,8 +761,8 @@ export class ImportRunnerService {
             where: { id: bySku.id },
             data: {
               ...productData,
-              categories: { set: categoryIds.map((id) => ({ id })) },
-            sourceCategories: { set: sourceCategoryIds.map((id) => ({ id })) },
+              ...categoryUpdate,
+              sourceCategories: { set: sourceCategoryIds.map((id) => ({ id })) },
               tierPrices: {
                 deleteMany: {},
                 create: mapped.tiers.map((t) => ({

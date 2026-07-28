@@ -992,6 +992,7 @@ export const mockSourceImports: SourceImport[] = [
     body: null,
     recordsPath: "$.products[*]",
     autoDeactivateMissing: true,
+    syncCategories: true,
     mapping: {
       externalId: { path: "id" },
       name: { path: "title" },
@@ -1032,6 +1033,7 @@ export const mockSourceImports: SourceImport[] = [
     body: null,
     recordsPath: "$.items[*]",
     autoDeactivateMissing: false,
+    syncCategories: true,
     mapping: {
       externalId: { path: "sku" },
       name: { path: "name" },
@@ -1057,6 +1059,7 @@ export const mockSourceImports: SourceImport[] = [
     body: null,
     recordsPath: "$",
     autoDeactivateMissing: false,
+    syncCategories: true,
     mapping: {
       externalId: { path: "code" },
       name: { path: "name" },

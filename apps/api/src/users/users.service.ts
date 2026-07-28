@@ -1,8 +1,10 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,23 +24,42 @@ const userSelect = {
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  /**
+   * Only a SUPER_ADMIN may see or manage SUPER_ADMIN accounts. For everyone
+   * else those users are hidden entirely (filtered from lists, 404 by id) so
+   * the role isn't discoverable from the admin panel.
+   */
+  private canManageSuperAdmins(viewerRole: UserRole): boolean {
+    return viewerRole === 'SUPER_ADMIN';
+  }
+
+  findAll(viewerRole: UserRole) {
     return this.prisma.user.findMany({
+      where: this.canManageSuperAdmins(viewerRole)
+        ? undefined
+        : { role: { not: 'SUPER_ADMIN' } },
       select: userSelect,
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, viewerRole: UserRole) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: userSelect,
     });
     if (!user) throw new NotFoundException('User not found');
+    if (user.role === 'SUPER_ADMIN' && !this.canManageSuperAdmins(viewerRole)) {
+      throw new NotFoundException('User not found');
+    }
     return user;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, viewerRole: UserRole) {
+    if (dto.role === 'SUPER_ADMIN' && !this.canManageSuperAdmins(viewerRole)) {
+      throw new ForbiddenException('Cannot create a super admin');
+    }
+
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -56,8 +77,13 @@ export class UsersService {
     });
   }
 
-  async update(id: string, dto: UpdateUserDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateUserDto, viewerRole: UserRole) {
+    // Throws 404 when the target is a super admin the viewer may not manage.
+    await this.findOne(id, viewerRole);
+    if (dto.role === 'SUPER_ADMIN' && !this.canManageSuperAdmins(viewerRole)) {
+      throw new ForbiddenException('Cannot assign the super admin role');
+    }
+
     const data: Record<string, unknown> = {};
     if (dto.email) data.email = dto.email.toLowerCase();
     if (dto.name) data.name = dto.name;
@@ -71,8 +97,8 @@ export class UsersService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, viewerRole: UserRole) {
+    await this.findOne(id, viewerRole);
     await this.prisma.user.delete({ where: { id } });
     return { success: true };
   }

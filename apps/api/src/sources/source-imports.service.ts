@@ -252,6 +252,8 @@ export class SourceImportsService {
     if (dto.active !== undefined) out.active = dto.active;
     if (dto.autoDeactivateMissing !== undefined)
       out.autoDeactivateMissing = dto.autoDeactivateMissing;
+    if (dto.syncCategories !== undefined)
+      out.syncCategories = dto.syncCategories;
 
     if (isCreate) {
       // sensible defaults for create when omitted

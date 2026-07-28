@@ -125,6 +125,10 @@ export class CreateImportDto {
 
   @IsOptional() @IsBoolean()
   autoDeactivateMissing?: boolean;
+
+  /** Defaults to true. False keeps hand-set categories on re-sync. */
+  @IsOptional() @IsBoolean()
+  syncCategories?: boolean;
 }
 
 export class UpdateImportDto {
@@ -163,6 +167,10 @@ export class UpdateImportDto {
 
   @IsOptional() @IsBoolean()
   autoDeactivateMissing?: boolean;
+
+  /** False keeps hand-set categories on re-sync. */
+  @IsOptional() @IsBoolean()
+  syncCategories?: boolean;
 }
 
 /* ---- Run / dry-run query ----------------------------------------------- */

@@ -260,6 +260,8 @@ export interface SourceImport extends SourceImportSummary {
   mapping: Record<string, unknown>;
   markup: Record<string, unknown>;
   autoDeactivateMissing: boolean;
+  /** When false, a sync leaves existing products' categories untouched. */
+  syncCategories: boolean;
 }
 
 export interface SourceImportRun {

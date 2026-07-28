@@ -166,6 +166,9 @@ export function ImportWizard({
   const [autoDeactivate, setAutoDeactivate] = useState(
     imp?.autoDeactivateMissing ?? false,
   );
+  const [syncCategories, setSyncCategories] = useState(
+    imp?.syncCategories ?? true,
+  );
 
   const [mapping, setMapping] = useState<MappingSpec>(() => {
     const m = imp?.mapping as MappingSpec | undefined;
@@ -246,6 +249,7 @@ export function ImportWizard({
       cron,
       active,
       autoDeactivateMissing: autoDeactivate,
+      syncCategories,
     };
   }
 
@@ -813,6 +817,22 @@ export function ImportWizard({
                       </div>
                     </div>
                   )}
+
+                  <div className="rounded-md border border-dashed border-[var(--admin-border)] p-2">
+                    <label className="flex items-center gap-2 text-xs font-medium text-[var(--admin-fg)]/80">
+                      <input
+                        type="checkbox"
+                        checked={syncCategories}
+                        onChange={(e) => setSyncCategories(e.target.checked)}
+                      />
+                      Update product categories on sync (curated category)
+                    </label>
+                    <p className="mt-1 pl-6 text-[11px] text-[var(--admin-fg)]/60">
+                      {syncCategories
+                        ? "Each sync overwrites a product's curated categories from the source mapping."
+                        : "Existing products keep the curated categories you set by hand; only new products are categorized from the source. Source categories are recorded either way."}
+                    </p>
+                  </div>
                 </>
               )}
             </SubMapper>

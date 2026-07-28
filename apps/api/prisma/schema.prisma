@@ -344,6 +344,10 @@ model SourceImport {
   sampleMime            String?
   // When true and a previously-linked product is missing from a successful run, deactivate it.
   autoDeactivateMissing Boolean            @default(false)
+  // When true (default) a sync rewrites an existing product's curated categories
+  // from the source mapping. Turn off to keep categories that were set by hand in
+  // the admin — new products still get their categories from the source.
+  syncCategories        Boolean            @default(true)
 
   lastRunAt  DateTime?
   lastStatus SourceImportRunStatus?

@@ -11,9 +11,24 @@ type UserRow = AdminUser & { createdAtFormatted: string };
 
 const ROLES: UserRole[] = ["SUPER_ADMIN", "ADMIN", "MANAGER", "STAFF"];
 
-export function UsersManager({ initial }: { initial: UserRow[] }) {
+export function UsersManager({
+  initial,
+  viewerRole,
+}: {
+  initial: UserRow[];
+  viewerRole: UserRole;
+}) {
   const router = useRouter();
-  const [users, setUsers] = useState<UserRow[]>(initial);
+  // Only a super admin can create super admins or see/manage existing ones.
+  // The API enforces this too — this just keeps the UI honest.
+  const isSuperAdmin = viewerRole === "SUPER_ADMIN";
+  const assignableRoles = isSuperAdmin
+    ? ROLES
+    : ROLES.filter((r) => r !== "SUPER_ADMIN");
+  const visible = (rows: UserRow[]) =>
+    isSuperAdmin ? rows : rows.filter((u) => u.role !== "SUPER_ADMIN");
+
+  const [users, setUsers] = useState<UserRow[]>(() => visible(initial));
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +42,7 @@ export function UsersManager({ initial }: { initial: UserRow[] }) {
       ...u,
       createdAtFormatted: new Date(u.createdAt).toLocaleDateString(),
     }));
-    setUsers(mapped);
+    setUsers(visible(mapped));
     router.refresh();
   }
 
@@ -111,7 +126,7 @@ export function UsersManager({ initial }: { initial: UserRow[] }) {
             onChange={(e) => setRole(e.target.value as UserRole)}
             className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-3 py-2 text-sm outline-none focus:border-[var(--admin-accent)]"
           >
-            {ROLES.map((r) => (
+            {assignableRoles.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
@@ -154,7 +169,7 @@ export function UsersManager({ initial }: { initial: UserRow[] }) {
                       }
                       className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg)] px-2 py-1 text-xs"
                     >
-                      {ROLES.map((r) => (
+                      {assignableRoles.map((r) => (
                         <option key={r} value={r}>
                           {r}
                         </option>
