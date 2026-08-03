@@ -18,7 +18,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
-    "apply:category-map": "ts-node -r tsconfig-paths/register src/sources/category-map/apply-category-map.ts"
+    "apply:category-map": "ts-node -r tsconfig-paths/register src/sources/category-map/apply-category-map.ts",
+    "apply:bp-category-map": "ts-node -r tsconfig-paths/register src/sources/category-map/apply-bp-category-map.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
