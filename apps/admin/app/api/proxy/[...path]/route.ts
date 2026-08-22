@@ -25,14 +25,19 @@ async function forward(request: Request, ctx: Ctx) {
   if (accept) headers.set("Accept", accept);
 
   const hasBody = !["GET", "HEAD"].includes(request.method);
-  const body = hasBody ? await request.arrayBuffer() : undefined;
 
+  // Stream the request body straight through. Buffering it with arrayBuffer()
+  // truncated uploads somewhere above ~8MB, which reached the API as a
+  // half-written multipart form ("Unexpected end of form") — and a product
+  // category sheet for this catalogue is well past that. `duplex: "half"` is
+  // required by undici whenever the body is a stream.
   const apiRes = await fetch(target, {
     method: request.method,
     headers,
-    body: body ? Buffer.from(body) : undefined,
+    body: hasBody ? request.body : undefined,
     cache: "no-store",
-  });
+    ...(hasBody ? { duplex: "half" } : {}),
+  } as RequestInit & { duplex?: "half" });
 
   const resContentType = apiRes.headers.get("content-type") ?? "";
   const responseHeaders = new Headers();
@@ -40,8 +45,11 @@ async function forward(request: Request, ctx: Ctx) {
   const disposition = apiRes.headers.get("content-disposition");
   if (disposition) responseHeaders.set("Content-Disposition", disposition);
 
-  const buf = await apiRes.arrayBuffer();
-  return new NextResponse(buf, {
+  // Pass the body through as a stream rather than buffering it. The product
+  // category export is tens of megabytes and grows with the catalogue;
+  // arrayBuffer() here would hold all of it in the admin's memory and defeat
+  // the API's streaming. JSON responses are unaffected — they just flow through.
+  return new NextResponse(apiRes.body, {
     status: apiRes.status,
     headers: responseHeaders,
   });

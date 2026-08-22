@@ -17,6 +17,14 @@ const nextConfig: NextConfig = isDemo
       assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || undefined,
     }
   : {
+      experimental: {
+        // Next caps a route handler's request body at 10MB by default, which
+        // silently truncates larger uploads — they reach the API as a
+        // half-written multipart form. The product category sheet is well past
+        // that (~12MB for 130k products and growing), so lift the cap to match
+        // the API's own upload limit.
+        proxyClientMaxBodySize: 200 * 1024 * 1024,
+      },
       async rewrites() {
         return [
           { source: "/uploads/:path*", destination: `${API_URL}/uploads/:path*` },

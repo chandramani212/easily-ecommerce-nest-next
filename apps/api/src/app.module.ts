@@ -19,6 +19,7 @@ import { MediaModule } from './media/media.module';
 import { OrdersModule } from './orders/orders.module';
 import { PagesModule } from './pages/pages.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProductBulkModule } from './products/bulk/product-bulk.module';
 import { ProductsModule } from './products/products.module';
 import { SettingsModule } from './settings/settings.module';
 import { StatsModule } from './stats/stats.module';
@@ -52,6 +53,9 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     CategoriesModule,
+    // Registered before ProductsModule so `products/bulk/*` is matched by its
+    // own controller rather than falling into ProductsController's `:id` routes.
+    ProductBulkModule,
     ProductsModule,
     CustomersModule,
     OrdersModule,
