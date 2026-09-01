@@ -3,6 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@repo/ui/button";
 
+/** How the slider renders: the text + side-image layout, or a full-bleed
+ * banner image that is itself the link. */
+export type HeroVariant = "split" | "full";
+
 export interface Slide {
   tag: string;
   heading: string;
@@ -15,6 +19,12 @@ export interface Slide {
   gradient: string;
   /** Right-side image. Replace these placeholders with 1200×1200 art. */
   image: string;
+  /** "full" variant only — optional portrait crop shown on small screens. */
+  imageMobile?: string;
+  /** "full" variant only — link for the whole banner (falls back to ctaHref). */
+  href?: string;
+  /** "full" variant only — alt text for the banner image. */
+  alt?: string;
 }
 
 const SLIDES: Slide[] = [
@@ -57,9 +67,11 @@ const AUTO_PLAY_MS = 5000;
 export function HeroBanner({
   slides,
   autoPlayMs,
+  variant = "split",
 }: {
   slides?: Slide[];
   autoPlayMs?: number;
+  variant?: HeroVariant;
 } = {}) {
   const data = slides && slides.length ? slides : SLIDES;
   const playMs = autoPlayMs ?? AUTO_PLAY_MS;
@@ -82,6 +94,68 @@ export function HeroBanner({
   }, [paused, next, playMs]);
 
   const slide = data[current] ?? data[0]!;
+
+  const controls = (
+    <SliderControls
+      count={data.length}
+      current={current}
+      onPrev={prev}
+      onNext={next}
+      onGo={setCurrent}
+    />
+  );
+
+  // Full-bleed banner: the image is the whole slide, and it is the link.
+  if (variant === "full") {
+    const href = slide.href || slide.ctaHref;
+    const image = (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={`full-${current}`}
+          src={slide.image}
+          alt={slide.alt ?? ""}
+          className={`h-full w-full animate-[fadeSlideIn_0.5s_ease-out] object-cover ${
+            slide.imageMobile ? "hidden sm:block" : ""
+          }`}
+        />
+        {slide.imageMobile && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`full-mobile-${current}`}
+            src={slide.imageMobile}
+            alt={slide.alt ?? ""}
+            className="h-full w-full animate-[fadeSlideIn_0.5s_ease-out] object-cover sm:hidden"
+          />
+        )}
+      </>
+    );
+
+    return (
+      <section
+        className="relative overflow-hidden bg-slate-900"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        <div
+          className={`relative w-full ${
+            slide.imageMobile
+              ? "aspect-[4/5] sm:aspect-[16/6]"
+              : "aspect-[16/9] sm:aspect-[16/6]"
+          }`}
+        >
+          {href ? (
+            <a href={href} className="block h-full w-full">
+              {image}
+            </a>
+          ) : (
+            image
+          )}
+          {controls}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -174,42 +248,63 @@ export function HeroBanner({
           </div>
         </div>
 
-        {/* Prev / Next arrows */}
-        <button
-          aria-label="Previous slide"
-          onClick={prev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-white/25 sm:left-4 lg:left-6"
-        >
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <button
-          aria-label="Next slide"
-          onClick={next}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-white/25 sm:right-4 lg:right-6"
-        >
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
-
-        {/* Dot indicators */}
-        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-6">
-          {data.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`Go to slide ${i + 1}`}
-              onClick={() => setCurrent(i)}
-              className={`h-2.5 rounded-full transition-all ${
-                i === current
-                  ? "w-8 bg-white"
-                  : "w-2.5 bg-white/40 hover:bg-white/60"
-              }`}
-            />
-          ))}
-        </div>
+        {controls}
       </div>
     </section>
+  );
+}
+
+/** Prev / next arrows + dot indicators, shared by both slider variants. */
+function SliderControls({
+  count,
+  current,
+  onPrev,
+  onNext,
+  onGo,
+}: {
+  count: number;
+  current: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onGo: (i: number) => void;
+}) {
+  if (count < 2) return null;
+  return (
+    <>
+      <button
+        aria-label="Previous slide"
+        onClick={onPrev}
+        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/45 sm:left-4 lg:left-6"
+      >
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <button
+        aria-label="Next slide"
+        onClick={onNext}
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/45 sm:right-4 lg:right-6"
+      >
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-6">
+        {Array.from({ length: count }, (_, i) => (
+          <button
+            key={i}
+            aria-label={`Go to slide ${i + 1}`}
+            onClick={() => onGo(i)}
+            className={`h-2.5 rounded-full transition-all ${
+              i === current
+                ? "w-8 bg-white"
+                : "w-2.5 bg-white/50 hover:bg-white/70"
+            }`}
+          />
+        ))}
+      </div>
+    </>
   );
 }

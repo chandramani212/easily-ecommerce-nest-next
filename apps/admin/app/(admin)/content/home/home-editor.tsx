@@ -17,6 +17,7 @@ import {
 } from "../page-editor-kit";
 import type {
   HeroSlide,
+  HeroVariant,
   HomeContent,
   Page,
   PopularProductRef,
@@ -33,7 +34,30 @@ const EMPTY_SLIDE: HeroSlide = {
   ctaSecondaryHref: "",
   gradient: "from-teal-700 via-emerald-700 to-green-800",
   image: "",
+  imageMobile: "",
+  href: "",
+  alt: "",
 };
+
+const VARIANTS: {
+  value: HeroVariant;
+  label: string;
+  hint: string;
+  size: string;
+}[] = [
+  {
+    value: "split",
+    label: "Text + image",
+    hint: "Headline, description and buttons on a gradient, with an image beside them.",
+    size: "Image: 1400 × 933 px — 3:2 ratio (min 1200 × 800)",
+  },
+  {
+    value: "full",
+    label: "Full-width image",
+    hint: "Only the banner image, edge to edge, linking wherever you point it.",
+    size: "Banner: 2560 × 960 px — 16:6 ratio, i.e. 2.67:1 (min 1920 × 720)",
+  },
+];
 
 export function HomeEditor({ page }: { page: Page<HomeContent> }) {
   const router = useRouter();
@@ -42,6 +66,9 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
   );
   const [autoPlayMs, setAutoPlayMs] = useState(
     page.content?.hero?.autoPlayMs ?? 5000,
+  );
+  const [variant, setVariant] = useState<HeroVariant>(
+    page.content?.hero?.variant === "full" ? "full" : "split",
   );
   const [contentHeading, setContentHeading] = useState(
     page.content?.content?.heading ?? "",
@@ -78,7 +105,7 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
         method: "PUT",
         body: JSON.stringify({
           content: {
-            hero: { autoPlayMs: Number(autoPlayMs) || 5000, slides },
+            hero: { autoPlayMs: Number(autoPlayMs) || 5000, variant, slides },
             content: { heading: contentHeading, body: contentBody },
             popularProducts,
           },
@@ -129,6 +156,47 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
         }
       >
         <div className="space-y-4">
+          <div className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-muted)]/40 p-3">
+            <p className="mb-2 text-xs font-semibold text-[var(--admin-fg)]/60">
+              Slider type
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {VARIANTS.map((v) => (
+                <label
+                  key={v.value}
+                  className={`flex cursor-pointer gap-2 rounded-lg border p-3 text-sm ${
+                    variant === v.value
+                      ? "border-[var(--admin-accent)] bg-[var(--admin-bg)]"
+                      : "border-[var(--admin-border)]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="hero-variant"
+                    className="mt-0.5"
+                    checked={variant === v.value}
+                    onChange={() => setVariant(v.value)}
+                  />
+                  <span>
+                    <span className="block font-medium">{v.label}</span>
+                    <span className="block text-xs text-[var(--admin-fg)]/60">
+                      {v.hint}
+                    </span>
+                    <span className="mt-1 block text-xs font-medium text-[var(--admin-accent)]">
+                      {v.size}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-[var(--admin-fg)]/50">
+              Applies to every slide. Fields for the other type stay saved, so
+              you can switch back without re-entering anything. Use JPG or WebP
+              and keep each image under ~400&nbsp;KB so the home page stays
+              fast.
+            </p>
+          </div>
+
           {slides.map((slide, i) => (
             <div
               key={i}
@@ -168,62 +236,98 @@ export function HomeEditor({ page }: { page: Page<HomeContent> }) {
               </div>
 
               <ImageField
-                label="Slide image"
+                label={
+                  variant === "full"
+                    ? "Banner image (full width)"
+                    : "Slide image"
+                }
                 value={slide.image}
                 onChange={(url) => patchSlide(i, { image: url })}
+                hint={
+                  variant === "full"
+                    ? "2560 × 960 px, 16:6 ratio (2.67:1). Spans the full window width — keep text and logos near the middle, since the sides crop on narrow screens and phones crop it to 16:9 unless you add a mobile image below."
+                    : "1400 × 933 px, 3:2 ratio. Shown at roughly 695 × 463 px beside the text on desktop and full width above it on phones; anything not 3:2 is centre-cropped to fit."
+                }
               />
 
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <TextInput
-                  label="Tag / badge"
-                  value={slide.tag}
-                  onChange={(v) => patchSlide(i, { tag: v })}
-                />
-                <TextInput
-                  label="Gradient (Tailwind classes)"
-                  value={slide.gradient}
-                  onChange={(v) => patchSlide(i, { gradient: v })}
-                />
-                <TextInput
-                  label="Heading"
-                  value={slide.heading}
-                  onChange={(v) => patchSlide(i, { heading: v })}
-                />
-                <TextInput
-                  label="Highlighted heading"
-                  value={slide.highlight}
-                  onChange={(v) => patchSlide(i, { highlight: v })}
-                />
-              </div>
-              <div className="mt-3">
-                <TextArea
-                  label="Description"
-                  value={slide.description}
-                  onChange={(v) => patchSlide(i, { description: v })}
-                />
-              </div>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <TextInput
-                  label="Primary button label"
-                  value={slide.ctaLabel}
-                  onChange={(v) => patchSlide(i, { ctaLabel: v })}
-                />
-                <TextInput
-                  label="Primary button link"
-                  value={slide.ctaHref}
-                  onChange={(v) => patchSlide(i, { ctaHref: v })}
-                />
-                <TextInput
-                  label="Secondary button label"
-                  value={slide.ctaSecondaryLabel}
-                  onChange={(v) => patchSlide(i, { ctaSecondaryLabel: v })}
-                />
-                <TextInput
-                  label="Secondary button link"
-                  value={slide.ctaSecondaryHref}
-                  onChange={(v) => patchSlide(i, { ctaSecondaryHref: v })}
-                />
-              </div>
+              {variant === "full" ? (
+                <>
+                  <div className="mt-3">
+                    <ImageField
+                      label="Mobile banner image (optional)"
+                      value={slide.imageMobile ?? ""}
+                      onChange={(url) => patchSlide(i, { imageMobile: url })}
+                      hint="900 × 1125 px, 4:5 portrait ratio (1080 × 1350 max) — the extra pixels are invisible on a phone but cost mobile data, so keep this one under ~150 KB. Used on phones when set; otherwise the wide banner is centre-cropped to 16:9."
+                    />
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <TextInput
+                      label="Link URL (whole banner)"
+                      value={slide.href ?? ""}
+                      onChange={(v) => patchSlide(i, { href: v })}
+                    />
+                    <TextInput
+                      label="Image alt text"
+                      value={slide.alt ?? ""}
+                      onChange={(v) => patchSlide(i, { alt: v })}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <TextInput
+                      label="Tag / badge"
+                      value={slide.tag}
+                      onChange={(v) => patchSlide(i, { tag: v })}
+                    />
+                    <TextInput
+                      label="Gradient (Tailwind classes)"
+                      value={slide.gradient}
+                      onChange={(v) => patchSlide(i, { gradient: v })}
+                    />
+                    <TextInput
+                      label="Heading"
+                      value={slide.heading}
+                      onChange={(v) => patchSlide(i, { heading: v })}
+                    />
+                    <TextInput
+                      label="Highlighted heading"
+                      value={slide.highlight}
+                      onChange={(v) => patchSlide(i, { highlight: v })}
+                    />
+                  </div>
+                  <div className="mt-3">
+                    <TextArea
+                      label="Description"
+                      value={slide.description}
+                      onChange={(v) => patchSlide(i, { description: v })}
+                    />
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <TextInput
+                      label="Primary button label"
+                      value={slide.ctaLabel}
+                      onChange={(v) => patchSlide(i, { ctaLabel: v })}
+                    />
+                    <TextInput
+                      label="Primary button link"
+                      value={slide.ctaHref}
+                      onChange={(v) => patchSlide(i, { ctaHref: v })}
+                    />
+                    <TextInput
+                      label="Secondary button label"
+                      value={slide.ctaSecondaryLabel}
+                      onChange={(v) => patchSlide(i, { ctaSecondaryLabel: v })}
+                    />
+                    <TextInput
+                      label="Secondary button link"
+                      value={slide.ctaSecondaryHref}
+                      onChange={(v) => patchSlide(i, { ctaSecondaryHref: v })}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           ))}
 

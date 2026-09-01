@@ -24,10 +24,16 @@ export interface HeroSlide {
   ctaSecondaryHref?: string;
   gradient: string;
   image: string;
+  /** Full-image slider only. */
+  imageMobile?: string;
+  href?: string;
+  alt?: string;
 }
 
 export interface HomeContent {
-  hero: { autoPlayMs: number; slides: HeroSlide[] };
+  /** `variant`: "split" = text + side image (default), "full" = full-width
+   * banner image that links somewhere. */
+  hero: { autoPlayMs: number; variant?: "split" | "full"; slides: HeroSlide[] };
   /** Optional free-form content block rendered at the bottom of the home page. */
   content?: { heading: string; body: string };
   /** Admin-curated products for the "Most Popular" tab (by slug, in order).

@@ -341,6 +341,10 @@ export interface Page<C = Record<string, unknown>> {
   updatedAt: string;
 }
 
+/** Home hero slider layout: "split" = text + side image, "full" = a full-width
+ * banner image that links somewhere. */
+export type HeroVariant = "split" | "full";
+
 export interface HeroSlide {
   tag: string;
   heading: string;
@@ -352,6 +356,12 @@ export interface HeroSlide {
   ctaSecondaryHref: string;
   gradient: string;
   image: string;
+  /** "full" variant only — optional portrait crop shown on small screens. */
+  imageMobile?: string;
+  /** "full" variant only — link target for the whole banner. */
+  href?: string;
+  /** "full" variant only — alt text for the banner image. */
+  alt?: string;
 }
 
 /** A product chosen for the home "Most Popular" tab. Stored in Home page
@@ -365,7 +375,7 @@ export interface PopularProductRef {
 }
 
 export interface HomeContent {
-  hero: { autoPlayMs: number; slides: HeroSlide[] };
+  hero: { autoPlayMs: number; variant?: HeroVariant; slides: HeroSlide[] };
   content?: { heading: string; body: string };
   /** Curated product list for the home "Most Popular" tab. When empty, the
    * storefront falls back to the newest active products. */

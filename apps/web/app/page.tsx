@@ -233,7 +233,11 @@ export default async function Page() {
     <>
       <Header />
       <CategoryBar />
-      <HeroBanner slides={hero?.slides} autoPlayMs={hero?.autoPlayMs} />
+      <HeroBanner
+        slides={hero?.slides}
+        autoPlayMs={hero?.autoPlayMs}
+        variant={hero?.variant}
+      />
       <TrustBadges />
 
       <section className="bg-[var(--muted)]" id="categories">

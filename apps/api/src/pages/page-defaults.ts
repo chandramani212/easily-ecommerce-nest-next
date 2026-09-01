@@ -33,6 +33,8 @@ export const PAGE_DEFAULTS: Record<PageSlug, PageSeed> = {
     content: {
       hero: {
         autoPlayMs: 5000,
+        // 'split' = text + side image; 'full' = full-width banner image + link.
+        variant: 'split',
         slides: [
           {
             tag: 'Custom Branding 2026',
