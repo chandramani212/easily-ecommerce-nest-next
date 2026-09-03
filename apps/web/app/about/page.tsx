@@ -9,7 +9,7 @@ export async function generateMetadata() {
   return pageMetadata(page, {
     title: "About Us - Easily Branded",
     description:
-      "Learn about Easily Branded — our mission, values, and the team making custom branding simple.",
+      "Learn about Easily Branded, our mission, values, and the team making custom branding simple.",
   });
 }
 

@@ -20,7 +20,7 @@ import { getPage, pageMetadata, type HomeContent } from "../lib/pages";
 export async function generateMetadata() {
   const page = await getPage("home");
   return pageMetadata(page, {
-    title: "Easily Branded — Custom Branded Products",
+    title: "Easily Branded - Custom Branded Products",
     description:
       "Custom branded T-shirts, stationery, drinkware, and more.",
   });

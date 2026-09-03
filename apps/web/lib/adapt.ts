@@ -138,6 +138,8 @@ export interface CardProduct {
   rating: number;
   href: string;
   image?: string;
+  /** ISO timestamp used by the "Newest" sort. Absent on legacy API payloads. */
+  createdAt?: string;
 }
 
 export function adaptProductForCard(p: ApiProduct): CardProduct {
@@ -169,6 +171,7 @@ export function adaptProductForCard(p: ApiProduct): CardProduct {
     image: firstImage
       ? sizedImage(normalizeImageUrl(firstImage), "normal")
       : undefined,
+    createdAt: p.createdAt,
   };
 }
 

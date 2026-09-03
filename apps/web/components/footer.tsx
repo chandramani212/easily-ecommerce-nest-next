@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 const QUICK_LINKS = [
-  { label: "Shop", href: "/#shop" },
-  { label: "Categories", href: "/#categories" },
+  { label: "Shop", href: "/category" },
+  { label: "Categories", href: "/category" },
 ];
 
 const COMPANY = [

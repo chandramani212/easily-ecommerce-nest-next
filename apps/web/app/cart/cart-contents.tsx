@@ -34,7 +34,7 @@ export function CartContents() {
             Looks like you haven&apos;t added any products yet. Browse our shop
             to find something you love.
           </p>
-          <Link href="/#shop">
+          <Link href="/category">
             <Button size="lg" className="mt-6">
               Continue Shopping
             </Button>
@@ -167,7 +167,7 @@ export function CartContents() {
           </div>
 
           <Link
-            href="/#shop"
+            href="/category"
             className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] transition-colors hover:underline"
           >
             <svg

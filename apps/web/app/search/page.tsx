@@ -16,8 +16,8 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const term = (q ?? "").trim();
   return {
     title: term
-      ? `Search: ${term} — Easily Branded`
-      : "Search — Easily Branded",
+      ? `Search: ${term} - Easily Branded`
+      : "Search - Easily Branded",
   };
 }
 

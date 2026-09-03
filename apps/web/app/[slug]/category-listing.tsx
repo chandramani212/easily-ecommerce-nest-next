@@ -18,11 +18,14 @@ interface Product {
   colors: string[];
   rating: number;
   image?: string;
+  createdAt?: string;
 }
 
 interface CategoryListingProps {
   title: string;
   products: Product[];
+  /** Sort applied on first render; shoppers can change it from the toolbar. */
+  defaultSort?: SortKey;
 }
 
 type SortKey = "featured" | "price-asc" | "price-desc" | "newest" | "rating";
@@ -79,6 +82,16 @@ function deriveFilters(products: Product[]) {
   };
 }
 
+/**
+ * Sort key for "Newest". Missing/invalid timestamps become -Infinity so those
+ * products fall to the end of a descending sort instead of leading it.
+ */
+function createdAtMs(p: Product): number {
+  if (!p.createdAt) return -Infinity;
+  const ms = Date.parse(p.createdAt);
+  return Number.isNaN(ms) ? -Infinity : ms;
+}
+
 /** Derive the price slider bounds from the actual products (rounded outward). */
 function priceBoundsOf(products: Product[]): [number, number] {
   const prices = products.map((p) => p.price).filter((n) => Number.isFinite(n));
@@ -88,8 +101,12 @@ function priceBoundsOf(products: Product[]): [number, number] {
   return [lo, hi > lo ? hi : lo + 1];
 }
 
-export function CategoryListing({ title, products }: CategoryListingProps) {
-  const [sort, setSort] = useState<SortKey>("featured");
+export function CategoryListing({
+  title,
+  products,
+  defaultSort = "featured",
+}: CategoryListingProps) {
+  const [sort, setSort] = useState<SortKey>(defaultSort);
   const [page, setPage] = useState(1);
   const [gridView, setGridView] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -160,6 +177,11 @@ export function CategoryListing({ title, products }: CategoryListingProps) {
         break;
       case "rating":
         result = [...result].sort((a, b) => b.rating - a.rating);
+        break;
+      case "newest":
+        // Most recently created first. Products with a missing or unparseable
+        // createdAt sort last rather than jumping to the top as NaN/epoch.
+        result = [...result].sort((a, b) => createdAtMs(b) - createdAtMs(a));
         break;
       default:
         break;

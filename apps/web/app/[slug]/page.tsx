@@ -81,14 +81,14 @@ export async function generateMetadata({ params }: PageProps) {
   const category = (categories ?? []).find((c) => c.slug === slug);
   if (category) {
     return {
-      title: `${category.name} — Easily Branded`,
+      title: `${category.name} - Easily Branded`,
       description: category.description ?? undefined,
     };
   }
 
   const p = await resolveProduct(slug);
-  if (!p) return { title: "Not found — Easily Branded" };
-  const title = p.metaTitle || `${p.name} — Easily Branded`;
+  if (!p) return { title: "Not found - Easily Branded" };
+  const title = p.metaTitle || `${p.name} - Easily Branded`;
   const description =
     p.metaDescription ||
     p.shortDescription ||
@@ -232,6 +232,7 @@ export default async function SlugPage({ params }: PageProps) {
         ) : (
           <CategoryListing
             title={category.name}
+            defaultSort="price-asc"
             products={(
               (
                 await apiFetchSafe<ProductsResponse>(

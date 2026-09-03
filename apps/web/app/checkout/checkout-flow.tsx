@@ -92,7 +92,7 @@ export function CheckoutFlow() {
           <p className="mt-2 text-[var(--foreground)]/50">
             Add some products before checking out.
           </p>
-          <Link href="/#shop">
+          <Link href="/category">
             <Button size="lg" className="mt-6">
               Browse Products
             </Button>

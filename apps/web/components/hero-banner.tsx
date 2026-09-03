@@ -212,7 +212,7 @@ export function HeroBanner({
             key={`cta-${current}`}
             className="mt-8 flex animate-[fadeSlideIn_0.5s_ease-out_0.3s_both] flex-wrap gap-4"
           >
-            <a href={slide.ctaHref || "/#shop"}>
+            <a href={slide.ctaHref || "/category"}>
               <Button
                 size="lg"
                 className="!ui:bg-white !ui:text-slate-900 !ui:shadow-lg !ui:ring-1 !ui:ring-black/5 hover:!ui:bg-white/95"
@@ -221,7 +221,7 @@ export function HeroBanner({
               </Button>
             </a>
             {slide.ctaSecondaryLabel && (
-              <a href={slide.ctaSecondaryHref || "/#shop"}>
+              <a href={slide.ctaSecondaryHref || "/category"}>
                 <Button
                   variant="secondary"
                   size="lg"

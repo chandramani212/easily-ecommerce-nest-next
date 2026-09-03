@@ -141,14 +141,14 @@ export function ProductDetail({ product }: { product: Product }) {
   const deliveryContent = (
     <div className="space-y-5">
       <div>
-        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Delivery Times –</h4>
+        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Delivery Times</h4>
         <p>
           All delivery timescales depend on print proof approval. Standard packages typically
           arrive within 7–10 working days, and we&apos;ll always aim to beat that wherever we can.
         </p>
       </div>
       <div>
-        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Delivery Costs –</h4>
+        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Delivery Costs</h4>
         <p>
           Costs are calculated from the volume and weight of each package. Your quotation will
           include the exact delivery charges for your order, so there are no surprises. The
@@ -175,9 +175,9 @@ export function ProductDetail({ product }: { product: Product }) {
         </table>
       </div>
       <div>
-        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Express Service –</h4>
+        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Express Service</h4>
         <p>
-          Express delivery is now available on hundreds of products — many items can be printed
+          Express delivery is now available on hundreds of products. Many items can be printed
           and shipped the same day. Please contact us for more details.
         </p>
       </div>
@@ -187,7 +187,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const artworkContent = (
     <div className="space-y-5">
       <div>
-        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Artwork Formats –</h4>
+        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Artwork Formats</h4>
         <p>
           Every product has its own print process, and the artwork type you supply depends on
           that process. Use the guide below to help you provide the correct format.
@@ -195,7 +195,7 @@ export function ProductDetail({ product }: { product: Product }) {
       </div>
       <div>
         <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">
-          Vector Files (.eps, .pdf, .ai) –
+          Vector Files (.eps, .pdf, .ai)
         </h4>
         <p>
           Vector artwork is suitable for all types of print. Most processes and products
@@ -205,7 +205,7 @@ export function ProductDetail({ product }: { product: Product }) {
       </div>
       <div>
         <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">
-          Raster / Pixel Files (.png, .jpg, .tiff) –
+          Raster / Pixel Files (.png, .jpg, .tiff)
         </h4>
         <p>
           These formats are only suitable for full colour, process and transfer print. They
@@ -214,18 +214,18 @@ export function ProductDetail({ product }: { product: Product }) {
       </div>
       <div>
         <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">
-          I don&apos;t have a vector format –
+          I don&apos;t have a vector format
         </h4>
         <p>
-          No problem — our design team can convert your artwork to a vector format for you.
+          No problem. Our design team can convert your artwork to a vector format for you.
           Your artwork will just need to be supplied in a high-resolution format.
         </p>
       </div>
       <div>
-        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Possible Extra Costs –</h4>
+        <h4 className="mb-1.5 font-semibold text-[var(--foreground)]">Possible Extra Costs</h4>
         <p>
           Please note that some products carry a set-up cost. This may be charged per colour and
-          can range from $10 – $75 depending on the item.
+          can range from $10 to $75 depending on the item.
         </p>
       </div>
     </div>

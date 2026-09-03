@@ -73,7 +73,7 @@ function ThankYouInner() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        <Link href="/#shop">
+        <Link href="/category">
           <Button size="lg">Continue Shopping</Button>
         </Link>
         <Link href="/contact">
