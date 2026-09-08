@@ -47,6 +47,10 @@ export const bpTree: CuratedNode[] = [
       {
         "slug": "stationery",
         "name": "Stationery"
+      },
+      {
+        "slug": "best-sellers-other",
+        "name": "Other"
       }
     ]
   },
@@ -187,6 +191,10 @@ export const bpTree: CuratedNode[] = [
             "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "drinkware-other",
+        "name": "Other"
       }
     ]
   },
@@ -213,6 +221,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "highlighter-and-marker-pens",
             "name": "Highlighter & Marker Pens"
+          },
+          {
+            "slug": "plastic-pens-other",
+            "name": "Other"
           }
         ]
       },
@@ -235,6 +247,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "led-pens",
             "name": "LED Pens"
+          },
+          {
+            "slug": "metal-pens-other",
+            "name": "Other"
           }
         ]
       },
@@ -261,6 +277,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "pen-display-boxes",
             "name": "Pen Display Boxes"
+          },
+          {
+            "slug": "corporate-pens-other",
+            "name": "Other"
           }
         ]
       },
@@ -339,10 +359,6 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "novelty-and-foam-other",
             "name": "Other"
-          },
-          {
-            "slug": "other-6",
-            "name": "Other"
           }
         ]
       },
@@ -360,10 +376,6 @@ export const bpTree: CuratedNode[] = [
           },
           {
             "slug": "stress-toys-other",
-            "name": "Other"
-          },
-          {
-            "slug": "other-2",
             "name": "Other"
           }
         ]
@@ -383,6 +395,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "wristbands",
             "name": "Wristbands"
+          },
+          {
+            "slug": "lanyards-and-wristbands-other",
+            "name": "Other"
           }
         ]
       },
@@ -477,6 +493,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "tattoos",
             "name": "Tattoos"
+          },
+          {
+            "slug": "other-other",
+            "name": "Other"
           }
         ]
       }
@@ -508,10 +528,6 @@ export const bpTree: CuratedNode[] = [
           },
           {
             "slug": "usb-other",
-            "name": "Other"
-          },
-          {
-            "slug": "other-7",
             "name": "Other"
           }
         ]
@@ -619,6 +635,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "gadgets",
             "name": "Gadgets"
+          },
+          {
+            "slug": "electrical-items-other",
+            "name": "Other"
           }
         ]
       },
@@ -687,6 +707,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "wipes",
             "name": "Wipes"
+          },
+          {
+            "slug": "usb-and-tech-other-other",
+            "name": "Other"
           }
         ]
       }
@@ -783,6 +807,10 @@ export const bpTree: CuratedNode[] = [
             "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "apparel-other",
+        "name": "Other"
       }
     ]
   },
@@ -1001,10 +1029,6 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "seat-cushions",
             "name": "Seat Cushions"
-          },
-          {
-            "slug": "other-8",
-            "name": "Other"
           }
         ]
       },
@@ -1065,6 +1089,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "golf-apparel",
             "name": "Golf Apparel"
+          },
+          {
+            "slug": "golf-products-other",
+            "name": "Other"
           }
         ]
       },
@@ -1091,6 +1119,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "beauty-and-health",
             "name": "Beauty & Health"
+          },
+          {
+            "slug": "homeware-other",
+            "name": "Other"
           }
         ]
       },
@@ -1117,6 +1149,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "beach",
             "name": "Beach"
+          },
+          {
+            "slug": "outdoor-products-other",
+            "name": "Other"
           }
         ]
       },
@@ -1143,6 +1179,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "car-chargers",
             "name": "Car Chargers"
+          },
+          {
+            "slug": "automotive-other",
+            "name": "Other"
           }
         ]
       },
@@ -1173,8 +1213,16 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "cigar-accessories",
             "name": "Cigar Accessories"
+          },
+          {
+            "slug": "practical-items-other",
+            "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "leisure-other",
+        "name": "Other"
       }
     ]
   },
@@ -1211,6 +1259,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "novelty-keychains",
             "name": "Novelty Keychains"
+          },
+          {
+            "slug": "promotional-plastic-keychains-other",
+            "name": "Other"
           }
         ]
       },
@@ -1239,10 +1291,6 @@ export const bpTree: CuratedNode[] = [
             "name": "Other"
           }
         ]
-      },
-      {
-        "slug": "other-3",
-        "name": "Other"
       }
     ]
   },
@@ -1291,6 +1339,10 @@ export const bpTree: CuratedNode[] = [
             "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "themes-other",
+        "name": "Other"
       }
     ]
   },
@@ -1389,6 +1441,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "drawstring-bags",
             "name": "Drawstring Bags"
+          },
+          {
+            "slug": "bags-and-backpacks-other",
+            "name": "Other"
           }
         ]
       },
@@ -1493,6 +1549,10 @@ export const bpTree: CuratedNode[] = [
             "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "eco-friendly-other",
+        "name": "Other"
       }
     ]
   },
@@ -1523,6 +1583,10 @@ export const bpTree: CuratedNode[] = [
       {
         "slug": "patient-comfort-and-care-kits",
         "name": "Patient Comfort & Care Kits"
+      },
+      {
+        "slug": "healthcare-other",
+        "name": "Other"
       }
     ]
   },
@@ -1537,8 +1601,16 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "next-day-dispatch",
             "name": "Next Day Dispatch"
+          },
+          {
+            "slug": "express-other",
+            "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "express-service-other",
+        "name": "Other"
       }
     ]
   },
@@ -1569,10 +1641,6 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "health-and-beauty-other",
             "name": "Other"
-          },
-          {
-            "slug": "other-5",
-            "name": "Other"
           }
         ]
       },
@@ -1591,6 +1659,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "shoe-shine-kits",
             "name": "Shoe Shine Kits"
+          },
+          {
+            "slug": "shoe-accessories-other",
+            "name": "Other"
           }
         ]
       },
@@ -1609,6 +1681,10 @@ export const bpTree: CuratedNode[] = [
           {
             "slug": "cooling-towels",
             "name": "Cooling Towels"
+          },
+          {
+            "slug": "fitness-products-other",
+            "name": "Other"
           }
         ]
       },
@@ -1626,10 +1702,6 @@ export const bpTree: CuratedNode[] = [
           },
           {
             "slug": "pet-care-other",
-            "name": "Other"
-          },
-          {
-            "slug": "other-4",
             "name": "Other"
           }
         ]
@@ -1681,6 +1753,10 @@ export const bpTree: CuratedNode[] = [
             "name": "Other"
           }
         ]
+      },
+      {
+        "slug": "more-other",
+        "name": "Other"
       }
     ]
   }
@@ -1692,15 +1768,20 @@ export const asiMap: SourceMap = {
   "Address Books": "notebooks-journals-and-notepads-other",
   "Adult Novelties": "novelty-and-foam-other",
   "Alarms & Protective Devices": "gadgets",
+  "Albums": "desk-organizers",
   "Almanacs": "calendars",
+  "Antenna Accessories": "car-accessories",
   "Antibacterial Products": "infection-control-and-ppe",
   "Antimicrobial Enhanced Products": "infection-control-and-ppe",
   "Apothecary Jars": "mason-jars",
   "Aprons": "aprons",
   "Arm Bands": "apparel-accessories-other",
+  "Art & Design Services": "office-and-desk-other",
   "Art Supplies": "stationery-products-other",
   "Auto Accessories": "car-accessories",
+  "Auto Dealer Aids": "car-accessories",
   "Auto Visor Accessories": "car-accessories",
+  "Award Ribbons": "badges-and-medallions",
   "Awards": "awards-other",
   "Awards > Clocks": "clocks",
   "Awards > Crystal": "crystal-awards-and-trophies",
@@ -1725,8 +1806,9 @@ export const asiMap: SourceMap = {
   "Bags > Lunch": "cooler-bags",
   "Bags > Shoe": "shoe-bags",
   "Bags > Shopping": "shopping-bags-other",
+  "Balloon Accessories": "balloons",
   "Balloons": "balloons",
-  "Balls": "other-8",
+  "Balls": "sports-products-other",
   "Bandages": "first-aid-and-emergency-preparedness",
   "Bandannas": "custom-bandanas",
   "Banks": "piggy-banks",
@@ -1734,14 +1816,16 @@ export const asiMap: SourceMap = {
   "Bar Accessories": "bar-accessories",
   "Barbecue Accessories": "garden",
   "Barometers & Hygrometers": "gadgets",
+  "Bars": "bar-accessories",
   "Baseball Caps": "caps-hats-and-beanies",
   "Baseballs": "baseball",
   "Basketballs": "basketball",
   "Baskets": "living-home",
   "Bathroom Accessories": "bathroom",
+  "Batteries": "gadgets",
   "Battery Rechargers & Adaptors": "power-banks",
   "Beach Balls": "beach",
-  "Beauty Aids": "other-5",
+  "Beauty Aids": "health-and-beauty-other",
   "Bedroom Accessories": "living-home",
   "Bells": "noise-makers",
   "Belt Buckles": "apparel-accessories-other",
@@ -1752,6 +1836,7 @@ export const asiMap: SourceMap = {
   "Bicycle Accessories": "cycling",
   "Binders": "binders-clipboards",
   "Binoculars & Spotting Scopes": "leisure-and-fun",
+  "Blackboards": "office-and-desk-other",
   "Blankets": "blankets",
   "Bluetooth Trackers & Gps Device Accessories": "gadgets",
   "Bluetooth Trackers & Gps Devices": "gadgets",
@@ -1761,13 +1846,23 @@ export const asiMap: SourceMap = {
   "Book Lights": "lighting",
   "Bookmarks": "bookmarks",
   "Books": "lifestyle-and-home-other",
+  "Boomerangs": "leisure-and-fun",
+  "Boots": "footwear",
   "Bottles": "water-bottles-other",
   "Bottles > Insulated": "vacuum-flasks-and-bottles",
   "Bottles > Sport Type": "sports-bottles",
   "Bowls": "kitchenware",
+  "Boxes": "office-and-desk-other",
   "Boxes & Cases-pen & Pencil": "pen-display-boxes",
+  "Boxes > Ballot/contest/suggestion": "display-items-other",
+  "Boxes > General": "office-and-desk-other",
+  "Boxes > Presentation": "office-and-desk-other",
+  "Boxes > Security": "office-and-desk-other",
+  "Boxes > Takeout/delivery": "kitchenware",
+  "Boxes > Tooth": "children-other",
   "Bracelets": "wristbands",
   "Briefcases": "document-and-conference-bags",
+  "Brochure & Literature Holders": "display-items-other",
   "Brooms-mops & Vacuums": "living-home",
   "Brushes": "health-and-beauty-other",
   "Buckets": "kitchenware",
@@ -1775,15 +1870,19 @@ export const asiMap: SourceMap = {
   "Bumper Stickers": "stickers",
   "Business Card Holders": "business-card-holders",
   "Business Cards": "business-cards",
+  "Business Forms": "paper-products-other",
+  "Butter Dishes": "kitchenware",
   "Buttons": "badges-and-medallions",
   "Cabinets": "living-home",
   "Calculators": "calculators",
   "Calendar Pads": "calendars",
   "Calendars": "calendars",
+  "Calipers": "tools",
   "Camera Cases": "gadgets",
   "Cameras": "gadgets",
   "Camping Equipment": "camping-picnic",
   "Candle Holders": "living-home",
+  "Candle Snuffers": "living-home",
   "Candles & Incense & Potpourri": "living-home",
   "Candy": "mints-and-candy",
   "Candy Dishes": "mints-and-candy",
@@ -1801,12 +1900,19 @@ export const asiMap: SourceMap = {
   "Carriers": "bags-and-totes-other",
   "Carton Cutters": "tools",
   "Carts": "living-home",
+  "Cases & Holders": "desk-items-other",
+  "Cassette Recorders & Players": "audio-products-other",
   "Cds/dvds/players": "gadgets",
   "Certificate Holders & Frames": "awards-other",
+  "Certificates": "paper-products-other",
   "Chalk": "stationery-products-other",
   "Charms": "keychains-other-other",
   "Charts": "paper-products-other",
+  "Check & Bank Book Covers": "wallets-and-purses",
+  "Checks": "paper-products-other",
   "Cheering Accessories": "noise-makers",
+  "Chimes": "living-home",
+  "Chopsticks": "kitchenware",
   "Cleaners": "living-home",
   "Clipboards": "binders-clipboards",
   "Clips-utility": "paper-clips",
@@ -1831,34 +1937,62 @@ export const asiMap: SourceMap = {
   "Corkscrews": "wine-products",
   "Cosmetic Bags": "toiletry-bags",
   "Costumes & Accessories": "capes",
+  "Counting Devices": "gadgets",
+  "Coupon Keepers": "wallets-and-purses",
+  "Covers": "office-and-desk-other",
+  "Covers > Furniture": "living-home",
+  "Covers > General": "office-and-desk-other",
+  "Covers > Guest Check": "office-and-desk-other",
+  "Covers > Skins": "phone-cases",
+  "Covers > Steering Wheel": "car-accessories",
+  "Covers > Webcam": "webcam-covers",
   "Cowboy Hats": "caps-hats-and-beanies",
   "Crayons": "colouring-crayons",
+  "Crosses": "novelty-and-foam-other",
   "Crystal Balls": "crystal-awards-and-trophies",
   "Crystal Products": "crystal-awards-and-trophies",
   "Cups": "tumblers-and-cups-other",
   "Curtains & Draperies & Shades": "living-home",
+  "Custom Products": "more-other",
+  "Custom Products > Custom Lapel Pins": "badges-and-medallions",
+  "Custom Products > General": "more-other",
   "Cutters": "tools",
   "Decals": "stickers",
   "Decanter Sets": "bar-glassware-other",
   "Decanters": "bar-glassware-other",
   "Decorations": "seasonal-products-other",
+  "Decorators": "novelty-and-foam-other",
   "Dental Floss": "health-and-beauty-other",
   "Deodorizers": "air-fresheners",
   "Deposit Bags": "document-and-conference-bags",
   "Desk Accessories": "desk-items-other",
   "Desk Pen Stands": "pen-holders-and-desk-caddys",
+  "Dials & Slide Charts": "paper-products-other",
   "Dice Specialties": "games-and-puzzles",
   "Dishes & Dish Sets": "kitchenware",
   "Dispensers": "bathroom",
   "Display Cases": "display-items-other",
+  "Dolls": "custom-teddy-bears",
+  "Doorstops": "living-home",
   "Drink Mixers & Shakers": "bar-accessories",
   "Drones": "gadgets",
   "Duffel Bags": "duffel-bags",
   "Dustpans": "living-home",
   "Earmuffs": "caps-hats-and-beanies",
   "Earplugs": "infection-control-and-ppe",
+  "Easels": "display-items-other",
+  "Education Programs": "paper-products-other",
+  "Eggs-plastic": "easter",
+  "Electric Outlet Protectors": "living-home",
   "Electronic Devices": "gadgets",
+  "Emblems": "badges-and-medallions",
   "Envelopes": "cards-envelopes-tags",
+  "Equipment": "office-and-desk-other",
+  "Equipment > Bindery": "office-and-desk-other",
+  "Equipment > Embroidery": "office-and-desk-other",
+  "Equipment > General": "office-and-desk-other",
+  "Equipment > Laminating": "office-and-desk-other",
+  "Equipment > Prepress": "office-and-desk-other",
   "Erasers": "erasers",
   "Exercise Clothes": "clothing-other",
   "Exercise Equipment": "fitness-accessories",
@@ -1894,8 +2028,10 @@ export const asiMap: SourceMap = {
   "Game Parts": "games-and-puzzles",
   "Games": "games-and-puzzles",
   "Garment Bags": "travel-bags",
+  "Garters/leg Bands": "apparel-accessories-other",
   "Gauges": "car-accessories",
   "Gavels": "awards-other",
+  "Gift Sets": "more-other",
   "Gift Wrap": "paper-products-other",
   "Glasses-drinking": "bar-glassware-other",
   "Glasses-drinking > Beer Jars": "beer-glasses",
@@ -1923,14 +2059,19 @@ export const asiMap: SourceMap = {
   "Hair Brushes": "health-and-beauty-other",
   "Hammocks": "leisure-and-fun",
   "Handbag Holders": "bags-and-totes-other",
+  "Handkerchiefs": "apparel-accessories-other",
   "Handles": "lifestyle-and-home-other",
   "Hangers": "living-home",
   "Headbands": "apparel-accessories-other",
   "Headphones": "headphones-and-earphones",
+  "Heat Transfers": "stationery-products-other",
   "Heaters": "living-home",
   "Heating Pads": "patient-comfort-and-care-kits",
   "Highlighters": "highlighter-and-marker-pens",
+  "Holsters": "apparel-accessories-other",
   "Hooks": "lifestyle-and-home-other",
+  "Horns": "noise-makers",
+  "Hoses": "garden",
   "Humidifiers & Dehumidifiers": "living-home",
   "Hydration Bags": "leisure-and-sports-bags-other",
   "Ice Buckets": "bar-accessories",
@@ -1940,7 +2081,9 @@ export const asiMap: SourceMap = {
   "Ice Scrapers": "ice-scrapers",
   "Identity Protection Products": "wallets-and-purses",
   "Inflatable Accessories": "inflatables",
+  "Inflatables": "inflatables",
   "Inflators": "cycling",
+  "Ink": "stationery-products-other",
   "Insect Repellents & Exterminators": "camping-picnic",
   "Invitations": "cards-envelopes-tags",
   "Jackets": "jackets",
@@ -1949,8 +2092,9 @@ export const asiMap: SourceMap = {
   "Jewelry Boxes & Rolls": "lifestyle-and-home-other",
   "Journals & Diaries": "journals-and-diaries",
   "Jugs": "water-bottles-other",
+  "Kaleidoscopes": "games-and-puzzles",
   "Key Cases": "keychains-other-other",
-  "Key Chains": "other-3",
+  "Key Chains": "keychains-other-other",
   "Key Chains > Floating": "novelty-keychains",
   "Key Chains > Leather": "leather-keychains",
   "Key Chains > Metal": "metal-keychains",
@@ -1959,19 +2103,24 @@ export const asiMap: SourceMap = {
   "Key Chains > With Carabiner": "practical-keychains-other",
   "Key Chains > With Flashlight And/or Whistle": "led-torch-and-tools-keychains",
   "Key Chains > With Tools": "led-torch-and-tools-keychains",
+  "Keys": "keychains-other-other",
   "Kites": "leisure-and-fun",
+  "Kits": "more-other",
   "Kits > Auto": "car-accessories",
   "Kits > Desk Accessories": "desk-items-other",
   "Kits > Emergency Preparedness": "first-aid-and-emergency-preparedness",
   "Kits > First Aid": "first-aid-and-emergency-preparedness",
+  "Kits > General": "more-other",
   "Kits > Grooming": "health-and-beauty-other",
   "Kits > Hobby": "lifestyle-and-home-other",
+  "Kits > Identification": "badge-holders-and-reels",
   "Kits > Lunch": "cooler-bags",
   "Kits > Ppe": "infection-control-and-ppe",
   "Kits > Repair": "tools",
   "Kits > Travel": "travel-bags",
   "Knives": "tools",
   "Labels": "stickers",
+  "Ladders": "tools",
   "Lamps": "lighting",
   "Lanterns": "lanterns",
   "Lanyards": "lanyards",
@@ -1980,11 +2129,15 @@ export const asiMap: SourceMap = {
   "Laundry Aids": "living-home",
   "Lawn & Garden Accessories": "garden",
   "Led Products": "light-up",
+  "Leis": "novelty-and-foam-other",
   "Letter Openers": "letter-openers",
+  "Letterhead & Stationery": "stationery-products-other",
   "Letters & Numerals & Symbols": "display-items-other",
+  "License Holders": "car-accessories",
   "License Plate Holders": "car-accessories",
   "License Plates": "car-accessories",
   "Lids & Caps": "accessories-other",
+  "Life Preservers & Vests": "safety-wear",
   "Light Bulbs": "lighting",
   "Light Up Novelties": "light-up",
   "Lighters": "lighters-and-ashtrays",
@@ -1992,13 +2145,16 @@ export const asiMap: SourceMap = {
   "Lint Removers": "living-home",
   "Lip Balm": "lip-balms",
   "Lipsticks & Lipstick Cases": "lip-balms",
+  "Liquid Motion Products": "novelty-and-foam-other",
   "Locks": "travel-bags",
+  "Loving Cup & Trophy Accessories": "awards-other",
   "Luggage": "travel-bags",
   "Luggage Sets": "travel-bags",
   "Luggage Tags": "business-bags-luggage-tags",
   "Magnets": "magnets",
   "Magnifiers": "tools",
   "Make-up/cosmetics": "health-and-beauty-other",
+  "Mardi Gras Beads": "novelty-and-foam-other",
   "Markers": "highlighter-and-marker-pens",
   "Masks": "infection-control-and-ppe",
   "Massagers": "health-and-beauty-other",
@@ -2008,11 +2164,13 @@ export const asiMap: SourceMap = {
   "Measuring Cups & Spoons": "kitchenware",
   "Measuring Devices": "tape-measures",
   "Medals": "badges-and-medallions",
+  "Medical Information Cards": "first-aid-and-emergency-preparedness",
   "Medical Supplies": "patient-care-and-monitoring",
   "Megaphones": "noise-makers",
   "Memo Holders": "memo-clips-and-memo-boards",
   "Memo Pad & Paper Holders": "memo-clips-and-memo-boards",
   "Memo Pads": "notepads",
+  "Menus & Menu Covers": "office-and-desk-other",
   "Messenger Bags": "messenger-bag",
   "Microfiber Cloths": "screen-cleaning-cloths",
   "Miniatures & Replicas": "lifestyle-and-home-other",
@@ -2024,18 +2182,23 @@ export const asiMap: SourceMap = {
   "Mobile Accessories > Selfie Lights": "selfie-sticks-and-lights",
   "Mobile Accessories > Selfie Sticks": "selfie-sticks-and-lights",
   "Mobile Accessories > Stands & Holders": "stands-and-holders",
+  "Mobile Apps": "office-and-desk-other",
+  "Money": "novelty-and-foam-other",
   "Money Clips": "wallets-and-purses",
   "Mouse Pads": "mouse-pads",
   "Movie/clapboard Specialties": "lifestyle-and-home-other",
+  "Mp3/mp4 Players": "audio-products-other",
   "Mugs & Steins": "mugs-other",
   "Mugs & Steins > Ceramic": "ceramic-mugs",
   "Mugs & Steins > Insulated": "travel-mugs",
   "Mugs & Steins > Metal": "metal-mugs",
   "Mugs & Steins > Porcelain": "ceramic-mugs",
+  "Music Boxes": "novelty-and-foam-other",
   "Musical Instruments & Accessories": "lifestyle-and-home-other",
   "Nameplates": "awards-other",
   "Napkin Rings & Holders": "kitchenware",
   "Napkins": "kitchenware",
+  "Neck Ties": "apparel-accessories-other",
   "Necklaces": "lifestyle-and-home-other",
   "Nets": "sports-products-other",
   "Noisemakers": "noise-makers",
@@ -2046,8 +2209,16 @@ export const asiMap: SourceMap = {
   "Organizers": "desk-organizers",
   "Ornaments": "holiday-ornaments",
   "Outerwear-rainwear": "jackets",
+  "Packaging Boxes": "office-and-desk-other",
+  "Packaging Boxes > Corrugated": "office-and-desk-other",
+  "Packaging Boxes > Custom": "office-and-desk-other",
+  "Packaging Boxes > Mailers": "office-and-desk-other",
+  "Packaging Boxes > Retail": "office-and-desk-other",
+  "Packaging Boxes > Wine": "wine-products",
   "Pad Folios": "folders-portfolios",
   "Pads": "notepads",
+  "Page Protectors": "paper-products-other",
+  "Paint": "stationery-products-other",
   "Palms/pda Accessories": "phone-and-tablet-accessories",
   "Pamphlets/brochures/catalogs": "paper-products-other",
   "Paper": "paper-products-other",
@@ -2060,6 +2231,7 @@ export const asiMap: SourceMap = {
   "Pen & Pencil Accessories": "pens-other",
   "Pen & Pencil Holders": "pen-holders-and-desk-caddys",
   "Pen & Pencil Sets": "pen-gift-sets",
+  "Pencil Tops": "pencils-other",
   "Pencils": "pencils-other",
   "Pennants": "flags",
   "Pens": "pens-other",
@@ -2070,12 +2242,16 @@ export const asiMap: SourceMap = {
   "Pens > Ballpoint-with Light": "led-pens",
   "Pens > Fountain": "fountain-pens",
   "Performance Apparel": "clothing-other",
-  "Pet Items": "other-4",
+  "Perfumes & Colognes": "health-and-beauty-other",
+  "Pet Items": "pet-care-other",
   "Phones": "phone-and-tablet-other",
+  "Photo Albums & Organizers": "desk-organizers",
+  "Photo Cubes": "living-home",
   "Photography/darkroom Accessories": "gadgets",
   "Physical & Therapeutic Aids": "patient-comfort-and-care-kits",
   "Picnic Baskets & Kits": "camping-picnic",
   "Picture Frames": "living-home",
+  "Pictures & Paintings": "living-home",
   "Pill Boxes & Bottles": "medication-adherence-tools",
   "Pillows": "lifestyle-and-home-other",
   "Pins": "badges-and-medallions",
@@ -2085,9 +2261,11 @@ export const asiMap: SourceMap = {
   "Planners & Organizers": "planners",
   "Planters": "garden",
   "Plants & Seeds & Flowers": "plants-and-seeds",
+  "Plaque Accessories": "awards-other",
   "Plaques": "awards-other",
   "Plates": "kitchenware",
   "Playing Cards": "playing-cards",
+  "Pocket Protectors": "desk-items-other",
   "Pointers": "gadgets",
   "Poker Chips": "playing-cards",
   "Poker Sets": "playing-cards",
@@ -2095,9 +2273,12 @@ export const asiMap: SourceMap = {
   "Portfolio Sets": "folders-portfolios",
   "Portfolios": "folders-portfolios",
   "Post Cards": "cards-envelopes-tags",
+  "Poster Frames": "display-items-other",
+  "Posters": "display-items-other",
   "Pot Holders & Oven Mitts": "kitchenware",
   "Pouches": "toiletry-bags",
   "Protectors": "safety-wear",
+  "Punch Bowls": "bar-accessories",
   "Purifiers": "living-home",
   "Purses": "wallets-and-purses",
   "Puzzles & Tricks": "games-and-puzzles",
@@ -2108,11 +2289,13 @@ export const asiMap: SourceMap = {
   "Reflectors": "safety-wear",
   "Ribbon": "awards-other",
   "Robes": "clothing-other",
+  "Rope & String": "tools",
   "Ropes": "camping-picnic",
   "Rugs": "living-home",
   "Rulers": "rulers",
   "Salad Sets": "kitchenware",
   "Salt & Pepper Shakers And Mills": "kitchenware",
+  "Sashes": "apparel-accessories-other",
   "Scales": "patient-care-and-monitoring",
   "Scarves": "custom-scarves",
   "Scissors & Shears": "stationery-products-other",
@@ -2124,6 +2307,7 @@ export const asiMap: SourceMap = {
   "Sharpeners": "sharpeners",
   "Shaving Accessories & Kits": "health-and-beauty-other",
   "Sheets & Pillowcases": "lifestyle-and-home-other",
+  "Shelves": "living-home",
   "Shirts": "shirts",
   "Shoe Shine Kits": "shoe-shine-kits",
   "Shoehorns & Shoe Trees": "custom-shoe-horns",
@@ -2131,39 +2315,52 @@ export const asiMap: SourceMap = {
   "Shoes": "footwear",
   "Shorts": "pants",
   "Shot Glasses": "bar-glassware-other",
+  "Shovels": "tools",
   "Sign & Display Accessories": "display-items-other",
   "Signs & Displays": "display-items-other",
   "Sleeping Bags": "camping-picnic",
+  "Slides & Film Strips": "office-and-desk-other",
   "Slippers": "slippers",
+  "Snow Domes": "novelty-and-foam-other",
   "Soap": "soap",
   "Soap Dishes & Dispensers": "bathroom",
   "Soccer Balls": "soccer",
   "Socks": "branded-socks",
-  "Spa Products": "other-5",
+  "Souvenir Spoons": "kitchenware",
+  "Spa Products": "health-and-beauty-other",
   "Speakers": "speakers",
+  "Special Packaging": "office-and-desk-other",
   "Sponges & Sponge Holders": "kitchenware",
-  "Sports Equipment & Access.": "other-8",
+  "Sports Equipment & Access.": "sports-products-other",
+  "Sports Memorabilia": "sports-products-other",
   "Sports Schedules": "sports-products-other",
   "Squeegees": "car-accessories",
   "Stadium Cups": "stadium-cups",
   "Stadium Seats": "seat-cushions",
   "Stamps": "stationery-products-other",
+  "Stanchions": "display-items-other",
   "Stands": "stands-and-holders",
   "Staple Removers": "stationery-products-other",
   "Staplers": "stationery-products-other",
+  "Stencils & Templates": "stationery-products-other",
   "Stirrers & Sticks-drink": "bar-accessories",
   "Stones": "lifestyle-and-home-other",
   "Stools": "chairs",
+  "Stopwatches": "watches",
   "Straps": "apparel-accessories-other",
   "Straw Toppers": "straws",
   "Straws": "straws",
-  "Stress Relievers": "other-2",
+  "Streamers": "display-items-other",
+  "Stress Cards": "stress-toys-other",
+  "Stress Relievers": "stress-toys-other",
   "Stress Relievers > Balls": "stress-balls",
   "Stuffed Animals & Toys": "custom-teddy-bears",
   "Stuffed Animals & Toys Accessories": "custom-teddy-bears",
+  "Suction Cups": "office-and-desk-other",
   "Sunglasses": "sunglasses-and-accessories",
   "Sunscreen": "health-and-beauty-other",
   "Suntan Lotions": "health-and-beauty-other",
+  "Suspenders": "apparel-accessories-other",
   "Sweat Shirts": "sweatshirts",
   "Sweaters": "sweatshirts",
   "T-shirts": "clothing-t-shirts",
@@ -2175,11 +2372,17 @@ export const asiMap: SourceMap = {
   "Tape Dispensers": "stationery-products-other",
   "Tape Flags": "sticky-notes",
   "Tape Measures": "tape-measures",
+  "Tassels": "novelty-and-foam-other",
+  "Tattoos": "tattoos",
   "Tea Or Coffee Sets": "kitchenware",
   "Teapots/sets/infusers": "kitchenware",
+  "Telescopes": "gadgets",
   "Tennis Balls": "sports-products-other",
   "Tents": "tents",
+  "Testers": "gadgets",
   "Thermometers": "patient-care-and-monitoring",
+  "Tiaras & Crowns": "novelty-and-foam-other",
+  "Tiles": "living-home",
   "Timers": "kitchenware",
   "Tins": "mints-and-candy",
   "Tire Gauges": "car-accessories",
@@ -2202,9 +2405,11 @@ export const asiMap: SourceMap = {
   "Tote Bags > Non Woven": "non-woven-bags",
   "Towelettes": "infection-control-and-ppe",
   "Towels": "bathroom",
-  "Toys": "other-6",
+  "Toys": "novelty-and-foam-other",
   "Trade Show Displays": "display-items-other",
   "Trading Cards": "playing-cards",
+  "Trading Pins": "badges-and-medallions",
+  "Training Programs": "office-and-desk-other",
   "Trash Cans": "living-home",
   "Travel Amenities": "travel-bags",
   "Travel Mugs/cups": "travel-mugs",
@@ -2214,19 +2419,23 @@ export const asiMap: SourceMap = {
   "Umbrellas": "umbrellas-other",
   "Uniforms": "clothing-other",
   "Usb Hubs": "usb-hubs",
-  "Usb/flash Drives": "other-7",
+  "Usb/flash Drives": "usb-other",
   "Uv Sanitizers": "infection-control-and-ppe",
   "Valuable Paper Holders": "folders-portfolios",
   "Vases": "living-home",
   "Vests": "jackets",
   "Video Equipment": "gadgets",
   "Volleyballs": "sports-products-other",
+  "Walkie Talkie": "gadgets",
   "Wall Tapestries & Murals": "living-home",
   "Wallets": "wallets-and-purses",
+  "Wands & Scepters": "novelty-and-foam-other",
   "Warmers": "living-home",
+  "Washcloths": "bathroom",
   "Watches": "watches",
   "Weather Predictors": "gadgets",
   "Whistles": "noise-makers",
+  "Windsocks": "flags",
   "Wine Accessories": "wine-products",
   "Wine Chillers": "wine-products",
   "Wine Glasses": "bar-glassware-other",
