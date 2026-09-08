@@ -560,7 +560,10 @@ export const LEXICON: Record<string, string[]> = {
   'messenger-bag': ['messenger bag', 'crossbody bag', 'shoulder bag'],
   'laptop-and-tablet-bags-and-sleeves': ['laptop bag', 'laptop sleeve', 'tablet sleeve', 'computer bag'],
   'document-and-conference-bags': ['conference bag', 'document bag', 'briefcase', 'attache'],
-  'travel-bags': ['travel bag', 'weekender', 'luggage', 'suitcase', 'garment bag'],
+  // NB: no bare 'luggage' — it outranked 'luggage tag' (a tag is not a bag)
+  // because Travel Bags sits inside the Bags branch and so earned the
+  // branch-agreement bonus, while Luggage Tags is in Event Giveaways.
+  'travel-bags': ['travel bag', 'weekender', 'suitcase', 'garment bag'],
   'wallets-and-purses': ['wallet', 'purse', 'coin pouch', 'card wallet', 'money clip'],
 
   // ---- Eco-friendly ------------------------------------------------------
@@ -664,20 +667,10 @@ export function classifyProduct(text: ProductText, candidates: string[]): Classi
   // candidate's branch?" is a set lookup.
   const candBranches = new Set(valid.flatMap((c) => ancestry(c)));
 
-  // ---- best source candidate -------------------------------------------
-  // Prefer a real classification over a catch-all, then the deepest one.
-  const srcLeaf =
-    [...valid].sort((a, b) => {
-      const va = isVague(a) ? 1 : 0;
-      const vb = isVague(b) ? 1 : 0;
-      if (va !== vb) return va - vb;
-      const da = INDEX.get(a)!.depth;
-      const db = INDEX.get(b)!.depth;
-      if (da !== db) return db - da;
-      return a.localeCompare(b);
-    })[0] ?? null;
-
-  // ---- best text match --------------------------------------------------
+  // ---- text matches -----------------------------------------------------
+  // Best score per leaf, so the winner is available AND each candidate's own
+  // text support can be looked up when breaking ties below.
+  const scoreByLeaf = new Map<string, number>();
   let bestSlug: string | null = null;
   let bestScore = 0;
   let bestTerm: string | undefined;
@@ -701,6 +694,7 @@ export function classifyProduct(text: ProductText, candidates: string[]): Classi
       } else if (candSections.has(sectionOf(t.slug))) {
         score *= AGREE_SECTION;
       }
+      if (score > (scoreByLeaf.get(t.slug) ?? 0)) scoreByLeaf.set(t.slug, score);
       if (score > bestScore) {
         bestScore = score;
         bestSlug = t.slug;
@@ -711,6 +705,30 @@ export function classifyProduct(text: ProductText, candidates: string[]): Classi
   }
 
   const textLeaf = bestSlug && bestScore >= MIN_SCORE ? bestSlug : null;
+
+  // ---- best source candidate --------------------------------------------
+  // A product routinely carries several source categories (2.26 on average),
+  // so this is a real choice, not a formality. Text evidence decides it first:
+  // "SUEDE MATERIAL Full Color Imprinted Cleaning Cloths" arrives under
+  // Microfiber Cloths, Eyeglass Cleaners AND Notebooks, and only the name says
+  // which one it actually is. Falling back on depth or alphabetical order
+  // silently filed it under Notebooks.
+  const srcLeaf =
+    [...valid].sort((a, b) => {
+      // A real classification always beats a catch-all, however much text
+      // evidence the catch-all has — "shot glass" supporting Bar Glassware >
+      // Other must not beat a specific sibling candidate.
+      const va = isVague(a) ? 1 : 0;
+      const vb = isVague(b) ? 1 : 0;
+      if (va !== vb) return va - vb;
+      const sa = scoreByLeaf.get(a) ?? 0;
+      const sb = scoreByLeaf.get(b) ?? 0;
+      if (sa !== sb) return sb - sa;
+      const da = INDEX.get(a)!.depth;
+      const db = INDEX.get(b)!.depth;
+      if (da !== db) return db - da;
+      return a.localeCompare(b);
+    })[0] ?? null;
 
   // ---- resolution ladder ------------------------------------------------
   if (srcLeaf && !isVague(srcLeaf)) {
