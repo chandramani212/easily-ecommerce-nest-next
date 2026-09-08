@@ -37,6 +37,9 @@ yarn-error.log*
 # Graphify knowledge graph (local only)
 graphify-out/
 
+# Uploaded media (runtime data, served from disk per environment)
+apps/api/uploads/
+
 # Misc
 .DS_Store
 *.pem
