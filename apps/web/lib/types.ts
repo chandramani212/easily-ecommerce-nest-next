@@ -59,6 +59,38 @@ export interface ProductsResponse {
   pageCount: number;
 }
 
+/** Lean card payload from `GET /products/storefront` (attributes: brand/color only). */
+export type StorefrontProduct = Pick<
+  ApiProduct,
+  | "id"
+  | "name"
+  | "slug"
+  | "basePrice"
+  | "sellingPrice"
+  | "images"
+  | "attributes"
+  | "createdAt"
+>;
+
+export interface StorefrontResponse {
+  items: StorefrontProduct[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
+/** Category-wide filter options from `GET /products/storefront/facets`. */
+export interface StorefrontFacets {
+  /** Active products in the category. */
+  count: number;
+  priceMin: number;
+  priceMax: number;
+  brands: { value: string; count: number }[];
+  /** Individual color names, lowercased. */
+  colors: { value: string; count: number }[];
+}
+
 export interface ApiCategory {
   id: string;
   name: string;

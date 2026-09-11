@@ -1,11 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { ProductCard } from "../../components/product-card";
 import { FilterSidebar } from "../../components/filter-sidebar";
 import { Pagination } from "../../components/pagination";
 import { resolveColor } from "../../lib/color";
+import type { StorefrontFacets } from "../../lib/types";
+import {
+  PER_PAGE,
+  SORT_OPTIONS,
+  listingSearchParams,
+  type ListingQuery,
+  type SortKey,
+} from "./listing-params";
 
 interface Product {
   id: string;
@@ -21,49 +30,57 @@ interface Product {
   createdAt?: string;
 }
 
+/**
+ * Server-paged mode (category pages). `products` holds only the current page;
+ * filtering, sorting and paging run in the API and are driven by the URL.
+ */
+export interface ServerListing {
+  query: ListingQuery;
+  total: number;
+  pageCount: number;
+  /** Category-wide filter options (unaffected by the active filters). */
+  facets: StorefrontFacets;
+}
+
 interface CategoryListingProps {
   title: string;
   products: Product[];
   /** Sort applied on first render; shoppers can change it from the toolbar. */
   defaultSort?: SortKey;
+  /** Set on category pages. Without it (search) everything runs in-browser. */
+  server?: ServerListing;
 }
 
-type SortKey = "featured" | "price-asc" | "price-desc" | "newest" | "rating";
-
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "featured", label: "Featured" },
-  { value: "price-asc", label: "Price: Low to High" },
-  { value: "price-desc", label: "Price: High to Low" },
-  { value: "newest", label: "Newest" },
-  { value: "rating", label: "Top Rated" },
-];
-
-const PER_PAGE = 45;
-
-function deriveFilters(products: Product[]) {
-  const brandCounts: Record<string, number> = {};
-  // Aggregate color chips by resolved swatch hex so distinct real colors get
-  // distinct swatches and identical-looking colors never repeat. A known base
-  // color's label wins over an unmapped name that lands on the same hex.
+/**
+ * One chip per resolved swatch hex, so distinct real colors get distinct
+ * swatches and identical-looking colors never repeat. A known base color's
+ * label wins over an unmapped name that lands on the same hex.
+ */
+function colorChips(rawNames: string[]) {
   const colorByHex = new Map<
     string,
     { name: string; hex: string; known: boolean }
   >();
+  for (const raw of rawNames) {
+    const { label, hex, known } = resolveColor(raw);
+    const existing = colorByHex.get(hex);
+    if (!existing || (known && !existing.known)) {
+      colorByHex.set(hex, { name: label, hex, known });
+    }
+  }
+  return Array.from(colorByHex.values())
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ name, hex }) => ({ name, hex, checked: false }));
+}
+
+function deriveFilters(products: Product[]) {
+  const brandCounts: Record<string, number> = {};
   const ratingCounts: Record<number, number> = {};
 
   for (const p of products) {
     // Skip products with no brand attribute so the Brand filter only appears
     // when at least one product is actually branded.
     if (p.brand) brandCounts[p.brand] = (brandCounts[p.brand] || 0) + 1;
-    // Products with no color contribute no chip — so the filter never shows a
-    // misleading "Default" swatch for unassigned colors.
-    for (const raw of p.colors) {
-      const { label, hex, known } = resolveColor(raw);
-      const existing = colorByHex.get(hex);
-      if (!existing || (known && !existing.known)) {
-        colorByHex.set(hex, { name: label, hex, known });
-      }
-    }
     for (let r = p.rating; r >= 1; r--) {
       ratingCounts[r] = (ratingCounts[r] || 0) + 1;
     }
@@ -73,9 +90,9 @@ function deriveFilters(products: Product[]) {
     brands: Object.entries(brandCounts)
       .sort((a, b) => b[1] - a[1])
       .map(([label, count]) => ({ label, count, checked: false })),
-    colors: Array.from(colorByHex.values())
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(({ name, hex }) => ({ name, hex, checked: false })),
+    // Products with no color contribute no chip — so the filter never shows a
+    // misleading "Default" swatch for unassigned colors.
+    colors: colorChips(products.flatMap((p) => p.colors)),
     ratings: [5, 4, 3]
       .filter((r) => ratingCounts[r])
       .map((r) => ({ label: String(r), count: ratingCounts[r]!, checked: false })),
@@ -92,33 +109,75 @@ function createdAtMs(p: Product): number {
   return Number.isNaN(ms) ? -Infinity : ms;
 }
 
-/** Derive the price slider bounds from the actual products (rounded outward). */
+/** Price slider bounds, rounded outward to whole dollars. */
+function roundBounds(lo: number, hi: number): [number, number] {
+  const l = Math.floor(lo);
+  const h = Math.ceil(hi);
+  return [l, h > l ? h : l + 1];
+}
+
+/** Derive the price slider bounds from the actual products. */
 function priceBoundsOf(products: Product[]): [number, number] {
   const prices = products.map((p) => p.price).filter((n) => Number.isFinite(n));
   if (!prices.length) return [0, 100];
-  const lo = Math.floor(Math.min(...prices));
-  const hi = Math.ceil(Math.max(...prices));
-  return [lo, hi > lo ? hi : lo + 1];
+  return roundBounds(Math.min(...prices), Math.max(...prices));
 }
 
 export function CategoryListing({
   title,
   products,
   defaultSort = "featured",
+  server,
 }: CategoryListingProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+
   const [sort, setSort] = useState<SortKey>(defaultSort);
   const [page, setPage] = useState(1);
   const [gridView, setGridView] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const [minPrice, maxPrice] = priceBoundsOf(products);
-  const [priceRange, setPriceRange] = useState<[number, number]>([
-    minPrice,
-    maxPrice,
-  ]);
+  const [minPrice, maxPrice]: [number, number] = server
+    ? server.facets.count > 0
+      ? roundBounds(server.facets.priceMin, server.facets.priceMax)
+      : [0, 100]
+    : priceBoundsOf(products);
+  const urlRange = (q: ListingQuery | undefined): [number, number] => [
+    q?.minPrice ?? minPrice,
+    q?.maxPrice ?? maxPrice,
+  ];
+
+  const [priceRange, setPriceRange] = useState<[number, number]>(() =>
+    urlRange(server?.query),
+  );
   const [brands, setBrands] = useState(() => deriveFilters(products).brands);
   const [colors, setColors] = useState(() => deriveFilters(products).colors);
   const [ratings, setRatings] = useState(() => deriveFilters(products).ratings);
+
+  // Server mode: `query` is the listing state, applied optimistically while
+  // the URL navigation for it is in flight. When new server props land, adopt
+  // them (React's "adjust state on prop change" pattern — no effect needed).
+  const [query, setQuery] = useState<ListingQuery | undefined>(server?.query);
+  const [landed, setLanded] = useState(server);
+  if (server !== landed) {
+    setLanded(server);
+    setQuery(server?.query);
+    setPriceRange(urlRange(server?.query));
+  }
+
+  const navigate = (patch: Partial<ListingQuery>) => {
+    if (!query) return;
+    const next: ListingQuery = { ...query, ...patch };
+    setQuery(next);
+    const qs = listingSearchParams(next, defaultSort).toString();
+    startTransition(() => {
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    });
+  };
+
+  const toggleIn = (arr: string[], v: string) =>
+    arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
   const toggleBrand = (label: string) =>
     setBrands((prev) =>
@@ -132,12 +191,79 @@ export function CategoryListing({
     setRatings((prev) =>
       prev.map((r) => (r.label === label ? { ...r, checked: !r.checked } : r)),
     );
+
+  const handlePriceChange = (r: [number, number]) => {
+    setPriceRange(r);
+    if (!query) setPage(1);
+  };
+  // Server mode fetches once the shopper lets go of the slider, not per step.
+  const handlePriceCommit = (r: [number, number]) => {
+    if (!query) return;
+    const next = {
+      minPrice: r[0] > minPrice ? r[0] : undefined,
+      maxPrice: r[1] < maxPrice ? r[1] : undefined,
+    };
+    // Key-ups (e.g. Tab) commit too; skip when the range didn't change.
+    if (next.minPrice === query.minPrice && next.maxPrice === query.maxPrice) return;
+    navigate({ ...next, page: 1 });
+  };
+  const handleBrandToggle = (label: string) => {
+    if (query) return navigate({ brands: toggleIn(query.brands, label), page: 1 });
+    toggleBrand(label);
+    setPage(1);
+  };
+  const handleColorToggle = (name: string) => {
+    if (query) return navigate({ colors: toggleIn(query.colors, name), page: 1 });
+    toggleColor(name);
+    setPage(1);
+  };
+  const handleRatingToggle = (label: string) => {
+    toggleRating(label);
+    setPage(1);
+  };
+  const handleSortChange = (s: SortKey) => {
+    if (query) return navigate({ sort: s, page: 1 });
+    setSort(s);
+  };
   const clearAll = () => {
     setPriceRange([minPrice, maxPrice]);
+    setRatings((prev) => prev.map((r) => ({ ...r, checked: false })));
+    if (query) {
+      navigate({
+        minPrice: undefined,
+        maxPrice: undefined,
+        brands: [],
+        colors: [],
+        page: 1,
+      });
+      return;
+    }
     setBrands((prev) => prev.map((b) => ({ ...b, checked: false })));
     setColors((prev) => prev.map((c) => ({ ...c, checked: false })));
-    setRatings((prev) => prev.map((r) => ({ ...r, checked: false })));
   };
+
+  // Server mode: options come from the category-wide facets, checked from the URL.
+  const brandOptions = useMemo(
+    () =>
+      server && query
+        ? server.facets.brands.map((b) => ({
+            label: b.value,
+            count: b.count,
+            checked: query.brands.includes(b.value),
+          }))
+        : brands,
+    [server, query, brands],
+  );
+  const colorOptions = useMemo(
+    () =>
+      server && query
+        ? colorChips(server.facets.colors.map((c) => c.value)).map((c) => ({
+            ...c,
+            checked: query.colors.includes(c.name),
+          }))
+        : colors,
+    [server, query, colors],
+  );
 
   // Resolve each product's raw colors to base-family labels once, so the color
   // filter matches by family (the same normalization used to build the chips)
@@ -151,6 +277,8 @@ export function CategoryListing({
   }, [products]);
 
   const filtered = useMemo(() => {
+    if (server) return products; // already filtered and sorted by the API
+
     const activeBrands = brands.filter((b) => b.checked).map((b) => b.label);
     const activeColors = colors.filter((c) => c.checked).map((c) => c.name);
     const activeRatings = ratings
@@ -188,23 +316,38 @@ export function CategoryListing({
     }
 
     return result;
-  }, [products, productColorLabels, priceRange, brands, colors, ratings, sort]);
+  }, [server, products, productColorLabels, priceRange, brands, colors, ratings, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
+  const totalCount = server ? server.total : filtered.length;
+  const totalPages = server
+    ? Math.max(1, server.pageCount)
+    : Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const currentPage = query ? query.page : Math.min(page, totalPages);
+  const paged = server
+    ? products
+    : filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
   const handlePageChange = (p: number) => {
-    setPage(p);
+    if (query) navigate({ page: p });
+    else setPage(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const filters = {
     priceRange,
     priceBounds: [minPrice, maxPrice] as [number, number],
-    brands,
-    colors,
+    brands: brandOptions,
+    colors: colorOptions,
     ratings,
+  };
+
+  const sidebarHandlers = {
+    onPriceChange: handlePriceChange,
+    onPriceCommit: handlePriceCommit,
+    onBrandToggle: handleBrandToggle,
+    onColorToggle: handleColorToggle,
+    onRatingToggle: handleRatingToggle,
+    onClear: clearAll,
   };
 
   return (
@@ -212,21 +355,14 @@ export function CategoryListing({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{title}</h1>
         <span className="text-sm text-[var(--foreground)]/50">
-          {filtered.length} product{filtered.length !== 1 && "s"}
+          {totalCount.toLocaleString()} product{totalCount !== 1 && "s"}
         </span>
       </div>
 
       <div className="mt-6 flex gap-8">
         {/* Desktop sidebar */}
         <div className="hidden w-60 shrink-0 lg:block">
-          <FilterSidebar
-            filters={filters}
-            onPriceChange={(r) => { setPriceRange(r); setPage(1); }}
-            onBrandToggle={(l) => { toggleBrand(l); setPage(1); }}
-            onColorToggle={(n) => { toggleColor(n); setPage(1); }}
-            onRatingToggle={(l) => { toggleRating(l); setPage(1); }}
-            onClear={clearAll}
-          />
+          <FilterSidebar filters={filters} {...sidebarHandlers} />
         </div>
 
         {/* Main content */}
@@ -251,8 +387,8 @@ export function CategoryListing({
               </label>
               <select
                 id="sort"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
+                value={query ? query.sort : sort}
+                onChange={(e) => handleSortChange(e.target.value as SortKey)}
                 className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
               >
                 {SORT_OPTIONS.map((o) => (
@@ -288,98 +424,104 @@ export function CategoryListing({
             </div>
           </div>
 
-          {/* Product grid / list */}
-          {paged.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] py-20 text-center">
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1" className="mb-4 text-[var(--foreground)]/20">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <p className="font-medium text-[var(--foreground)]/50">No products found</p>
-              <p className="mt-1 text-sm text-[var(--foreground)]/30">
-                Try adjusting your filters
-              </p>
-              <button
-                onClick={clearAll}
-                className="mt-4 text-sm font-medium text-[var(--accent)] hover:underline"
-              >
-                Clear all filters
-              </button>
-            </div>
-          ) : gridView ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {paged.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  name={p.name}
-                  price={p.price}
-                  originalPrice={p.originalPrice}
-                  badge={p.badge}
-                  color={p.color}
-                  href={`/${p.id}`}
-                  image={p.image}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {paged.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/${p.id}`}
-                  className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3 transition-all hover:shadow-md"
+          {/* Results fade while the next page / filter result is loading. */}
+          <div
+            aria-busy={isPending}
+            className={`transition-opacity ${isPending ? "pointer-events-none opacity-50" : ""}`}
+          >
+            {/* Product grid / list */}
+            {paged.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] py-20 text-center">
+                <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1" className="mb-4 text-[var(--foreground)]/20">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <p className="font-medium text-[var(--foreground)]/50">No products found</p>
+                <p className="mt-1 text-sm text-[var(--foreground)]/30">
+                  Try adjusting your filters
+                </p>
+                <button
+                  onClick={clearAll}
+                  className="mt-4 text-sm font-medium text-[var(--accent)] hover:underline"
                 >
-                  <div
-                    className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl"
-                    style={{ backgroundColor: p.image ? "#f8fafc" : p.color }}
+                  Clear all filters
+                </button>
+              </div>
+            ) : gridView ? (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {paged.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    name={p.name}
+                    price={p.price}
+                    originalPrice={p.originalPrice}
+                    badge={p.badge}
+                    color={p.color}
+                    href={`/${p.id}`}
+                    image={p.image}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {paged.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/${p.id}`}
+                    className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3 transition-all hover:shadow-md"
                   >
-                    {p.badge && (
-                      <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                        {p.badge}
-                      </span>
-                    )}
-                    {p.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.5" className="opacity-40">
-                        <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col justify-center">
-                    <h3 className="font-medium leading-snug">{p.name}</h3>
-                    <p className="mt-0.5 text-xs text-[var(--foreground)]/50">
-                      {[p.brand, p.colors.join(", ")]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <span className="text-sm text-[var(--foreground)]/50">from</span>
-                      <span className="text-lg font-bold text-[var(--accent)]">
-                        ${p.price.toFixed(2)}
-                      </span>
-                      {p.originalPrice && (
-                        <span className="text-sm text-[var(--foreground)]/40 line-through">
-                          ${p.originalPrice.toFixed(2)}
+                    <div
+                      className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl"
+                      style={{ backgroundColor: p.image ? "#f8fafc" : p.color }}
+                    >
+                      {p.badge && (
+                        <span className="absolute left-2 top-2 z-10 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {p.badge}
                         </span>
                       )}
+                      {p.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.5" className="opacity-40">
+                          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                      )}
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                    <div className="flex flex-1 flex-col justify-center">
+                      <h3 className="font-medium leading-snug">{p.name}</h3>
+                      <p className="mt-0.5 text-xs text-[var(--foreground)]/50">
+                        {[p.brand, p.colors.join(", ")]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <span className="text-sm text-[var(--foreground)]/50">from</span>
+                        <span className="text-lg font-bold text-[var(--accent)]">
+                          ${p.price.toFixed(2)}
+                        </span>
+                        {p.originalPrice && (
+                          <span className="text-sm text-[var(--foreground)]/40 line-through">
+                            ${p.originalPrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-8">
               <Pagination
-                currentPage={safePage}
+                currentPage={currentPage}
                 totalPages={totalPages}
                 onChange={handlePageChange}
               />
@@ -407,14 +549,7 @@ export function CategoryListing({
                 </svg>
               </button>
             </div>
-            <FilterSidebar
-              filters={filters}
-              onPriceChange={(r) => { setPriceRange(r); setPage(1); }}
-              onBrandToggle={(l) => { toggleBrand(l); setPage(1); }}
-              onColorToggle={(n) => { toggleColor(n); setPage(1); }}
-              onRatingToggle={(l) => { toggleRating(l); setPage(1); }}
-              onClear={clearAll}
-            />
+            <FilterSidebar filters={filters} {...sidebarHandlers} />
           </div>
         </>
       )}

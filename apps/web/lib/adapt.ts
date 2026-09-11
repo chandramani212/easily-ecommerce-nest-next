@@ -4,6 +4,7 @@ import type {
   ApiProduct,
   ApiProductAttribute,
   ApiTierPrice,
+  StorefrontProduct,
 } from "./types";
 
 export function normalizeImageUrl(src: string): string {
@@ -142,7 +143,7 @@ export interface CardProduct {
   createdAt?: string;
 }
 
-export function adaptProductForCard(p: ApiProduct): CardProduct {
+export function adaptProductForCard(p: StorefrontProduct): CardProduct {
   const attrs = toAttributes(p.attributes);
   const selling = toNumber(p.sellingPrice);
   const base = toNumber(p.basePrice);

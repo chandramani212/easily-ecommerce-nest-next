@@ -20,6 +20,8 @@ interface Filters {
 interface FilterSidebarProps {
   filters: Filters;
   onPriceChange: (range: [number, number]) => void;
+  /** Fired when the shopper lets go of the price slider. */
+  onPriceCommit?: (range: [number, number]) => void;
   onBrandToggle: (label: string) => void;
   onColorToggle: (name: string) => void;
   onRatingToggle: (label: string) => void;
@@ -29,6 +31,7 @@ interface FilterSidebarProps {
 export function FilterSidebar({
   filters,
   onPriceChange,
+  onPriceCommit,
   onBrandToggle,
   onColorToggle,
   onRatingToggle,
@@ -64,7 +67,9 @@ export function FilterSidebar({
             key={`${filters.priceBounds[0]}-${filters.priceBounds[1]}`}
             min={filters.priceBounds[0]}
             max={filters.priceBounds[1]}
+            value={filters.priceRange}
             onChange={onPriceChange}
+            onCommit={onPriceCommit}
           />
         </FilterSection>
       )}

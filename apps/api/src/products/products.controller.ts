@@ -22,16 +22,37 @@ import {
   UpdateProductDto,
 } from './dto/product.dto';
 import { ProductListQuery, ProductsService } from './products.service';
+import {
+  ProductsStorefrontService,
+  StorefrontListQuery,
+} from './storefront.service';
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly products: ProductsService) {}
+  constructor(
+    private readonly products: ProductsService,
+    private readonly storefront: ProductsStorefrontService,
+  ) {}
 
   @Public()
   @Get()
   findAll(@Query() query: ProductListQuery) {
     return this.products.findAll(query);
+  }
+
+  /** Storefront category listing: one filtered/sorted page of lean cards. */
+  @Public()
+  @Get('storefront')
+  storefrontList(@Query() query: StorefrontListQuery) {
+    return this.storefront.list(query);
+  }
+
+  /** Category-wide filter options (price range, brands, colors). Cached. */
+  @Public()
+  @Get('storefront/facets')
+  storefrontFacets(@Query('categoryId') categoryId?: string) {
+    return this.storefront.facets(categoryId);
   }
 
   @ApiBearerAuth()
