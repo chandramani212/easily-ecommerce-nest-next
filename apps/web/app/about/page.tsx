@@ -1,7 +1,8 @@
+import Link from "next/link";
+
 import { Header } from "../../components/header";
 import { Footer } from "../../components/footer";
 import { Breadcrumb } from "../../components/breadcrumb";
-import { SectionHeading } from "../../components/section-heading";
 import { getPage, pageMetadata, type AboutContent } from "../../lib/pages";
 
 export async function generateMetadata() {
@@ -9,59 +10,81 @@ export async function generateMetadata() {
   return pageMetadata(page, {
     title: "About Us - Easily Branded",
     description:
-      "Learn about Easily Branded, our mission, values, and the team making custom branding simple.",
+      "Easily Branded helps businesses across the United States with promotional products and branded merchandise.",
   });
 }
 
-const DEFAULT_TEAM = [
-  { name: "Alex Rivera", role: "CEO & Founder", initials: "AR", color: "#1a9e7a" },
-  { name: "Jordan Lee", role: "Head of Design", initials: "JL", color: "#1b2e4b" },
-  { name: "Sam Patel", role: "CTO", initials: "SP", color: "#0d9488" },
-  { name: "Morgan Chen", role: "Head of Operations", initials: "MC", color: "#047857" },
-];
+/** Split an admin-authored text field into paragraphs (blank-line separated). */
+function paragraphs(text?: string): string[] {
+  return (text ?? "")
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
 
-const VALUE_ICONS = [
-  "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
-  "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
-  "M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-  "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
-];
+function lines(text?: string): string[] {
+  return (text ?? "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+}
 
-const DEFAULT_VALUES: AboutContent["values"] = [
-  { title: "Customer First", description: "Every decision starts with our customers. We listen, learn, and build with your needs at the forefront." },
-  { title: "Quality Guaranteed", description: "We rigorously vet every product and supplier to ensure you receive only the best, every time you shop." },
-  { title: "Sustainability", description: "From eco-friendly packaging to carbon-neutral shipping, we're committed to reducing our environmental footprint." },
-  { title: "Transparency", description: "No hidden fees, no tricks. We believe in honest pricing, clear policies, and open communication." },
-];
+function Paragraphs({ text, className }: { text?: string; className?: string }) {
+  return (
+    <div className={`space-y-4 ${className ?? ""}`}>
+      {paragraphs(text).map((p) => (
+        <p key={p}>{p}</p>
+      ))}
+    </div>
+  );
+}
 
-const DEFAULT_MILESTONES = [
-  { year: "2020", title: "Founded", description: "Easily Branded launched with a mission to make online shopping simple and delightful." },
-  { year: "2021", title: "10K Customers", description: "Hit our first major milestone, growing entirely through word-of-mouth." },
-  { year: "2023", title: "500K Orders", description: "Half a million orders shipped, with a 98.5% satisfaction rate." },
-  { year: "2026", title: "Going Global", description: "Now serving customers in 30+ countries with localized experiences." },
-];
+const ICONS = {
+  pin: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+  phone:
+    "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z",
+  mail: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+  globe:
+    "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
+};
 
-const DEFAULT_STATS = [
-  { value: "500K+", label: "Orders Shipped" },
-  { value: "50K+", label: "Happy Customers" },
-  { value: "30+", label: "Countries Served" },
-  { value: "98.5%", label: "Satisfaction Rate" },
-];
+function Icon({ d }: { d: string }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden="true"
+      className="mt-0.5 shrink-0 text-[var(--accent)]"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
+    </svg>
+  );
+}
+
+const focusRing =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
+
+const h2 = "text-2xl font-bold tracking-tight sm:text-3xl";
 
 export default async function AboutPage() {
   const page = await getPage<AboutContent>("about");
   const c = page?.content;
 
   const hero = c?.hero ?? {
-    title: "Building a Better Way to",
-    highlight: "Shop Online",
-    intro:
-      "Easily Branded was founded with a simple belief: online shopping should be easy, trustworthy, and enjoyable. We're a passionate team dedicated to curating the best products and delivering an exceptional experience from browse to doorstep.",
+    title: "Promotional products",
+    highlight: "made easier.",
+    intro: "",
   };
-  const stats = c?.stats?.length ? c.stats : DEFAULT_STATS;
-  const values = c?.values?.length ? c.values : DEFAULT_VALUES;
-  const milestones = c?.milestones?.length ? c.milestones : DEFAULT_MILESTONES;
-  const team = c?.team?.length ? c.team : DEFAULT_TEAM;
+  const { why, range, details, quotes, cta, contact } = c ?? {};
+  const websiteHref = contact?.website
+    ? /^https?:\/\//i.test(contact.website)
+      ? contact.website
+      : `https://${contact.website}`
+    : "";
 
   return (
     <>
@@ -72,126 +95,227 @@ export default async function AboutPage() {
       </div>
 
       {/* Hero */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            {hero.title}{" "}
-            <span className="text-[var(--accent)]">{hero.highlight}</span>
-          </h1>
-          <p className="mt-4 text-lg leading-relaxed text-[var(--foreground)]/60">
-            {hero.intro}
-          </p>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-y border-[var(--border)] bg-[var(--muted)]">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 py-12 sm:px-6 lg:grid-cols-4 lg:px-8">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <p className="text-3xl font-bold text-[var(--accent)]">{stat.value}</p>
-              <p className="mt-1 text-sm text-[var(--foreground)]/50">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <SectionHeading
-          title={c?.valuesHeading ?? "Our Core Values"}
-          subtitle={c?.valuesSubtitle ?? "The principles that guide everything we do"}
-        />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {values.map((value, i) => (
-            <div
-              key={value.title}
-              className="rounded-xl border border-[var(--border)] p-6 transition-all hover:-translate-y-1 hover:shadow-md"
-            >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--accent-light)]">
-                <svg
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="text-[var(--accent)]"
-                >
-                  <path d={value.icon ?? VALUE_ICONS[i % VALUE_ICONS.length]} />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold">{value.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)]/60">
-                {value.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Timeline */}
-      <section className="bg-[var(--muted)]">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <SectionHeading
-            title={c?.timelineHeading ?? "Our Journey"}
-            subtitle={c?.timelineSubtitle ?? "Key milestones that shaped who we are"}
-          />
-          <div className="mx-auto max-w-3xl">
-            <div className="relative space-y-8 before:absolute before:left-[19px] before:top-2 before:h-[calc(100%-16px)] before:w-0.5 before:bg-[var(--border)] sm:before:left-1/2 sm:before:-translate-x-px">
-              {milestones.map((m, i) => (
-                <div
-                  key={m.year + m.title}
-                  className={`relative flex items-start gap-4 sm:gap-8 ${
-                    i % 2 === 0 ? "sm:flex-row" : "sm:flex-row-reverse"
-                  }`}
-                >
-                  <div className={`hidden flex-1 sm:block ${i % 2 === 0 ? "text-right" : "text-left"}`}>
-                    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
-                      <p className="text-sm font-bold text-[var(--accent)]">{m.year}</p>
-                      <h3 className="mt-1 font-semibold">{m.title}</h3>
-                      <p className="mt-1 text-sm text-[var(--foreground)]/60">{m.description}</p>
-                    </div>
-                  </div>
-                  <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[var(--accent)] bg-[var(--background)] text-xs font-bold text-[var(--accent)]">
-                    {m.year.slice(2)}
-                  </div>
-                  <div className="flex-1 sm:hidden">
-                    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-5">
-                      <p className="text-sm font-bold text-[var(--accent)]">{m.year}</p>
-                      <h3 className="mt-1 font-semibold">{m.title}</h3>
-                      <p className="mt-1 text-sm text-[var(--foreground)]/60">{m.description}</p>
-                    </div>
-                  </div>
-                  <div className="hidden flex-1 sm:block" />
-                </div>
-              ))}
-            </div>
+      <section className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 lg:px-8 lg:pb-20">
+        <div
+          className={`grid items-center gap-10 lg:gap-14 ${hero.image ? "lg:grid-cols-2" : ""}`}
+        >
+          <div className="max-w-3xl">
+            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
+              {hero.title}{" "}
+              <span className="text-[var(--accent)]">{hero.highlight}</span>
+            </h1>
+            <Paragraphs
+              text={hero.intro}
+              className="mt-6 max-w-2xl text-lg leading-relaxed text-[var(--foreground)]/70"
+            />
           </div>
+          {hero.image && (
+            // Used as-is like HeroBanner: /hero/* is served from public/ and
+            // /uploads/* reaches the API via the next.config rewrite.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={hero.image}
+              alt={hero.imageAlt ?? ""}
+              className="aspect-[3/2] w-full rounded-2xl object-cover"
+            />
+          )}
         </div>
       </section>
 
-      {/* Team */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <SectionHeading
-          title={c?.teamHeading ?? "Meet Our Team"}
-          subtitle={c?.teamSubtitle ?? "The people behind Easily Branded"}
-        />
-        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-6 sm:grid-cols-4">
-          {team.map((member) => (
-            <div key={member.name} className="text-center">
-              <div
-                className="mx-auto flex h-24 w-24 items-center justify-center rounded-full text-2xl font-bold text-white"
-                style={{ backgroundColor: member.color }}
-              >
-                {member.initials}
+      {/* Why Easily Branded */}
+      {why && (
+        <section className="border-t border-[var(--border)]">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:py-20">
+            <div className="lg:col-span-5">
+              <div className="lg:sticky lg:top-24">
+                <h2 className={h2}>{why.heading}</h2>
+                {why.callout && (
+                  <blockquote className="mt-8 border-l-4 border-[var(--accent)] pl-6 text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">
+                    {why.callout}
+                  </blockquote>
+                )}
               </div>
-              <h3 className="mt-4 font-semibold">{member.name}</h3>
-              <p className="text-sm text-[var(--foreground)]/50">{member.role}</p>
             </div>
-          ))}
-        </div>
-      </section>
+            <Paragraphs
+              text={why.body}
+              className="max-w-2xl text-[17px] leading-relaxed text-[var(--foreground)]/75 lg:col-span-7"
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Product range */}
+      {range && (
+        <section className="bg-[var(--foreground)] text-white">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <h2 className={h2}>{range.heading}</h2>
+            {range.intro && (
+              <p className="mt-3 max-w-2xl text-lg text-white/70">{range.intro}</p>
+            )}
+            {range.items.length > 0 && (
+              <ul className="mt-10 flex flex-wrap gap-3">
+                {range.items.map((item) => (
+                  <li
+                    key={item.label}
+                    className="rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-base font-medium sm:text-lg"
+                  >
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {paragraphs(range.outro).length > 0 && (
+              <div className="mt-12 grid gap-8 border-t border-white/15 pt-10 md:grid-cols-2 md:gap-12">
+                {paragraphs(range.outro).map((p) => (
+                  <p key={p} className="max-w-xl text-[17px] leading-relaxed text-white/80">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Details */}
+      {details && (
+        <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:py-20">
+          <div className="lg:col-span-5">
+            <h2 className={h2}>{details.heading}</h2>
+            {details.intro && (
+              <p className="mt-4 text-lg text-[var(--foreground)]/70">{details.intro}</p>
+            )}
+            {details.occasions.length > 0 && (
+              <ul className="mt-6 flex flex-wrap gap-2">
+                {details.occasions.map((o) => (
+                  <li
+                    key={o.label}
+                    className="rounded-md bg-[var(--accent-light)] px-3 py-1.5 text-sm font-medium text-[var(--accent)]"
+                  >
+                    {o.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <Paragraphs
+            text={details.body}
+            className="text-[17px] leading-relaxed text-[var(--foreground)]/75 lg:col-span-7 lg:pt-2"
+          />
+        </section>
+      )}
+
+      {/* Better quotes */}
+      {quotes && (
+        <section className="bg-[var(--muted)]">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <div className="max-w-3xl">
+              <h2 className={h2}>{quotes.heading}</h2>
+              <Paragraphs
+                text={quotes.intro}
+                className="mt-6 text-[17px] leading-relaxed text-[var(--foreground)]/75"
+              />
+            </div>
+            {quotes.options.length > 0 && (
+              <ul className="mt-10 grid gap-6 md:grid-cols-3">
+                {quotes.options.map((o) => (
+                  <li
+                    key={o.text}
+                    className="border-t-2 border-[var(--accent)] pt-4 text-lg font-medium leading-snug"
+                  >
+                    {o.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {quotes.outro && (
+              <p className="mt-10 text-xl font-semibold">{quotes.outro}</p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Call to action + contact details */}
+      {(cta || contact) && (
+        <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:py-20">
+          {cta && (
+            <div className="lg:col-span-7">
+              <h2 className={h2}>{cta.heading}</h2>
+              <Paragraphs
+                text={cta.body}
+                className="mt-6 text-[17px] leading-relaxed text-[var(--foreground)]/75"
+              />
+              {cta.buttonLabel && cta.buttonHref && (
+                <Link
+                  href={cta.buttonHref}
+                  className={`mt-8 inline-flex rounded-lg bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 ${focusRing}`}
+                >
+                  {cta.buttonLabel}
+                </Link>
+              )}
+            </div>
+          )}
+          {contact && (
+            <address className="rounded-xl border border-[var(--border)] p-6 not-italic sm:p-8 lg:col-span-5">
+              {contact.company && (
+                <p className="text-lg font-semibold">{contact.company}</p>
+              )}
+              <ul className="mt-4 space-y-3 text-[15px] text-[var(--foreground)]/75">
+                {contact.address && (
+                  <li className="flex gap-3">
+                    <Icon d={ICONS.pin} />
+                    <span>
+                      {lines(contact.address).map((l) => (
+                        <span key={l} className="block">
+                          {l}
+                        </span>
+                      ))}
+                    </span>
+                  </li>
+                )}
+                {contact.phone && (
+                  <li className="flex gap-3">
+                    <Icon d={ICONS.phone} />
+                    <a
+                      href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}
+                      className={`hover:text-[var(--accent)] ${focusRing}`}
+                    >
+                      {contact.phone}
+                    </a>
+                  </li>
+                )}
+                {contact.email && (
+                  <li className="flex gap-3">
+                    <Icon d={ICONS.mail} />
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className={`hover:text-[var(--accent)] ${focusRing}`}
+                    >
+                      {contact.email}
+                    </a>
+                  </li>
+                )}
+                {contact.website && (
+                  <li className="flex gap-3">
+                    <Icon d={ICONS.globe} />
+                    <a
+                      href={websiteHref}
+                      className={`hover:text-[var(--accent)] ${focusRing}`}
+                    >
+                      {contact.website.replace(/^https?:\/\//i, "")}
+                    </a>
+                  </li>
+                )}
+              </ul>
+              {contact.closing && (
+                <p className="mt-6 border-t border-[var(--border)] pt-5 font-medium">
+                  {contact.closing}
+                </p>
+              )}
+            </address>
+          )}
+        </section>
+      )}
 
       <Footer />
     </>

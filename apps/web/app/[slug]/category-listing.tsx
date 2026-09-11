@@ -38,7 +38,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "rating", label: "Top Rated" },
 ];
 
-const PER_PAGE = 8;
+const PER_PAGE = 45;
 
 function deriveFilters(products: Product[]) {
   const brandCounts: Record<string, number> = {};

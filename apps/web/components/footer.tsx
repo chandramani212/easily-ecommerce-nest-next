@@ -12,6 +12,8 @@ const COMPANY = [
 const SUPPORT = [
   { label: "Help Center", href: "/contact" },
   { label: "Contact Us", href: "/contact" },
+  { label: "Returns & Refunds", href: "/returns" },
+  { label: "Shipping & Delivery", href: "/shipping" },
 ];
 
 export function Footer() {
@@ -71,7 +73,7 @@ export function Footer() {
           <p className="text-xs text-[var(--foreground)]/40">
             &copy; {new Date().getFullYear()} Easily Branded. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
             <Link
               href="/privacy"
               className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
@@ -83,6 +85,18 @@ export function Footer() {
               className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
             >
               Terms &amp; Conditions
+            </Link>
+            <Link
+              href="/cookie-policy"
+              className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
+            >
+              Cookie Policy
+            </Link>
+            <Link
+              href="/accessibility"
+              className="text-[var(--foreground)]/50 transition-colors hover:text-[var(--accent)]"
+            >
+              Accessibility
             </Link>
           </div>
         </div>

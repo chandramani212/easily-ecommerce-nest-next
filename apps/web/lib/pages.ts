@@ -41,18 +41,45 @@ export interface HomeContent {
   popularProducts?: { slug: string }[];
 }
 
+/** About page. Multi-paragraph text fields separate paragraphs with a blank
+ * line; `contact.address` puts one line per row. Any section may be absent
+ * (older content), in which case it is not rendered. */
 export interface AboutContent {
-  hero: { title: string; highlight: string; intro: string };
-  stats: { value: string; label: string }[];
-  valuesHeading: string;
-  valuesSubtitle: string;
-  values: { title: string; description: string; icon?: string }[];
-  timelineHeading: string;
-  timelineSubtitle: string;
-  milestones: { year: string; title: string; description: string }[];
-  teamHeading: string;
-  teamSubtitle: string;
-  team: { name: string; role: string; initials: string; color: string }[];
+  hero: {
+    title: string;
+    highlight: string;
+    intro: string;
+    image?: string;
+    imageAlt?: string;
+  };
+  why?: { heading: string; body: string; callout: string };
+  range?: {
+    heading: string;
+    intro: string;
+    items: { label: string }[];
+    outro: string;
+  };
+  details?: {
+    heading: string;
+    intro: string;
+    occasions: { label: string }[];
+    body: string;
+  };
+  quotes?: {
+    heading: string;
+    intro: string;
+    options: { text: string }[];
+    outro: string;
+  };
+  cta?: { heading: string; body: string; buttonLabel: string; buttonHref: string };
+  contact?: {
+    company: string;
+    address: string;
+    phone: string;
+    email: string;
+    website: string;
+    closing: string;
+  };
 }
 
 export interface ContactContent {

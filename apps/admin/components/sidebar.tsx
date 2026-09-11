@@ -103,6 +103,10 @@ const MENU: MenuItem[] = [
       { label: "Contact page", href: "/content/contact" },
       { label: "Privacy Policy", href: "/content/privacy" },
       { label: "Terms & Conditions", href: "/content/terms" },
+      { label: "Return & Refund Policy", href: "/content/returns" },
+      { label: "Shipping & Delivery", href: "/content/shipping" },
+      { label: "Cookie Policy", href: "/content/cookie-policy" },
+      { label: "Accessibility Statement", href: "/content/accessibility" },
     ],
   },
   {

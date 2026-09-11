@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { clientApi, DemoReadOnlyError } from "../../../../lib/client-api";
 import { SeoFields, type SeoValue } from "../../../../components/seo-fields";
+import { ImageField } from "../../../../components/image-field";
 import {
   EditorSection,
   ListEditor,
@@ -14,9 +15,46 @@ import {
 } from "../page-editor-kit";
 import type { AboutContent, Page } from "../../../../lib/types";
 
+const EMPTY: AboutContent = {
+  hero: { title: "", highlight: "", intro: "", image: "", imageAlt: "" },
+  why: { heading: "", body: "", callout: "" },
+  range: { heading: "", intro: "", items: [], outro: "" },
+  details: { heading: "", intro: "", occasions: [], body: "" },
+  quotes: { heading: "", intro: "", options: [], outro: "" },
+  cta: { heading: "", body: "", buttonLabel: "", buttonHref: "" },
+  contact: {
+    company: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: "",
+    closing: "",
+  },
+};
+
+/** Fill any section missing from older stored content so every field binds. */
+function withDefaults(content: Partial<AboutContent> | undefined): AboutContent {
+  const c = content ?? {};
+  return {
+    hero: { ...EMPTY.hero, ...c.hero },
+    why: { ...EMPTY.why, ...c.why },
+    range: { ...EMPTY.range, ...c.range },
+    details: { ...EMPTY.details, ...c.details },
+    quotes: { ...EMPTY.quotes, ...c.quotes },
+    cta: { ...EMPTY.cta, ...c.cta },
+    contact: { ...EMPTY.contact, ...c.contact },
+  };
+}
+
+const PARAGRAPH_HINT = "Separate paragraphs with a blank line.";
+
+function Hint({ children }: { children: string }) {
+  return <p className="text-xs text-[var(--admin-fg)]/50">{children}</p>;
+}
+
 export function AboutEditor({ page }: { page: Page<AboutContent> }) {
   const router = useRouter();
-  const [c, setC] = useState<AboutContent>(page.content);
+  const [c, setC] = useState<AboutContent>(() => withDefaults(page.content));
   const [seo, setSeo] = useState<SeoValue>({
     metaTitle: page.metaTitle,
     metaDescription: page.metaDescription,
@@ -28,10 +66,11 @@ export function AboutEditor({ page }: { page: Page<AboutContent> }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const set = <K extends keyof AboutContent>(k: K, v: AboutContent[K]) =>
-    setC((prev) => ({ ...prev, [k]: v }));
-  const setHero = (p: Partial<AboutContent["hero"]>) =>
-    setC((prev) => ({ ...prev, hero: { ...prev.hero, ...p } }));
+  /** Patch one section of the content. */
+  const patch = <K extends keyof AboutContent>(
+    k: K,
+    p: Partial<AboutContent[K]>,
+  ) => setC((prev) => ({ ...prev, [k]: { ...prev[k], ...p } }));
 
   async function save() {
     setSaving(true);
@@ -78,169 +117,236 @@ export function AboutEditor({ page }: { page: Page<AboutContent> }) {
             <TextInput
               label="Heading"
               value={c.hero.title}
-              onChange={(v) => setHero({ title: v })}
+              onChange={(v) => patch("hero", { title: v })}
             />
             <TextInput
               label="Highlighted heading"
               value={c.hero.highlight}
-              onChange={(v) => setHero({ highlight: v })}
+              onChange={(v) => patch("hero", { highlight: v })}
             />
           </div>
           <TextArea
-            label="Intro paragraph"
+            label="Intro"
+            rows={6}
             value={c.hero.intro}
-            onChange={(v) => setHero({ intro: v })}
+            onChange={(v) => patch("hero", { intro: v })}
+          />
+          <Hint>{PARAGRAPH_HINT}</Hint>
+          <ImageField
+            label="Image (shown beside the heading)"
+            value={c.hero.image}
+            onChange={(v) => patch("hero", { image: v })}
+            hint="Landscape works best (3:2). Leave empty to show the text full width."
+          />
+          <TextInput
+            label="Image alt text"
+            value={c.hero.imageAlt}
+            onChange={(v) => patch("hero", { imageAlt: v })}
           />
         </div>
       </EditorSection>
 
-      <EditorSection title="Stats bar">
-        <ListEditor
-          title="Stats"
-          items={c.stats}
-          onChange={(v) => set("stats", v)}
-          empty={{ value: "", label: "" }}
-          addLabel="+ Add stat"
-          renderRow={(item, patch) => (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <TextInput
-                label="Value"
-                value={item.value}
-                onChange={(v) => patch({ value: v })}
-              />
+      <EditorSection title="Why us">
+        <div className="space-y-3">
+          <TextInput
+            label="Heading"
+            value={c.why.heading}
+            onChange={(v) => patch("why", { heading: v })}
+          />
+          <TextArea
+            label="Body"
+            rows={10}
+            value={c.why.body}
+            onChange={(v) => patch("why", { body: v })}
+          />
+          <Hint>{PARAGRAPH_HINT}</Hint>
+          <TextArea
+            label="Pull quote (shown large beside the body)"
+            rows={2}
+            value={c.why.callout}
+            onChange={(v) => patch("why", { callout: v })}
+          />
+        </div>
+      </EditorSection>
+
+      <EditorSection title="Product range">
+        <div className="space-y-3">
+          <TextInput
+            label="Heading"
+            value={c.range.heading}
+            onChange={(v) => patch("range", { heading: v })}
+          />
+          <TextInput
+            label="Intro"
+            value={c.range.intro}
+            onChange={(v) => patch("range", { intro: v })}
+          />
+          <ListEditor
+            title="Products"
+            items={c.range.items}
+            onChange={(v) => patch("range", { items: v })}
+            empty={{ label: "" }}
+            addLabel="+ Add product type"
+            renderRow={(item, p) => (
               <TextInput
                 label="Label"
                 value={item.label}
-                onChange={(v) => patch({ label: v })}
+                onChange={(v) => p({ label: v })}
               />
-            </div>
-          )}
-        />
+            )}
+          />
+          <TextArea
+            label="Notes under the list"
+            rows={4}
+            value={c.range.outro}
+            onChange={(v) => patch("range", { outro: v })}
+          />
+          <Hint>
+            Each paragraph is shown as its own column. Separate them with a
+            blank line.
+          </Hint>
+        </div>
       </EditorSection>
 
-      <EditorSection title="Core values">
-        <div className="mb-3 grid gap-3 sm:grid-cols-2">
+      <EditorSection title="Details">
+        <div className="space-y-3">
           <TextInput
-            label="Section heading"
-            value={c.valuesHeading}
-            onChange={(v) => set("valuesHeading", v)}
+            label="Heading"
+            value={c.details.heading}
+            onChange={(v) => patch("details", { heading: v })}
           />
           <TextInput
-            label="Section subtitle"
-            value={c.valuesSubtitle}
-            onChange={(v) => set("valuesSubtitle", v)}
+            label="Intro"
+            value={c.details.intro}
+            onChange={(v) => patch("details", { intro: v })}
           />
-        </div>
-        <ListEditor
-          title="Values"
-          items={c.values}
-          onChange={(v) => set("values", v)}
-          empty={{ title: "", description: "" }}
-          addLabel="+ Add value"
-          renderRow={(item, patch) => (
-            <div className="space-y-3">
+          <ListEditor
+            title="Occasions"
+            items={c.details.occasions}
+            onChange={(v) => patch("details", { occasions: v })}
+            empty={{ label: "" }}
+            addLabel="+ Add occasion"
+            renderRow={(item, p) => (
               <TextInput
-                label="Title"
-                value={item.title}
-                onChange={(v) => patch({ title: v })}
+                label="Label"
+                value={item.label}
+                onChange={(v) => p({ label: v })}
               />
-              <TextArea
-                label="Description"
-                value={item.description}
-                onChange={(v) => patch({ description: v })}
-              />
-            </div>
-          )}
-        />
+            )}
+          />
+          <TextArea
+            label="Body"
+            rows={6}
+            value={c.details.body}
+            onChange={(v) => patch("details", { body: v })}
+          />
+          <Hint>{PARAGRAPH_HINT}</Hint>
+        </div>
       </EditorSection>
 
-      <EditorSection title="Timeline">
-        <div className="mb-3 grid gap-3 sm:grid-cols-2">
+      <EditorSection title="Better quotes">
+        <div className="space-y-3">
           <TextInput
-            label="Section heading"
-            value={c.timelineHeading}
-            onChange={(v) => set("timelineHeading", v)}
+            label="Heading"
+            value={c.quotes.heading}
+            onChange={(v) => patch("quotes", { heading: v })}
+          />
+          <TextArea
+            label="Intro"
+            rows={4}
+            value={c.quotes.intro}
+            onChange={(v) => patch("quotes", { intro: v })}
+          />
+          <Hint>{PARAGRAPH_HINT}</Hint>
+          <ListEditor
+            title="Options"
+            items={c.quotes.options}
+            onChange={(v) => patch("quotes", { options: v })}
+            empty={{ text: "" }}
+            addLabel="+ Add option"
+            renderRow={(item, p) => (
+              <TextInput
+                label="Text"
+                value={item.text}
+                onChange={(v) => p({ text: v })}
+              />
+            )}
           />
           <TextInput
-            label="Section subtitle"
-            value={c.timelineSubtitle}
-            onChange={(v) => set("timelineSubtitle", v)}
+            label="Closing line"
+            value={c.quotes.outro}
+            onChange={(v) => patch("quotes", { outro: v })}
           />
         </div>
-        <ListEditor
-          title="Milestones"
-          items={c.milestones}
-          onChange={(v) => set("milestones", v)}
-          empty={{ year: "", title: "", description: "" }}
-          addLabel="+ Add milestone"
-          renderRow={(item, patch) => (
-            <div className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <TextInput
-                  label="Year"
-                  value={item.year}
-                  onChange={(v) => patch({ year: v })}
-                />
-                <TextInput
-                  label="Title"
-                  value={item.title}
-                  onChange={(v) => patch({ title: v })}
-                />
-              </div>
-              <TextArea
-                label="Description"
-                value={item.description}
-                onChange={(v) => patch({ description: v })}
-              />
-            </div>
-          )}
-        />
       </EditorSection>
 
-      <EditorSection title="Team">
-        <div className="mb-3 grid gap-3 sm:grid-cols-2">
+      <EditorSection title="Call to action">
+        <div className="space-y-3">
           <TextInput
-            label="Section heading"
-            value={c.teamHeading}
-            onChange={(v) => set("teamHeading", v)}
+            label="Heading"
+            value={c.cta.heading}
+            onChange={(v) => patch("cta", { heading: v })}
           />
+          <TextArea
+            label="Body"
+            rows={4}
+            value={c.cta.body}
+            onChange={(v) => patch("cta", { body: v })}
+          />
+          <Hint>{PARAGRAPH_HINT}</Hint>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextInput
+              label="Button label"
+              value={c.cta.buttonLabel}
+              onChange={(v) => patch("cta", { buttonLabel: v })}
+            />
+            <TextInput
+              label="Button link"
+              value={c.cta.buttonHref}
+              onChange={(v) => patch("cta", { buttonHref: v })}
+              placeholder="/contact"
+            />
+          </div>
+          <Hint>Leave the button label empty to hide the button.</Hint>
+        </div>
+      </EditorSection>
+
+      <EditorSection title="Contact details">
+        <div className="space-y-3">
           <TextInput
-            label="Section subtitle"
-            value={c.teamSubtitle}
-            onChange={(v) => set("teamSubtitle", v)}
+            label="Company name"
+            value={c.contact.company}
+            onChange={(v) => patch("contact", { company: v })}
+          />
+          <TextArea
+            label="Address (one line per row)"
+            rows={4}
+            value={c.contact.address}
+            onChange={(v) => patch("contact", { address: v })}
+          />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <TextInput
+              label="Phone"
+              value={c.contact.phone}
+              onChange={(v) => patch("contact", { phone: v })}
+            />
+            <TextInput
+              label="Email"
+              value={c.contact.email}
+              onChange={(v) => patch("contact", { email: v })}
+            />
+            <TextInput
+              label="Website"
+              value={c.contact.website}
+              onChange={(v) => patch("contact", { website: v })}
+            />
+          </div>
+          <TextInput
+            label="Closing line"
+            value={c.contact.closing}
+            onChange={(v) => patch("contact", { closing: v })}
           />
         </div>
-        <ListEditor
-          title="Members"
-          items={c.team}
-          onChange={(v) => set("team", v)}
-          empty={{ name: "", role: "", initials: "", color: "#1a9e7a" }}
-          addLabel="+ Add member"
-          renderRow={(item, patch) => (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <TextInput
-                label="Name"
-                value={item.name}
-                onChange={(v) => patch({ name: v })}
-              />
-              <TextInput
-                label="Role"
-                value={item.role}
-                onChange={(v) => patch({ role: v })}
-              />
-              <TextInput
-                label="Initials"
-                value={item.initials}
-                onChange={(v) => patch({ initials: v })}
-              />
-              <TextInput
-                label="Avatar color (hex)"
-                value={item.color}
-                onChange={(v) => patch({ color: v })}
-              />
-            </div>
-          )}
-        />
       </EditorSection>
 
       <EditorSection title="SEO">
