@@ -11,6 +11,7 @@ interface Props {
   onSelect: (products: Product[]) => void;
   excludeIds?: string[];
   initialSelected?: string[];
+  title?: string;
 }
 
 export function ProductPicker({
@@ -19,6 +20,7 @@ export function ProductPicker({
   onSelect,
   excludeIds = [],
   initialSelected = [],
+  title = "Add related products",
 }: Props) {
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -78,7 +80,7 @@ export function ProductPicker({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-3">
-          <h3 className="text-base font-semibold">Add related products</h3>
+          <h3 className="text-base font-semibold">{title}</h3>
           <button
             onClick={onClose}
             className="rounded-md p-1.5 text-[var(--admin-fg)]/60 hover:bg-[var(--admin-muted)] hover:text-[var(--admin-fg)]"

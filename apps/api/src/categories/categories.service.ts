@@ -58,6 +58,34 @@ export class CategoriesService {
     return this.prisma.category.update({ where: { id }, data: dto });
   }
 
+  /** Link products to a category, keeping each product's other categories. */
+  async addProducts(id: string, productIds: string[]) {
+    await this.findOne(id);
+    const ids = [...new Set(productIds)];
+    const found = await this.prisma.product.count({ where: { id: { in: ids } } });
+    if (found !== ids.length) throw new NotFoundException('Product not found');
+    await this.prisma.category.update({
+      where: { id },
+      data: { products: { connect: ids.map((pid) => ({ id: pid })) } },
+    });
+    return { success: true };
+  }
+
+  /** Unlink one product from a category; the product itself is untouched. */
+  async removeProduct(id: string, productId: string) {
+    await this.findOne(id);
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+    await this.prisma.category.update({
+      where: { id },
+      data: { products: { disconnect: { id: productId } } },
+    });
+    return { success: true };
+  }
+
   async remove(id: string) {
     await this.findOne(id);
     await this.prisma.category.delete({ where: { id } });

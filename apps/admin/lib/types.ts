@@ -155,19 +155,28 @@ export interface Inquiry {
   createdAt: string;
 }
 
-export type LeadSource =
-  | "organic"
-  | "paid"
-  | "social"
-  | "referral"
-  | "email"
-  | "direct";
+/** Lead-source key stored on an inquiry, e.g. "organic", "ai-search". */
+export type LeadSource = string;
+
+/** A lead-source bucket and its matching rules (admin-editable). */
+export interface LeadSourceDef {
+  key: string;
+  label: string;
+  organic: boolean;
+  hosts: string[];
+  utmSources: string[];
+  utmMediums: string[];
+  priority: number;
+  active: boolean;
+  /** Fallback buckets (referral, direct) — cannot be deleted or turned off. */
+  system: boolean;
+}
 
 export interface LeadSourceReport {
   total: number;
   organic: number;
   other: number;
-  bySource: { source: LeadSource; count: number }[];
+  bySource: { source: LeadSource; label: string; count: number }[];
   byProvider: { provider: string; count: number }[];
 }
 
@@ -203,6 +212,52 @@ export interface Settings {
   smtpFrom: string;
   smtpSecure: boolean;
   notifyTo: string;
+  /** Public storefront origin used in sitemaps and the product feed. */
+  siteUrl: string;
+  /** `g:brand` in the Google Merchant feed. */
+  feedBrand: string;
+}
+
+export type SeoTargetName = "sitemaps" | "feed";
+
+export interface SeoTarget {
+  target: SeoTargetName;
+  status: "idle" | "running" | "failed";
+  trigger: "manual" | "schedule";
+  startedAt: string | null;
+  finishedAt: string | null;
+  durationMs: number | null;
+  stats: {
+    urls?: number;
+    files?: number;
+    included?: number;
+    excluded?: Record<string, number>;
+  };
+  error: string | null;
+}
+
+export interface SeoFile {
+  key: string;
+  target: SeoTargetName;
+  path: string;
+  items: number;
+  bytes: number;
+  generatedAt: string;
+}
+
+export interface SeoStatus {
+  siteUrl: string;
+  targets: SeoTarget[];
+  files: SeoFile[];
+}
+
+export interface FeedPreview {
+  sku: string;
+  name: string;
+  productUrl: string;
+  included: boolean;
+  excluded: string[];
+  fields: [string, string][];
 }
 
 export type SourceKind = "REST" | "FILE_FEED" | "ASI_CENTRAL";
@@ -364,22 +419,9 @@ export interface HeroSlide {
   alt?: string;
 }
 
-/** A product chosen for the home "Most Popular" tab. Stored in Home page
- * content; the storefront re-fetches live product data by `slug`. */
-export interface PopularProductRef {
-  id: string;
-  slug: string;
-  name: string;
-  sku: string;
-  image?: string;
-}
-
 export interface HomeContent {
   hero: { autoPlayMs: number; variant?: HeroVariant; slides: HeroSlide[] };
   content?: { heading: string; body: string };
-  /** Curated product list for the home "Most Popular" tab. When empty, the
-   * storefront falls back to the newest active products. */
-  popularProducts?: PopularProductRef[];
 }
 
 /** Privacy Policy / Terms & Conditions — a single rich-text body. */

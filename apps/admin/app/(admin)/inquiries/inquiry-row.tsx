@@ -12,9 +12,12 @@ const STATUSES: InquiryStatus[] = ["NEW", "IN_PROGRESS", "CLOSED"];
 export function InquiryRow({
   inquiry,
   formattedDate,
+  sourceLabel,
 }: {
   inquiry: Inquiry;
   formattedDate: string;
+  /** Display name of the lead's source; falls back to the stored key. */
+  sourceLabel?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -77,14 +80,14 @@ export function InquiryRow({
         </td>
         <td className="px-4 py-3">
           <span
-            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
               (inquiry.organic ?? true)
                 ? "bg-emerald-100 text-emerald-700"
                 : "bg-amber-100 text-amber-700"
             }`}
             title={(inquiry.organic ?? true) ? "Organic" : "Other (paid / campaign)"}
           >
-            {inquiry.source ?? "direct"}
+            {sourceLabel ?? inquiry.source ?? "direct"}
           </span>
           {inquiry.provider && (
             <p className="mt-0.5 text-xs capitalize text-[var(--admin-fg)]/60">
@@ -158,7 +161,7 @@ export function InquiryRow({
               <Field label="Received" value={formattedDate} />
               <Field
                 label="Lead source"
-                value={`${inquiry.source ?? "direct"}${(inquiry.organic ?? true) ? " (organic)" : " (other)"}`}
+                value={`${sourceLabel ?? inquiry.source ?? "direct"}${(inquiry.organic ?? true) ? " (organic)" : " (other)"}`}
               />
               <Field label="Platform" value={inquiry.provider || "—"} />
               <Field label="Campaign" value={inquiry.campaign || "—"} />

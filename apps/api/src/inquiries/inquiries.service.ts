@@ -8,12 +8,7 @@ import {
   CreateInquiryDto,
   UpdateInquiryStatusDto,
 } from './dto/inquiry.dto';
-import {
-  classifyLeadSource,
-  deriveProvider,
-  LEAD_SOURCES,
-  type LeadSource,
-} from './lead-source.util';
+import { LeadSourcesService } from './lead-sources.service';
 
 export interface InquiryListQuery {
   q?: string;
@@ -31,6 +26,7 @@ export class InquiriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
+    private readonly leadSources: LeadSourcesService,
   ) {}
 
   async create(dto: CreateInquiryDto) {
@@ -39,8 +35,8 @@ export class InquiriesService {
       utmMedium: dto.utmMedium,
       referrer: dto.referrer,
     };
-    const { source, organic } = classifyLeadSource(attribution);
-    const provider = deriveProvider(attribution);
+    const { source, organic, provider } =
+      await this.leadSources.classify(attribution);
 
     const inquiry = await this.prisma.inquiry.create({
       data: {
@@ -60,6 +56,7 @@ export class InquiriesService {
         medium: dto.utmMedium ?? '',
         campaign: dto.utmCampaign ?? '',
         referrer: dto.referrer ?? '',
+        utmSource: dto.utmSource ?? '',
       },
     });
 
@@ -156,10 +153,17 @@ export class InquiriesService {
     const counts = new Map<string, number>(
       grouped.map((g) => [g.source, g._count._all]),
     );
-    const bySource = LEAD_SOURCES.map((source: LeadSource) => ({
-      source,
-      count: counts.get(source) ?? 0,
-    }));
+    // Every configured source in priority order (so a new one shows with 0),
+    // then any key still on leads whose source has since been deleted.
+    const defined = await this.leadSources.list();
+    const bySource = [
+      ...defined
+        .filter((d) => d.active || counts.has(d.key))
+        .map((d) => ({ source: d.key, label: d.label, count: counts.get(d.key) ?? 0 })),
+      ...[...counts.keys()]
+        .filter((k) => !defined.some((d) => d.key === k))
+        .map((k) => ({ source: k, label: k, count: counts.get(k)! })),
+    ];
 
     const byProvider = groupedProvider
       .map((g) => ({ provider: g.provider, count: g._count._all }))

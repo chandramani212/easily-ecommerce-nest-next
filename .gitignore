@@ -39,6 +39,7 @@ graphify-out/
 
 # Uploaded media (runtime data, served from disk per environment)
 apps/api/uploads/
+apps/api/generated/
 
 # Misc
 .DS_Store

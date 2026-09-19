@@ -3,50 +3,51 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { ExportPanel } from "./bulk/export-panel";
+
 const BTN =
   "rounded-lg border border-[var(--admin-border)] px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--admin-muted)] disabled:opacity-50";
 
 /**
- * Export streams straight from the API, so it stays a plain download here.
- * Import needs a validation step and a progress bar, so it lives on its own
- * page rather than behind a file picker in the toolbar.
+ * Export opens a field picker and streams straight from the API. Import needs
+ * a validation step and a progress bar, so it lives on its own page.
  */
 export function ProductsToolbar() {
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
-  async function handleExport() {
-    setBusy(true);
-    setMessage(null);
-    try {
-      const res = await fetch("/api/proxy/products/bulk/category-export", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`Export failed (${res.status})`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "product-categories.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Export failed");
-    } finally {
-      setBusy(false);
-    }
-  }
+  const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2">
-      <Link href="/products/bulk-categories" className={BTN}>
+      <Link href="/products/bulk" className={BTN}>
         Import CSV
       </Link>
-      <button onClick={handleExport} disabled={busy} className={BTN}>
-        {busy ? "Exporting…" : "Export CSV"}
+      <button onClick={() => setExportOpen(true)} className={BTN}>
+        Export CSV
       </button>
-      {message && (
-        <span className="text-xs text-[var(--admin-fg)]/60">{message}</span>
+
+      {exportOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setExportOpen(false)}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-[var(--admin-card)] p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-base font-semibold">Export products</h3>
+              <button
+                onClick={() => setExportOpen(false)}
+                className="rounded-md p-1.5 text-[var(--admin-fg)]/60 hover:bg-[var(--admin-muted)] hover:text-[var(--admin-fg)]"
+                aria-label="Close"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <ExportPanel />
+          </div>
+        </div>
       )}
     </div>
   );

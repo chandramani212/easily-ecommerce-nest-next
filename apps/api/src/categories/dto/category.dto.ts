@@ -94,3 +94,12 @@ export class UpdateCategoryDto {
   @IsBoolean()
   active?: boolean;
 }
+
+export class CategoryProductsDto {
+  /** Product ids to add to the category. Already-linked ids are ignored. */
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  productIds!: string[];
+}

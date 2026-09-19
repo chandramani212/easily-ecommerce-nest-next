@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { CategoriesService } from './categories.service';
 import {
+  CategoryProductsDto,
   CreateCategoryDto,
   ReorderCategoriesDto,
   UpdateCategoryDto,
@@ -53,6 +54,21 @@ export class CategoriesController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categories.update(id, dto);
+  }
+
+  @ApiBearerAuth()
+  @Post(':id/products')
+  addProducts(@Param('id') id: string, @Body() dto: CategoryProductsDto) {
+    return this.categories.addProducts(id, dto.productIds);
+  }
+
+  @ApiBearerAuth()
+  @Delete(':id/products/:productId')
+  removeProduct(
+    @Param('id') id: string,
+    @Param('productId') productId: string,
+  ) {
+    return this.categories.removeProduct(id, productId);
   }
 
   @ApiBearerAuth()

@@ -26,6 +26,7 @@ export class SettingsService {
     await this.ensure();
     const data: Record<string, unknown> = { ...dto };
     if (dto.smtpPass === '') delete data.smtpPass;
+    if (dto.siteUrl) data.siteUrl = dto.siteUrl.trim().replace(/\/+$/, '');
 
     const updated = await this.prisma.settings.update({
       where: { id: 1 },

@@ -919,6 +919,8 @@ export const mockSettings: Settings = {
   smtpFrom: "no-reply@easilyadmin.demo",
   smtpSecure: false,
   notifyTo: "hello@easilyadmin.demo",
+  siteUrl: "https://easilybranded.com",
+  feedBrand: "Easily Branded",
 };
 
 const seedMedia = (i: number, name: string, daysOldOf: number): MediaAsset => ({

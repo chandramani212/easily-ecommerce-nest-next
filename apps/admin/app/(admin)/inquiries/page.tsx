@@ -1,5 +1,12 @@
 import { apiFetch } from "../../../lib/api";
-import type { Inquiry, InquiryStatus, Pagination } from "../../../lib/types";
+import Link from "next/link";
+
+import type {
+  Inquiry,
+  InquiryStatus,
+  LeadSourceDef,
+  Pagination,
+} from "../../../lib/types";
 import { formatDateTime } from "../../../lib/format";
 import { PageHeader } from "../../../components/page-header";
 import { SearchInput } from "../../../components/search-input";
@@ -31,18 +38,28 @@ export default async function InquiriesPage({
   params.set("page", page);
   params.set("pageSize", "20");
 
-  const data = await apiFetch<Pagination<Inquiry>>(
-    `/inquiries?${params.toString()}`,
-  );
+  const [data, sourceDefs] = await Promise.all([
+    apiFetch<Pagination<Inquiry>>(`/inquiries?${params.toString()}`),
+    apiFetch<LeadSourceDef[]>("/lead-sources"),
+  ]);
 
   const statuses: InquiryStatus[] = ["NEW", "IN_PROGRESS", "CLOSED"];
-  const sources = ["organic", "paid", "social", "referral", "email", "direct"];
+  const sources = sourceDefs.map((s) => s.key);
+  const sourceLabels = Object.fromEntries(sourceDefs.map((s) => [s.key, s.label]));
 
   return (
     <div className="mx-auto max-w-7xl space-y-4">
       <PageHeader
         title="Inquiries"
         description="Customer product inquiries from the storefront"
+        actions={
+          <Link
+            href="/inquiries/sources"
+            className="rounded-lg border border-[var(--admin-border)] px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--admin-muted)]"
+          >
+            Manage sources
+          </Link>
+        }
       />
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput placeholder="Search name, email, or message" />
@@ -52,6 +69,7 @@ export default async function InquiriesPage({
           selected={source}
           paramName="source"
           label="All sources"
+          labels={sourceLabels}
         />
         <div className="ml-auto">
           <ExportButton
@@ -89,6 +107,7 @@ export default async function InquiriesPage({
                   key={inq.id}
                   inquiry={inq}
                   formattedDate={formatDateTime(inq.createdAt)}
+                  sourceLabel={sourceLabels[inq.source ?? "direct"]}
                 />
               ))
             )}

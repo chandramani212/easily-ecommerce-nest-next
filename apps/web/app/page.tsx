@@ -122,6 +122,46 @@ async function representativeImage(
   return { fit: "cover" };
 }
 
+/** Slug of the merchandising category whose subcategories feed the home
+ * "Best Sellers" section. */
+const BEST_SELLERS_SLUG = "best-sellers";
+
+/**
+ * Tabs for the home "Best Sellers" section: one per active Best Sellers
+ * subcategory (in admin sort order) holding its first 8 products. Products are
+ * hand-assigned to those subcategories in the admin today; once real order data
+ * exists, this is the one place to swap in a sales-ranked query. Falls back to
+ * the newest products when no Best Sellers subcategory has any products.
+ */
+async function bestSellerTabs(
+  categories: ApiCategory[],
+  newest: ApiProduct[],
+) {
+  const root = categories.find((c) => c.slug === BEST_SELLERS_SLUG);
+  const subcategories = root
+    ? categories.filter(
+        (c) => c.parentId === root.id && (c._count?.products ?? 0) > 0,
+      )
+    : [];
+  const tabs = await Promise.all(
+    subcategories.map(async (c) => {
+      const res = await apiFetchSafe<ProductsResponse>(
+        `/products?active=true&pageSize=8&categoryId=${encodeURIComponent(c.id)}`,
+      );
+      return {
+        key: c.slug,
+        label: c.name,
+        products: (res?.items ?? []).map(adaptProductForCard),
+      };
+    }),
+  );
+  const filled = tabs.filter((t) => t.products.length > 0);
+  if (filled.length > 0) return filled;
+  return [
+    { key: "newest", label: "New Arrivals", products: newest.map(adaptProductForCard) },
+  ];
+}
+
 export default async function Page() {
   const [categoriesRaw, popularRaw, homePage] = await Promise.all([
     apiFetchSafe<ApiCategory[]>("/categories?active=true"),
@@ -147,7 +187,10 @@ export default async function Page() {
     const kids = childrenByParentId.get(id) ?? [];
     return kids.flatMap((k) => [k, ...descendantsOf(k.id)]);
   };
-  const rootCategoriesRaw = allCategories.filter((c) => !c.parentId).slice(0, 6);
+  // Best Sellers is a merchandising bucket with its own section below.
+  const rootCategoriesRaw = allCategories
+    .filter((c) => !c.parentId && c.slug !== BEST_SELLERS_SLUG)
+    .slice(0, 6);
   const showcaseCategories = await Promise.all(
     rootCategoriesRaw.map(async (c) => {
       const descendants = descendantsOf(c.id);
@@ -167,67 +210,7 @@ export default async function Page() {
     }),
   );
 
-  const topCategoriesForTabs = (categoriesRaw ?? [])
-    .filter((c) => !c.parentId)
-    .slice(0, 2);
-
-  // "Most Popular" tab: use the admin-curated product list (by slug, in order)
-  // when set; otherwise fall back to the newest active products.
-  const curatedPopular = homePage?.content?.popularProducts ?? [];
-  let popularProducts;
-  if (curatedPopular.length > 0) {
-    const fetched = await Promise.all(
-      curatedPopular.map((ref) =>
-        apiFetchSafe<ApiProduct>(
-          `/products/by-slug/${encodeURIComponent(ref.slug)}`,
-        ),
-      ),
-    );
-    popularProducts = fetched
-      .filter((p): p is ApiProduct => !!p && p.active !== false)
-      .map(adaptProductForCard);
-  } else {
-    popularProducts = (popularRaw?.items ?? []).map(adaptProductForCard);
-  }
-
-  // Products live on leaf categories, so a root-category tab must gather its
-  // products from descendant leaves (querying the root id directly returns
-  // none). Walk the most-stocked leaves and merge, deduped, up to 8 products.
-  const categoryTabs = await Promise.all(
-    topCategoriesForTabs.map(async (c) => {
-      const leaves = descendantsOf(c.id)
-        .filter((k) => (k._count?.products ?? 0) > 0)
-        .sort((a, b) => (b._count?.products ?? 0) - (a._count?.products ?? 0));
-      const collected: ApiProduct[] = [];
-      const seen = new Set<string>();
-      for (const leaf of leaves) {
-        if (collected.length >= 8) break;
-        const res = await apiFetchSafe<ProductsResponse>(
-          `/products?active=true&pageSize=8&categoryId=${encodeURIComponent(leaf.id)}`,
-        );
-        for (const p of res?.items ?? []) {
-          if (seen.has(p.id)) continue;
-          seen.add(p.id);
-          collected.push(p);
-          if (collected.length >= 8) break;
-        }
-      }
-      return {
-        key: c.slug,
-        label: c.name,
-        products: collected.map(adaptProductForCard),
-      };
-    }),
-  );
-
-  const tabs = [
-    {
-      key: "popular",
-      label: "Most Popular",
-      products: popularProducts,
-    },
-    ...categoryTabs.filter((t) => t.products.length > 0),
-  ];
+  const tabs = await bestSellerTabs(allCategories, popularRaw?.items ?? []);
 
   return (
     <>

@@ -91,15 +91,6 @@ export default async function DashboardPage() {
   );
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-  organic: "Organic search",
-  paid: "Paid / Ads",
-  social: "Social",
-  referral: "Referral",
-  email: "Email",
-  direct: "Direct",
-};
-
 function LeadsBySource({ report }: { report: LeadSourceReport }) {
   const bySource = report.bySource ?? [];
   const byProvider = report.byProvider ?? [];
@@ -159,7 +150,7 @@ function LeadsBySource({ report }: { report: LeadSourceReport }) {
               >
                 <div className="flex items-center gap-3 text-sm">
                   <span className="w-28 shrink-0 capitalize text-[var(--admin-fg)]/70">
-                    {SOURCE_LABELS[s.source] ?? s.source}
+                    {s.label ?? s.source}
                   </span>
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--admin-muted)]">
                     <div

@@ -69,7 +69,9 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
         className="relative hidden border-b border-slate-700 bg-slate-800 md:block"
         onMouseLeave={() => setActiveId(null)}
       >
-        <div className="mx-auto flex max-w-7xl items-center overflow-x-auto px-4 sm:px-6 lg:px-8">
+        {/* One row on wide screens (items spread edge to edge); below xl the row
+            wraps instead of scrolling, so there is never a horizontal scrollbar. */}
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center px-4 xl:flex-nowrap xl:justify-between xl:px-6">
           {categories.map((cat) => (
             <Link
               key={cat.id}
@@ -81,7 +83,7 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
               onMouseEnter={() =>
                 setActiveId(cat.children.length > 0 ? cat.id : null)
               }
-              className={`relative shrink-0 whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors ${
+              className={`relative shrink-0 whitespace-nowrap px-2.5 py-3 text-[13px] font-medium transition-colors xl:px-2 xl:text-sm ${
                 activeId === cat.id
                   ? "bg-slate-700 text-white"
                   : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
@@ -103,32 +105,49 @@ export function CategoryBarClient({ categories }: CategoryBarClientProps) {
             onMouseEnter={() => setActiveId(activeCat.id)}
             onMouseLeave={() => setActiveId(null)}
           >
-            <div className="flex w-max max-w-[min(63rem,92vw)] flex-wrap justify-start gap-5 p-5">
-              {activeCat.children.map((sub) => (
-                <div key={sub.id} className="w-44">
-                  <Link
-                    href={`/${sub.slug}`}
-                    className="mb-2 block text-sm font-semibold text-[var(--accent)] hover:underline"
-                  >
-                    {sub.name}
-                  </Link>
-                  {sub.children.length > 0 && (
-                    <ul className="space-y-1.5">
-                      {sub.children.map((item) => (
-                        <li key={item.id}>
-                          <Link
-                            href={`/${item.slug}`}
-                            className="block text-sm text-[var(--foreground)]/70 transition-colors hover:text-[var(--accent)]"
-                          >
-                            {item.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
+            {activeCat.children.every((sub) => sub.children.length === 0) ? (
+              // Two-level branch (no third level): a simple vertical list
+              // instead of a row of single-link columns.
+              <ul className="w-56 space-y-1 p-3">
+                {activeCat.children.map((sub) => (
+                  <li key={sub.id}>
+                    <Link
+                      href={`/${sub.slug}`}
+                      className="block rounded px-2 py-1.5 text-sm text-[var(--foreground)]/80 transition-colors hover:bg-[var(--muted)] hover:text-[var(--accent)]"
+                    >
+                      {sub.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="flex w-max max-w-[min(63rem,92vw)] flex-wrap justify-start gap-5 p-5">
+                {activeCat.children.map((sub) => (
+                  <div key={sub.id} className="w-44">
+                    <Link
+                      href={`/${sub.slug}`}
+                      className="mb-2 block text-sm font-semibold text-[var(--accent)] hover:underline"
+                    >
+                      {sub.name}
+                    </Link>
+                    {sub.children.length > 0 && (
+                      <ul className="space-y-1.5">
+                        {sub.children.map((item) => (
+                          <li key={item.id}>
+                            <Link
+                              href={`/${item.slug}`}
+                              className="block text-sm text-[var(--foreground)]/70 transition-colors hover:text-[var(--accent)]"
+                            >
+                              {item.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </nav>

@@ -8,6 +8,8 @@ interface StatusFilterProps {
   selected?: string;
   paramName?: string;
   label?: string;
+  /** Display text per value; defaults to the value with _ → space. */
+  labels?: Record<string, string>;
 }
 
 export function StatusFilter(props: StatusFilterProps) {
@@ -32,6 +34,7 @@ function StatusFilterInner({
   selected,
   paramName = "status",
   label = "All statuses",
+  labels,
 }: StatusFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -54,7 +57,7 @@ function StatusFilterInner({
       <option value="">{label}</option>
       {statuses.map((s) => (
         <option key={s} value={s}>
-          {s.replace(/_/g, " ")}
+          {labels?.[s] ?? s.replace(/_/g, " ")}
         </option>
       ))}
     </select>

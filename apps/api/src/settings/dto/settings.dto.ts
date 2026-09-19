@@ -5,7 +5,9 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUrl,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
 
@@ -46,6 +48,18 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsString()
   notifyTo?: string;
+
+  /** Public storefront origin for sitemap / feed URLs, e.g. https://easilybranded.com */
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsUrl({ protocols: ['https', 'http'], require_protocol: true, require_tld: false })
+  siteUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(70)
+  feedBrand?: string;
 }
 
 export class TestEmailDto {

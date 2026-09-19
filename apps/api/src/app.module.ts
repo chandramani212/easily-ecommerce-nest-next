@@ -22,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProductBulkModule } from './products/bulk/product-bulk.module';
 import { ProductsModule } from './products/products.module';
 import { SettingsModule } from './settings/settings.module';
+import { SeoModule } from './seo/seo.module';
 import { StatsModule } from './stats/stats.module';
 import { SourcesModule } from './sources/sources.module';
 import { UsersModule } from './users/users.module';
@@ -50,6 +51,7 @@ import { UsersModule } from './users/users.module';
     }),
     PrismaModule,
     MailModule,
+    SeoModule,
     AuthModule,
     UsersModule,
     CategoriesModule,

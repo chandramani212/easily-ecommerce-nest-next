@@ -1,16 +1,9 @@
 /**
- * Classify a lead's acquisition source from UTM params + referrer into one of a
- * small set of buckets, plus a headline `organic` flag (organic = NOT acquired
- * through paid/email marketing). Pure + deterministic so it's easy to test.
+ * Classify a lead's acquisition source from UTM params + referrer. The buckets
+ * and their matching rules live in the LeadSource table (editable from the
+ * admin); this module stays pure — rules in, classification out — so it is
+ * easy to test and to re-run over existing leads.
  */
-
-export type LeadSource =
-  | 'organic'
-  | 'paid'
-  | 'social'
-  | 'referral'
-  | 'email'
-  | 'direct';
 
 export interface AttributionInput {
   utmSource?: string | null;
@@ -19,50 +12,40 @@ export interface AttributionInput {
 }
 
 export interface ClassifiedSource {
-  source: LeadSource;
+  source: string;
   organic: boolean;
 }
 
-const PAID_MEDIUMS = [
-  'cpc',
-  'ppc',
-  'paid',
-  'paidsearch',
-  'paid-search',
-  'paidsocial',
-  'paid-social',
-  'display',
-  'cpm',
-  'banner',
-  'retargeting',
-];
-const EMAIL_MEDIUMS = ['email', 'e-mail', 'newsletter'];
-const SOCIAL_MEDIUMS = ['social', 'social-organic', 'sm', 'social-media'];
-const EMAIL_SOURCES = ['email', 'newsletter', 'mailchimp', 'klaviyo', 'sendgrid'];
-const SOCIAL_HOSTS = [
-  'facebook.',
-  'instagram.',
-  'twitter.',
-  'x.com',
-  't.co',
-  'linkedin.',
-  'lnkd.in',
-  'youtube.',
-  'pinterest.',
-  'tiktok.',
-  'reddit.',
-  'wa.me',
-  'whatsapp',
-];
-const SEARCH_HOSTS = [
-  'google.',
-  'bing.',
-  'yahoo.',
-  'duckduckgo.',
-  'ecosia.',
-  'baidu.',
-  'yandex.',
-];
+/** The subset of a LeadSource row the classifier needs. */
+export interface LeadSourceRule {
+  key: string;
+  organic: boolean;
+  hosts: string[];
+  utmSources: string[];
+  utmMediums: string[];
+  priority: number;
+  active: boolean;
+}
+
+/** Fallback buckets (system rows) used when no rule matches. */
+export const REFERRAL = 'referral';
+export const DIRECT = 'direct';
+
+/**
+ * Does `value` (a host or utm_source) contain the rule fragment `frag` on a
+ * domain-label boundary? "facebook." matches m.facebook.com, "t.co" matches
+ * t.co but not chatgpt.com, "x.com" matches x.com but not box.com.
+ */
+export function matchesHost(value: string, frag: string): boolean {
+  if (!value || !frag) return false;
+  for (let i = value.indexOf(frag); i !== -1; i = value.indexOf(frag, i + 1)) {
+    const before = i === 0 || value[i - 1] === '.';
+    const end = i + frag.length;
+    const after = frag.endsWith('.') || end === value.length || value[end] === '.';
+    if (before && after) return true;
+  }
+  return false;
+}
 
 function host(url: string): string {
   try {
@@ -72,54 +55,38 @@ function host(url: string): string {
   }
 }
 
-export function classifyLeadSource(input: AttributionInput): ClassifiedSource {
+/**
+ * First active rule (lowest priority number) that matches wins:
+ *  - utm_medium equals one of `utmMediums`, or
+ *  - utm_source equals one of `utmSources`, or
+ *  - utm_source or the referrer host contains one of `hosts`.
+ * No match → "referral" when there is any referrer / utm_source, else "direct".
+ */
+export function classifyLeadSource(
+  input: AttributionInput,
+  rules: readonly LeadSourceRule[],
+): ClassifiedSource {
   const src = (input.utmSource ?? '').trim().toLowerCase();
   const medium = (input.utmMedium ?? '').trim().toLowerCase();
   const ref = (input.referrer ?? '').trim();
   const refHost = ref ? host(ref) : '';
 
-  // Paid marketing wins — explicit paid medium, or an ad-network gclid-style source.
-  if (PAID_MEDIUMS.includes(medium) || src === 'adwords' || src === 'gclid') {
-    return { source: 'paid', organic: false };
-  }
-  // Email campaigns.
-  if (EMAIL_MEDIUMS.includes(medium) || EMAIL_SOURCES.includes(src)) {
-    return { source: 'email', organic: false };
-  }
-  // Organic social (paid social already captured above).
-  if (
-    SOCIAL_MEDIUMS.includes(medium) ||
-    SOCIAL_HOSTS.some((h) => src.includes(h) || refHost.includes(h))
-  ) {
-    return { source: 'social', organic: true };
-  }
-  // Organic search.
-  if (
-    medium === 'organic' ||
-    SEARCH_HOSTS.some((h) => src.includes(h) || refHost.includes(h))
-  ) {
-    return { source: 'organic', organic: true };
-  }
-  // Any other explicit referrer or referral medium → referral.
-  if (medium === 'referral' || (refHost && !src)) {
-    return { source: 'referral', organic: true };
-  }
-  // A campaign source with no recognizable medium → treat as referral.
-  if (src) {
-    return { source: 'referral', organic: true };
-  }
-  // No signals at all.
-  return { source: 'direct', organic: true };
-}
+  const ordered = rules
+    .filter((r) => r.active)
+    .sort((a, b) => a.priority - b.priority);
 
-export const LEAD_SOURCES: LeadSource[] = [
-  'organic',
-  'paid',
-  'social',
-  'referral',
-  'email',
-  'direct',
-];
+  for (const r of ordered) {
+    const hit =
+      (medium && r.utmMediums.includes(medium)) ||
+      (src && r.utmSources.includes(src)) ||
+      r.hosts.some((h) => matchesHost(src, h) || matchesHost(refHost, h));
+    if (hit) return { source: r.key, organic: r.organic };
+  }
+
+  const fallback = refHost || src ? REFERRAL : DIRECT;
+  const row = rules.find((r) => r.key === fallback);
+  return { source: fallback, organic: row?.organic ?? true };
+}
 
 /** Normalize a utm_source / host fragment to a friendly platform name. */
 const PROVIDER_ALIASES: Record<string, string> = {
@@ -155,16 +122,37 @@ const PROVIDER_ALIASES: Record<string, string> = {
   email: 'email',
   mailchimp: 'email',
   klaviyo: 'email',
+  // AI assistants
+  chatgpt: 'chatgpt',
+  'chat.openai': 'chatgpt',
+  openai: 'chatgpt',
+  perplexity: 'perplexity',
+  gemini: 'gemini',
+  bard: 'gemini',
+  copilot: 'copilot',
+  claude: 'claude',
+  'meta.ai': 'meta-ai',
+  'meta-ai': 'meta-ai',
+  deepseek: 'deepseek',
+  grok: 'grok',
+  phind: 'phind',
+  'you.com': 'you',
 };
 
 function hostToProvider(h: string): string {
   const clean = h.replace(/^www\./, '');
+  // Multi-label aliases first ("chat.openai", "meta.ai"), then the leftmost
+  // known label — the most specific part of the host — so gemini.google.com
+  // is "gemini", not "google".
   for (const key of Object.keys(PROVIDER_ALIASES)) {
-    if (clean.includes(key)) return PROVIDER_ALIASES[key]!;
+    if (key.includes('.') && matchesHost(clean, key)) return PROVIDER_ALIASES[key]!;
+  }
+  const labels = clean.split('.');
+  for (const label of labels) {
+    if (PROVIDER_ALIASES[label]) return PROVIDER_ALIASES[label]!;
   }
   // Fall back to the registrable-ish name (e.g. "example.com" -> "example").
-  const parts = clean.split('.');
-  return parts.length >= 2 ? parts[parts.length - 2]! : clean;
+  return labels.length >= 2 ? labels[labels.length - 2]! : clean;
 }
 
 /**

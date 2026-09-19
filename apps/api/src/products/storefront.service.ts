@@ -66,7 +66,7 @@ interface CardRow {
   createdAt: Date;
 }
 
-const DEFAULT_PAGE_SIZE = 45;
+const DEFAULT_PAGE_SIZE = 60;
 const MAX_PAGE_SIZE = 100;
 
 // Facets need a scan of the category's attribute JSON (~200 ms on the largest
@@ -81,6 +81,8 @@ const COLOR_SPLIT = /[,/|]|(?<=\w)-(?=\w)/;
 
 /** Card price: the selling price, or the base price when none is set. */
 const PRICE = Prisma.sql`COALESCE(NULLIF(p."sellingPrice", 0), p."basePrice")`;
+/** Products the storefront may show: active and with a real (non-zero) price. */
+const VISIBLE = Prisma.sql`p.active = true AND ${PRICE} > 0`;
 
 const FROM = Prisma.sql`"_ProductCategories" pc JOIN "Product" p ON p.id = pc."B"`;
 
@@ -181,7 +183,7 @@ export class ProductsStorefrontService {
 
     const conds: Prisma.Sql[] = [
       Prisma.sql`pc."A" = ${categoryId}`,
-      Prisma.sql`p.active = true`,
+      VISIBLE,
     ];
     if (minPrice !== undefined) conds.push(Prisma.sql`${PRICE} >= ${minPrice}::numeric`);
     if (maxPrice !== undefined) conds.push(Prisma.sql`${PRICE} <= ${maxPrice}::numeric`);
@@ -268,7 +270,7 @@ export class ProductsStorefrontService {
       >`
         SELECT count(*)::int AS n, min(${PRICE}) AS lo, max(${PRICE}) AS hi
         FROM ${FROM}
-        WHERE pc."A" = ${categoryId} AND p.active = true`,
+        WHERE pc."A" = ${categoryId} AND ${VISIBLE}`,
       this.prisma.$queryRaw<{ id: string; name: string; value: string }[]>`
         SELECT p.id, lower(e.elem->>'name') AS name, e.elem->>'value' AS value
         FROM ${FROM}
@@ -276,7 +278,7 @@ export class ProductsStorefrontService {
           CASE WHEN jsonb_typeof(p.attributes) = 'array'
                THEN p.attributes ELSE '[]'::jsonb END
         ) WITH ORDINALITY AS e(elem, ord)
-        WHERE pc."A" = ${categoryId} AND p.active = true
+        WHERE pc."A" = ${categoryId} AND ${VISIBLE}
           AND lower(e.elem->>'name') IN ('brand', 'color', 'colour')
           AND jsonb_typeof(e.elem->'value') = 'string'
         ORDER BY p.id, e.ord`,

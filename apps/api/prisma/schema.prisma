@@ -280,12 +280,38 @@ model Inquiry {
   medium   String  @default("") // raw utm_medium
   campaign String  @default("") // raw utm_campaign
   referrer String  @default("") // referring URL/host
+  utmSource String @default("") // raw utm_source (kept so leads can be re-classified)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([source])
   @@index([createdAt])
+}
+
+/// A lead-source bucket an inquiry is classified into, editable from the
+/// admin. Rules are checked in `priority` order (lowest first); the first
+/// source with a matching referrer host, utm_source or utm_medium wins. When
+/// nothing matches, the lead is "referral" (has a referrer or utm_source) or
+/// "direct" — those two are `system` rows and cannot be deleted.
+model LeadSource {
+  /// Stored on Inquiry.source, e.g. "ai-search". Never changes once created.
+  key          String   @id
+  label        String
+  /// Counts toward "organic" in the organic-vs-other split.
+  organic      Boolean  @default(true)
+  /// Substrings matched against the referrer host and utm_source
+  /// (e.g. "chatgpt.com", "perplexity.").
+  hosts        String[] @default([])
+  /// Exact utm_source values (lowercase).
+  utmSources   String[] @default([])
+  /// Exact utm_medium values (lowercase).
+  utmMediums   String[] @default([])
+  priority     Int      @default(100)
+  active       Boolean  @default(true)
+  system       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model ContactMessage {
@@ -309,7 +335,42 @@ model Settings {
   smtpFrom   String   @default("")
   smtpSecure Boolean  @default(false)
   notifyTo   String   @default("")
+  /// Public storefront origin used for absolute URLs in sitemaps and feeds.
+  siteUrl    String   @default("https://easilybranded.com")
+  /// `g:brand` in the Google Merchant feed.
+  feedBrand  String   @default("Easily Branded")
   updatedAt  DateTime @updatedAt
+}
+
+/// One generated SEO file (a sitemap or a product feed) on disk, served
+/// publicly by SeoController. Replaced wholesale on each regeneration.
+model SeoFile {
+  /// Stable name, e.g. "sitemap-index", "sitemap-products-2", "google-merchant".
+  key         String   @id
+  /// "sitemaps" or "feed" — the regeneration target it belongs to.
+  target      String
+  /// Public path on the storefront, e.g. "/sitemaps/products-2.xml".
+  path        String
+  /// URLs (sitemaps) or items (feed) in the file.
+  items       Int
+  bytes       Int
+  generatedAt DateTime
+  sortOrder   Int      @default(0)
+}
+
+/// Generation state per target ("sitemaps" | "feed").
+model SeoTarget {
+  target     String    @id
+  /// "idle" | "running" | "failed"
+  status     String    @default("idle")
+  /// "manual" | "schedule"
+  trigger    String    @default("manual")
+  startedAt  DateTime?
+  finishedAt DateTime?
+  durationMs Int?
+  /// For the feed: products left out and why, e.g. { "No image": 12 }.
+  stats      Json      @default("{}")
+  error      String?
 }
 
 model Source {
@@ -522,6 +583,9 @@ model ProductImportJob {
   id       String                 @id @default(cuid())
   status   ProductImportJobStatus @default(PARSING)
   filename String
+  /// "CATEGORY" = category-path sheet (/products/bulk/category-import);
+  /// "PRODUCT" = full product sheet (/products/bulk/import).
+  kind     String                 @default("CATEGORY")
   /// Human-readable step shown next to the progress bar ("Staging rows", …).
   phase    String                 @default("")
 
@@ -580,6 +644,12 @@ model ProductImportRow {
   /// Why this row cannot be applied; null means applicable. Set by the resolve
   /// pass, so both the report and the apply filter on one column.
   problem String?
+
+  /// PRODUCT jobs only: "create", "update" or "none" (row matches the catalogue).
+  action String?
+  /// PRODUCT jobs only: the validated changes for this row — just the fields
+  /// that differ from the catalogue, so apply never re-reads the sheet.
+  data   Json?
 
   @@index([jobId, rowNum])
   @@index([jobId, problem])

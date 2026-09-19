@@ -96,7 +96,13 @@ export class ProductsService {
     if (query.categoryId) {
       where.categories = { some: { id: query.categoryId } };
     }
-    if (query.active === 'true') where.active = true;
+    if (query.active === 'true') {
+      // `?active=true` is the storefront view: also hide unpriced ($0) products.
+      where.active = true;
+      where.AND = [
+        { OR: [{ sellingPrice: { gt: 0 } }, { basePrice: { gt: 0 } }] },
+      ];
+    }
     if (query.active === 'false') where.active = false;
 
     const [total, items] = await Promise.all([
@@ -128,9 +134,13 @@ export class ProductsService {
     return withEffectiveTierPrices(product);
   }
 
+  /** Storefront product lookup: unpriced ($0) products are treated as missing. */
   async findBySlug(slug: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { slug },
+    const product = await this.prisma.product.findFirst({
+      where: {
+        slug,
+        OR: [{ sellingPrice: { gt: 0 } }, { basePrice: { gt: 0 } }],
+      },
       include: PRODUCT_INCLUDE,
     });
     if (!product) throw new NotFoundException('Product not found');

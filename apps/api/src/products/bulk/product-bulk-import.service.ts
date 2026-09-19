@@ -114,9 +114,12 @@ export class ProductBulkImportService {
   async applyJob(id: string): Promise<{ id: string }> {
     const job = await this.prisma.productImportJob.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: { id: true, status: true, kind: true },
     });
-    if (!job) throw new NotFoundException('Import job not found');
+    // Full-product jobs are applied by ProductImportService.
+    if (!job || job.kind !== 'CATEGORY') {
+      throw new NotFoundException('Import job not found');
+    }
     if (job.status !== ProductImportJobStatus.VALIDATED) {
       throw new BadRequestException(
         `Job is ${job.status}; only a validated job can be applied.`,

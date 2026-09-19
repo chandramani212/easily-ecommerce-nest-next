@@ -140,6 +140,15 @@ const PAGES: MenuItem[] = [
     ),
   },
   {
+    label: "SEO & Feeds",
+    href: "/seo",
+    icon: (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15zM7.5 10.5h6M10.5 7.5v6" />
+      </svg>
+    ),
+  },
+  {
     label: "Settings",
     href: "/settings",
     icon: (

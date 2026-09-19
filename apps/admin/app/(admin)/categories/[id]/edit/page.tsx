@@ -1,7 +1,8 @@
 import { apiFetch } from "../../../../../lib/api";
-import type { Category } from "../../../../../lib/types";
+import type { Category, Pagination, Product } from "../../../../../lib/types";
 import { PageHeader } from "../../../../../components/page-header";
 import { CategoryForm } from "../../category-form";
+import { CategoryProducts } from "./category-products";
 import { DEMO_CATEGORY_IDS } from "../../../../../lib/demo-api";
 import { IS_DEMO } from "../../../../../lib/demo";
 
@@ -12,13 +13,23 @@ export async function generateStaticParams() {
 
 export default async function EditCategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string; q?: string }>;
 }) {
   const { id } = await params;
-  const [category, categories] = await Promise.all([
+  const { page, q } = await searchParams;
+  const productQuery = new URLSearchParams({
+    categoryId: id,
+    page: page ?? "1",
+    pageSize: "20",
+  });
+  if (q) productQuery.set("q", q);
+  const [category, categories, products] = await Promise.all([
     apiFetch<Category>(`/categories/${id}`),
     apiFetch<Category[]>("/categories"),
+    apiFetch<Pagination<Product>>(`/products?${productQuery.toString()}`),
   ]);
 
   return (
@@ -28,6 +39,7 @@ export default async function EditCategoryPage({
         description="Update category details"
       />
       <CategoryForm category={category} categories={categories} />
+      <CategoryProducts categoryId={id} data={products} />
     </div>
   );
 }

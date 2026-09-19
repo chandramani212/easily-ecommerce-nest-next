@@ -36,9 +36,6 @@ export interface HomeContent {
   hero: { autoPlayMs: number; variant?: "split" | "full"; slides: HeroSlide[] };
   /** Optional free-form content block rendered at the bottom of the home page. */
   content?: { heading: string; body: string };
-  /** Admin-curated products for the "Most Popular" tab (by slug, in order).
-   * When empty/unset, the home page falls back to the newest active products. */
-  popularProducts?: { slug: string }[];
 }
 
 /** About page. Multi-paragraph text fields separate paragraphs with a blank

@@ -15,7 +15,7 @@ export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 ];
 
 /** Products shown per page. */
-export const PER_PAGE = 45;
+export const PER_PAGE = 60;
 
 export interface ListingQuery {
   page: number;
