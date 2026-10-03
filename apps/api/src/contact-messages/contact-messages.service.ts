@@ -24,7 +24,11 @@ export class ContactMessagesService {
   ) {}
 
   async create(dto: CreateContactMessageDto) {
-    const msg = await this.prisma.contactMessage.create({ data: dto });
+    // Honeypot filled → bot. Pretend success so it doesn't retry, but store/mail nothing.
+    const { website, ...data } = dto;
+    if (website) return { id: null, success: true };
+
+    const msg = await this.prisma.contactMessage.create({ data });
 
     void this.mail.send({
       subject: `New contact message: ${dto.subject || 'General inquiry'}`,

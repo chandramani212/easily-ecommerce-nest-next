@@ -8,8 +8,10 @@ import {
   Post,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
 
 import { Public } from '../auth/decorators/public.decorator';
@@ -28,6 +30,7 @@ export class ContactMessagesController {
   constructor(private readonly messages: ContactMessagesService) {}
 
   @Public()
+  @UseGuards(ThrottlerGuard)
   @Post()
   create(@Body() dto: CreateContactMessageDto) {
     return this.messages.create(dto);

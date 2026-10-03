@@ -30,6 +30,9 @@ export class InquiriesService {
   ) {}
 
   async create(dto: CreateInquiryDto) {
+    // Honeypot filled → bot. Pretend success so it doesn't retry, but store/mail nothing.
+    if (dto.website) return { id: null, success: true };
+
     const attribution = {
       utmSource: dto.utmSource,
       utmMedium: dto.utmMedium,

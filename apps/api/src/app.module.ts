@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'node:path';
 
 import { AppController } from './app.controller';
@@ -31,6 +32,12 @@ import { UsersModule } from './users/users.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    // Rate limits are opt-in per route via @UseGuards(ThrottlerGuard) — only the
+    // public storefront form endpoints use it, so admin traffic is unaffected.
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 5 }],
+      errorMessage: 'Too many submissions. Please wait a minute and try again.',
+    }),
     ServeStaticModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

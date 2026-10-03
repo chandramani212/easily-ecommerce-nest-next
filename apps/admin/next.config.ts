@@ -8,6 +8,22 @@ const isDemo = process.env.NEXT_PUBLIC_DEMO === "1";
 // it renders bundled mock data instead.)
 const API_URL = process.env.API_URL || "http://localhost:3001";
 
+// Baseline security headers. The admin is never embedded, so framing is denied
+// outright. (Not applied to the static demo export, which can't set headers.)
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+  },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "same-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=()",
+  },
+];
+
 const nextConfig: NextConfig = isDemo
   ? {
       output: "export",
@@ -17,6 +33,10 @@ const nextConfig: NextConfig = isDemo
       assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || undefined,
     }
   : {
+      poweredByHeader: false,
+      async headers() {
+        return [{ source: "/:path*", headers: securityHeaders }];
+      },
       experimental: {
         // Next caps a route handler's request body at 10MB by default, which
         // silently truncates larger uploads — they reach the API as a

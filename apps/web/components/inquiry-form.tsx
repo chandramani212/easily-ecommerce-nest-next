@@ -45,6 +45,7 @@ export function InquiryForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const website = new FormData(e.currentTarget as HTMLFormElement).get("website");
     setError(null);
     setSubmitting(true);
     try {
@@ -64,6 +65,7 @@ export function InquiryForm({
           quantity: formData.quantity || undefined,
           message: formData.message || undefined,
           ...attribution,
+          website: website || undefined,
         }),
       });
       if (!res.ok) {
@@ -114,7 +116,14 @@ export function InquiryForm({
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="relative space-y-4">
+        {/* Honeypot: off-screen, skipped by keyboard and screen readers. Bots fill it; people don't. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+          <label>
+            Website
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+          </label>
+        </div>
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
             Inquiry Type

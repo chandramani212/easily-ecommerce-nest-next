@@ -8,8 +8,10 @@ import {
   Post,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
 
 import { Public } from '../auth/decorators/public.decorator';
@@ -25,6 +27,7 @@ export class InquiriesController {
   constructor(private readonly inquiries: InquiriesService) {}
 
   @Public()
+  @UseGuards(ThrottlerGuard)
   @Post()
   create(@Body() dto: CreateInquiryDto) {
     return this.inquiries.create(dto);

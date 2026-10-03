@@ -21,17 +21,19 @@ export function captureAttribution(): void {
   if (typeof window === "undefined") return;
   try {
     const params = new URLSearchParams(window.location.search);
+    // Clamp to the API's field limits so an oversized URL can't block the lead.
     const utm: Attribution = {
-      utmSource: params.get("utm_source") || undefined,
-      utmMedium: params.get("utm_medium") || undefined,
-      utmCampaign: params.get("utm_campaign") || undefined,
+      utmSource: params.get("utm_source")?.slice(0, 200) || undefined,
+      utmMedium: params.get("utm_medium")?.slice(0, 200) || undefined,
+      utmCampaign: params.get("utm_campaign")?.slice(0, 200) || undefined,
     };
     const hasUtm = utm.utmSource || utm.utmMedium || utm.utmCampaign;
     const already = sessionStorage.getItem(KEY);
     if (already && !hasUtm) return; // keep first touch
 
     const ref = document.referrer || "";
-    const external = ref && !ref.includes(window.location.host) ? ref : "";
+    const external =
+      ref && !ref.includes(window.location.host) ? ref.slice(0, 1000) : "";
     sessionStorage.setItem(KEY, JSON.stringify({ ...utm, referrer: external }));
   } catch {
     /* sessionStorage unavailable (private mode) — attribution is best-effort. */

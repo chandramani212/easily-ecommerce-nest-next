@@ -42,6 +42,7 @@ export function ContactForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const website = new FormData(e.currentTarget as HTMLFormElement).get("website");
     setError(null);
     setSubmitting(true);
     try {
@@ -54,6 +55,7 @@ export function ContactForm() {
           email: form.email,
           subject: form.subject || undefined,
           message: form.message,
+          website: website || undefined,
         }),
       });
       if (!res.ok) {
@@ -101,7 +103,14 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <form onSubmit={handleSubmit} className="relative mt-6 space-y-4">
+      {/* Honeypot: off-screen, skipped by keyboard and screen readers. Bots fill it; people don't. */}
+      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label>
+          Website
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium">First Name</label>
